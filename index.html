@@ -1006,39 +1006,89 @@ async function getBars(symbol, timeframe, start, end) {
 }
  
 // Geniş hisse listesi — snapshot ile tarayacağız
+// ═══════════════════════════════════════════════════════
+// TARAMA EVRENİ — 300+ HİSSE
+// ═══════════════════════════════════════════════════════
 const SCAN_UNIVERSE = [
-  'AAPL','MSFT','NVDA','AMD','TSLA','AMZN','GOOGL','META','NFLX','PLTR',
-  'SOFI','MARA','RIOT','CLSK','IONQ','EOSE','CTMX','SOPA','VCX','RR',
-  'BBAI','GFAI','HYMC','INDO','ACHR','JOBY','LILM','AEVA','OUST','LIDR',
-  'NKLA','WKHS','RIDE','GOEV','FFIE','MULN','SOLO','ZEV','AYRO','XPEV',
-  'NIO','LI','RIVN','LCID','FSR','BLNK','CHPT','EVGO','SBE','THCB',
-  'SPCE','RKLB','ASTR','RVX','MNTS','ASTS','SATL','GSAT','VNET','LAUR',
-  'CLOV','WISH','SKLZ','BARK','GREE','BTBT','HIVE','BITF','SOS','CAN',
-  'GME','AMC','BBBY','KOSS','EXPR','NAKD','SNDL','TLRY','ACB','CGC'
-];
+  // Mega cap tech
+  'AAPL','MSFT','NVDA','AMD','TSLA','AMZN','GOOGL','META','NFLX','INTC',
+  'QCOM','MU','AVGO','TXN','AMAT','LRCX','KLAC','CRM','ORCL','NOW',
+  'SNOW','DDOG','CRWD','ZS','PANW','PLTR','COIN','HOOD','SOFI','UPST',
+  // AI & Kuantum
+  'IONQ','RGTI','QUBT','ARQQ','QMCO','BBAI','SOUN','AI','GFAI','IREN',
+  'KULR','KOPN','NURO','RBOT','GENI','VERB','IDAI','CODA','AEYE','SYNTX',
+  // EV & Enerji
+  'RIVN','LCID','FSR','NKLA','WKHS','RIDE','GOEV','FFIE','MULN','SOLO',
+  'BLNK','CHPT','EVGO','BEAM','STEM','ARRY','NOVA','SEDG','ENPH','FSLR',
+  'PLUG','BE','BLDP','FCEL','CLNE','RUN','SPWR','ACHR','JOBY','LILM',
+  // Kripto & Blockchain
+  'MARA','RIOT','CLSK','HIVE','BITF','SOS','CAN','BTBT','CIFR','HUT',
+  'BTCS','BKKT','NXTD','DMGI','GREE','MSTR',
+  // Biotech & Pharma
+  'MRNA','BNTX','NVAX','RCUS','FATE','KRTX','IONS','ALLO','ACAD','SAGE',
+  'AXSM','OCGN','CLOV','SNDX','TGTX','IMVT','TARS','FULC','PRAX','MNKD',
+  'TNXP','NRXP','CELZ','ADTX','ITRM','PMVP','ORMP','VBIV','COCP','CASI',
+  'XBIO','ATNF','GBOX','ATXI','BSFC','ILUS','AEHR','BNGO','LODE','NSPR',
+  // Uzay & Savunma
+  'RKLB','ASTR','MNTS','ASTS','SPCE','SATL','VORB','KTOS','AVAV','AXON',
+  // Meme & Yüksek volatilite
+  'GME','AMC','KOSS','EXPR','BBBY','NAKD','SNDL','TLRY','ACB','CGC',
+  'WISH','SKLZ','BARK','SPRT','ATER','SDC','XELA','CRBP','MFON','NSPR',
+  // Small cap yüksek potansiyel
+  'INDO','HYMC','AEVA','OUST','LIDR','VLDR','LAZR','MVIS','KOPN','AEHR',
+  'VERB','NWPX','ADTX','CELZ','NRXP','TNXP','MNKD','XELA','LODE','BNGO',
+  // Fintech
+  'AFRM','LC','OPEN','OPFI','DAVE','MOGO','NRDS','CURO','BILL','RPAY',
+  // Özel izleme listesi
+  'IONQ','EOSE','CTMX','RR','SOPA','PLTR','VCX'
+].filter((v,i,a) => a.indexOf(v) === i);
  
-async function getMoversFromSnapshots(direction) {
-  try {
-    // Batch into groups of 20
-    const results = [];
-    for (let i = 0; i < SCAN_UNIVERSE.length; i += 20) {
-      const batch = SCAN_UNIVERSE.slice(i, i + 20);
-      const snaps = await getSnapshots(batch);
+// Tüm evreni snapshot ile tara — batch halinde
+async function scanAllSnapshots() {
+  const results = [];
+  const batchSize = 20;
+  const batches = [];
+  for (let i = 0; i < SCAN_UNIVERSE.length; i += batchSize) {
+    batches.push(SCAN_UNIVERSE.slice(i, i + batchSize));
+  }
+  // Parallel batch requests (max 5 concurrent)
+  for (let i = 0; i < batches.length; i += 5) {
+    const chunk = batches.slice(i, i + 5);
+    const chunkResults = await Promise.allSettled(chunk.map(b => getSnapshots(b)));
+    for (const res of chunkResults) {
+      if (res.status !== 'fulfilled') continue;
+      const snaps = res.value;
       for (const [sym, snap] of Object.entries(snaps)) {
         const price = snap?.latestTrade?.p || snap?.dailyBar?.c || 0;
         const open = snap?.dailyBar?.o || price;
-        if (!price || !open || price < 0.1) continue;
-        const chgPct = ((price - open) / open * 100);
+        if (!price || !open || price < 0.05) continue;
+        const high = snap?.dailyBar?.h || price;
+        const low = snap?.dailyBar?.l || price;
         const vol = snap?.dailyBar?.v || 0;
-        results.push({ symbol: sym, price, percent_change: chgPct, volume: vol, avg_volume: vol });
+        const vwap = snap?.dailyBar?.vw || price;
+        const chgPct = ((price - open) / open * 100);
+        const atr = high - low;
+        results.push({ sym, price, open, high, low, vol, vwap, chgPct, atr, snap });
       }
     }
+  }
+  return results;
+}
+ 
+async function getMoversFromSnapshots(direction) {
+  try {
+    const results = await scanAllSnapshots();
     if (direction === 'gainers') {
-      return results.filter(r => r.percent_change > 0).sort((a,b) => b.percent_change - a.percent_change).slice(0,15);
+      return results.filter(r => r.chgPct > 0)
+        .sort((a,b) => b.chgPct - a.chgPct).slice(0,20)
+        .map(r => ({ symbol: r.sym, price: r.price, percent_change: r.chgPct, volume: r.vol }));
     } else if (direction === 'losers') {
-      return results.filter(r => r.percent_change < 0).sort((a,b) => a.percent_change - b.percent_change).slice(0,15);
+      return results.filter(r => r.chgPct < 0)
+        .sort((a,b) => a.chgPct - b.chgPct).slice(0,20)
+        .map(r => ({ symbol: r.sym, price: r.price, percent_change: r.chgPct, volume: r.vol }));
     } else {
-      return results.sort((a,b) => b.volume - a.volume).slice(0,15);
+      return results.sort((a,b) => b.vol - a.vol).slice(0,20)
+        .map(r => ({ symbol: r.sym, price: r.price, percent_change: r.chgPct, volume: r.vol }));
     }
   } catch(e) {
     console.error('Movers error:', e);
@@ -1047,7 +1097,6 @@ async function getMoversFromSnapshots(direction) {
 }
  
 async function getMovers(direction) {
-  // Try screener first, fallback to snapshot scan
   try {
     const data = await alpacaFetch(`/v1beta1/screener/stocks/movers?by=percent_change&top=20`, true);
     const list = direction === 'gainers' ? (data.gainers || []) : (data.losers || []);
@@ -1066,6 +1115,107 @@ async function getMostActive() {
   } catch(e) {
     return getMoversFromSnapshots('volume');
   }
+}
+ 
+// ═══════════════════════════════════════════════════════
+// GELİŞMİŞ SİNYAL ANALİZİ
+// ═══════════════════════════════════════════════════════
+ 
+// Sessiz birikim skoru — gelecek günlerde patlama potansiyeli
+function calcAccumulationScore(price, open, high, low, vol, vwap, chgPct) {
+  let score = 0;
+  const atrPct = price > 0 ? ((high-low)/price*100) : 0;
+ 
+  // Fiyat çok az hareket etmiş ama hacim var = birikim
+  if (Math.abs(chgPct) < 2 && vol > 200000) score += 3;
+  else if (Math.abs(chgPct) < 3 && vol > 100000) score += 2;
+  else if (Math.abs(chgPct) < 1.5) score += 1;
+ 
+  // VWAP yakınında fiyat = kurumsal alım seyrediyor
+  if (price > 0 && vwap > 0) {
+    const vwapDiff = Math.abs(price - vwap) / price * 100;
+    if (vwapDiff < 0.5) score += 2;
+    else if (vwapDiff < 1.5) score += 1;
+  }
+ 
+  // Düşük volatilite sıkışması = patlama öncesi
+  if (atrPct < 3 && vol > 50000) score += 1;
+ 
+  // Küçük cap + sessiz = daha güçlü sinyal
+  if (price < 10 && Math.abs(chgPct) < 2) score += 1;
+ 
+  return Math.min(5, score);
+}
+ 
+// Balina skoru — kurumsal para girişi
+function calcWhaleScore(price, open, high, low, vol, vwap, chgPct) {
+  let score = 0;
+ 
+  // Büyük fiyat hareketi
+  if (Math.abs(chgPct) >= 10) score += 3;
+  else if (Math.abs(chgPct) >= 5) score += 2;
+  else if (Math.abs(chgPct) >= 3) score += 1;
+ 
+  // Yüksek hacim
+  if (vol > 5000000) score += 2;
+  else if (vol > 1000000) score += 1;
+ 
+  // Fiyat VWAP üstünde = alıcılar güçlü
+  if (price > vwap) score += 1;
+ 
+  // Güçlü gün: yüksek = kapanış yakını
+  if (high > 0 && price > 0) {
+    const posInRange = (price - low) / Math.max(high - low, 0.01);
+    if (posInRange > 0.7) score += 1; // Günün üst %30'unda kapanıyor
+  }
+ 
+  return Math.min(5, score);
+}
+ 
+// Kısa vadeli patlama skoru (1-5 gün)
+function calcShortTermScore(price, open, high, low, vol, vwap, chgPct) {
+  let score = 0;
+  const atrPct = price > 0 ? ((high-low)/price*100) : 0;
+ 
+  // Momentum başlıyor ama henüz patlamamış
+  if (chgPct > 2 && chgPct < 8) score += 2;
+  else if (chgPct > 1) score += 1;
+ 
+  // VWAP breakout
+  if (price > vwap * 1.005) score += 2;
+ 
+  // Hacim artışı + fiyat hareketi
+  if (vol > 500000 && Math.abs(chgPct) > 2) score += 1;
+ 
+  // Küçük cap daha explosive hareket eder
+  if (price < 5) score += 1;
+  if (price < 2) score += 1;
+ 
+  // Birikim sonrası ilk hareket
+  if (Math.abs(chgPct) > 0.5 && Math.abs(chgPct) < 5 && vol > 100000) score += 1;
+ 
+  return Math.min(5, score);
+}
+ 
+// Orta vadeli patlama skoru (1-6 ay)
+function calcMidTermScore(price, open, high, low, vol, vwap, chgPct) {
+  let score = 0;
+ 
+  // Düşük fiyat + potansiyel sektör
+  if (price < 3) score += 2;
+  else if (price < 10) score += 1;
+ 
+  // Sessiz birikim devam ediyor
+  if (Math.abs(chgPct) < 2 && vol > 100000) score += 2;
+ 
+  // VWAP desteği
+  if (price >= vwap * 0.98 && price <= vwap * 1.02) score += 1;
+ 
+  // Yüksek ATR = potansiyel volatilite
+  const atrPct = price > 0 ? ((high-low)/price*100) : 0;
+  if (atrPct > 5) score += 1;
+ 
+  return Math.min(5, score);
 }
  
 // ═══════════════════════════════════════════════════════
@@ -1404,148 +1554,101 @@ function alertItem(a) {
 async function loadAccumulation() {
   const el = document.getElementById('accumulation-table');
   if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
-  el.innerHTML = loadingHtml();
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>300+ hisse taranıyor...</div>';
  
   try {
-    // Scan watchlist + some additional tickers
-    const scanList = [...new Set([...state.watchlist, 'NVDA','AMD','MARA','RIOT','SOFI','CLSK','INDO','BBAI','HYMC','GFAI'])];
-    const snaps = await getSnapshots(scanList);
- 
+    const allData = await scanAllSnapshots();
     const results = [];
-    for (const [sym, snap] of Object.entries(snaps)) {
-      const price = snap.latestTrade?.p || snap.dailyBar?.c || 0;
-      const open = snap.dailyBar?.o || price;
-      const chgPct = open ? ((price - open) / open * 100) : 0;
-      const vol = snap.dailyBar?.v || 0;
-      const vwap = snap.dailyBar?.vw || price;
- 
-      // Accumulation criteria: low price movement, rising volume
-      if (Math.abs(chgPct) < 3 && vol > 100000) {
-        const atr = (snap.dailyBar?.h || price) - (snap.dailyBar?.l || price);
-        const score = Math.max(0, 5 - Math.abs(chgPct) * 2 + (price > 0 ? Math.log10(vol) * 0.3 : 0));
-        results.push({ sym, price, chgPct, vol, vwap, score: Math.min(5, score) });
+    for (const d of allData) {
+      const score = calcAccumulationScore(d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+      if (score >= 2) {
+        const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+        results.push({ ...d, score, signal });
       }
     }
- 
     results.sort((a,b) => b.score - a.score);
-    document.getElementById('acc-total').textContent = scanList.length;
-    document.getElementById('acc-strong').textContent = results.filter(r => r.score >= 3).length;
-    document.getElementById('acc-multi').textContent = results.filter(r => r.score >= 4).length;
+    document.getElementById('acc-total').textContent = allData.length;
+    document.getElementById('acc-strong').textContent = results.filter(r => r.score >= 4).length;
+    document.getElementById('acc-multi').textContent = results.filter(r => r.score >= 4.5).length;
     document.getElementById('acc-updated').textContent = new Date().toLocaleTimeString('tr-TR');
  
     if (results.length === 0) {
       el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌊</div>Birikim sinyali tespit edilmedi</div>';
       return;
     }
- 
     el.innerHTML = `<table class="stock-table">
-      <thead><tr>
-        <th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>VWAP</th><th>Sinyal</th><th>Skor</th>
-      </tr></thead>
+      <thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>VWAP</th><th>Giriş</th><th>Hedef</th><th>Sinyal</th><th>Skor</th></tr></thead>
       <tbody>
-        ${results.map(r => `<tr onclick="openStockModal('${r.sym}')">
-          <td><div class="ticker-cell"><span class="ticker">${r.sym}</span></div></td>
+        ${results.slice(0,30).map(r => `<tr onclick="openStockModal('${r.sym}')">
+          <td><span class="ticker">${r.sym}</span></td>
           <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
           <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${(r.vol/1000).toFixed(0)}K</span></td>
+          <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000).toFixed(0)}K</span></td>
           <td><span class="vwap-badge">$${r.vwap.toFixed(2)}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${r.signal.entry?'$'+r.signal.entry.toFixed(2):'—'}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--green);font-size:0.8rem;">${r.signal.target?'$'+r.signal.target.toFixed(2):'—'}</span></td>
           <td><div class="signal-tags">
-            ${r.score >= 4 ? '<span class="tag tag-yellow">⭐ Çok Günlü Birikim</span>' : ''}
-            <span class="tag tag-purple">🌊 Sessiz</span>
-            ${r.price < r.vwap ? '<span class="tag tag-red">VWAP Altı</span>' : '<span class="tag tag-green">VWAP Üstü</span>'}
+            ${r.score>=4?'<span class="tag tag-yellow">⭐ Güçlü</span>':''}
+            <span class="tag tag-purple">🌊 Birikim</span>
+            ${r.price<r.vwap?'<span class="tag tag-red">VWAP Altı</span>':'<span class="tag tag-green">VWAP Üstü</span>'}
           </div></td>
           <td><div class="strength-bar-wrap">
-            <div class="strength-bar"><div class="strength-fill" style="width:${(r.score/5*100)}%;background:var(--accent);"></div></div>
+            <div class="strength-bar"><div class="strength-fill" style="width:${r.score/5*100}%;background:var(--accent);"></div></div>
             <span class="strength-label up">${r.score.toFixed(1)}</span>
           </div></td>
         </tr>`).join('')}
-      </tbody>
-    </table>`;
-  } catch(e) {
-    el.innerHTML = errorHtml(e.message);
-  }
+      </tbody></table>`;
+  } catch(e) { el.innerHTML = errorHtml(e.message); }
 }
  
-// ═══════════════════════════════════════════════════════
-// WHALE TAB
-// ═══════════════════════════════════════════════════════
 async function loadWhale() {
   const el = document.getElementById('whale-table');
   if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
-  el.innerHTML = loadingHtml();
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>300+ hisse taranıyor...</div>';
  
   try {
-    // Get most active stocks and filter for whale signals
-    const active = await getMostActive();
-    const snaps = await getSnapshots(state.watchlist);
- 
+    const allData = await scanAllSnapshots();
     const whaleSignals = [];
- 
-    // From most active
-    for (const stock of active.slice(0, 20)) {
-      const sym = stock.symbol;
-      const chgPct = stock.percent_change || 0;
-      const price = stock.price || 0;
-      // Volume multiplier from Alpaca movers is not directly available, calculate from snap
-      if (Math.abs(chgPct) >= 3) {
-        whaleSignals.push({
-          sym,
-          price,
-          chgPct,
-          volMult: (stock.volume / (stock.avg_volume || stock.volume || 1)).toFixed(1),
-          vol: stock.volume,
-          source: 'active'
-        });
+    for (const d of allData) {
+      const score = calcWhaleScore(d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+      if (score >= 2) {
+        const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+        whaleSignals.push({ ...d, score, signal });
       }
     }
- 
-    // From watchlist
-    for (const [sym, snap] of Object.entries(snaps)) {
-      const price = snap.latestTrade?.p || snap.dailyBar?.c || 0;
-      const open = snap.dailyBar?.o || price;
-      const chgPct = open ? ((price - open) / open * 100) : 0;
-      const vol = snap.dailyBar?.v || 0;
-      if (Math.abs(chgPct) >= 5 && vol > 500000) {
-        if (!whaleSignals.find(w => w.sym === sym)) {
-          whaleSignals.push({ sym, price, chgPct, volMult: '3+', vol, source: 'watchlist' });
-        }
-      }
-    }
- 
-    whaleSignals.sort((a,b) => Math.abs(b.chgPct) - Math.abs(a.chgPct));
- 
+    whaleSignals.sort((a,b) => b.score - a.score);
     document.getElementById('whale-count').textContent = whaleSignals.length;
-    document.getElementById('whale-max').textContent = whaleSignals[0]?.volMult || '—';
-    const avgChg = whaleSignals.length ? (whaleSignals.reduce((s,w) => s + Math.abs(w.chgPct), 0) / whaleSignals.length).toFixed(1) : '—';
+    document.getElementById('whale-max').textContent = whaleSignals[0]?.score.toFixed(1) || '—';
+    const avgChg = whaleSignals.length ? (whaleSignals.reduce((s,w) => s+Math.abs(w.chgPct),0)/whaleSignals.length).toFixed(1) : '—';
     document.getElementById('whale-avg-chg').textContent = avgChg + '%';
  
     if (whaleSignals.length === 0) {
       el.innerHTML = '<div class="empty-state"><div class="empty-icon">🐋</div>Balina aktivitesi tespit edilmedi</div>';
       return;
     }
- 
     el.innerHTML = `<table class="stock-table">
-      <thead><tr>
-        <th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>Vol ×</th><th>Sinyal</th>
-      </tr></thead>
+      <thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>Giriş</th><th>Stop</th><th>Hedef</th><th>Sinyal</th><th>Skor</th></tr></thead>
       <tbody>
-        ${whaleSignals.map(w => `<tr onclick="openStockModal('${w.sym}')">
-          <td><div class="ticker-cell"><span class="ticker">${w.sym}</span></div></td>
+        ${whaleSignals.slice(0,25).map(w => `<tr onclick="openStockModal('${w.sym}')">
+          <td><span class="ticker">${w.sym}</span></td>
           <td><span class="price-mono">$${w.price.toFixed(2)}</span></td>
           <td><span class="chg-badge ${w.chgPct>=0?'up':'dn'}">${w.chgPct>=0?'+':''}${w.chgPct.toFixed(1)}%</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${(w.vol/1000).toFixed(0)}K</span></td>
-          <td><span style="font-family:var(--font-mono);color:var(--purple);font-weight:700;">${w.volMult}×</span></td>
+          <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(w.vol/1000).toFixed(0)}K</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${w.signal.entry?'$'+w.signal.entry.toFixed(2):'—'}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">${w.signal.stopL?'$'+w.signal.stopL.toFixed(2):'—'}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--green);font-size:0.8rem;">${w.signal.target?'$'+w.signal.target.toFixed(2):'—'}</span></td>
           <td><div class="signal-tags">
             <span class="tag tag-purple">🐋 Balina</span>
-            ${Math.abs(w.chgPct) > 8 ? '<span class="tag tag-orange">🔥 AKTİF</span>' : ''}
-            ${w.source === 'watchlist' ? '<span class="tag tag-blue">İzleme</span>' : ''}
+            ${w.score>=4?'<span class="tag tag-orange">🔥 AKTİF</span>':''}
+            ${w.price>w.vwap?'<span class="tag tag-green">VWAP↑</span>':'<span class="tag tag-red">VWAP↓</span>'}
+          </div></td>
+          <td><div class="strength-bar-wrap">
+            <div class="strength-bar"><div class="strength-fill" style="width:${w.score/5*100}%;background:var(--purple);"></div></div>
+            <span class="strength-label" style="color:var(--purple)">${w.score.toFixed(1)}</span>
           </div></td>
         </tr>`).join('')}
-      </tbody>
-    </table>`;
-  } catch(e) {
-    el.innerHTML = errorHtml(e.message);
-  }
+      </tbody></table>`;
+  } catch(e) { el.innerHTML = errorHtml(e.message); }
 }
  
 // ═══════════════════════════════════════════════════════
@@ -1606,76 +1709,53 @@ function renderActiveTable(list) {
 }
  
 // ═══════════════════════════════════════════════════════
-// SHORT SQUEEZE TAB
+// SHORT SQUEEZE TAB — GELİŞMİŞ
 // ═══════════════════════════════════════════════════════
 async function loadSqueeze() {
   const el = document.getElementById('squeeze-table');
   if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
-  el.innerHTML = loadingHtml();
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>300+ hisse taranıyor...</div>';
  
   try {
-    // Get movers with high change + analyze for squeeze potential
-    const gainers = await getMovers('gainers');
-    const snaps = await getSnapshots(state.watchlist);
- 
+    const allData = await scanAllSnapshots();
     const squeezeList = [];
- 
-    for (const s of gainers.slice(0, 20)) {
-      if ((s.percent_change || 0) > 5) {
+    for (const d of allData) {
+      if (d.chgPct > 3 || (d.chgPct > 1.5 && d.vol > 500000)) {
+        const squeezeScore = Math.min(5,
+          (Math.abs(d.chgPct)/5) +
+          (d.vol>1000000?1:0) +
+          (d.price<5?1:0) +
+          (d.price>d.vwap?0.5:0)
+        );
+        const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
         squeezeList.push({
-          sym: s.symbol,
-          price: s.price || 0,
-          chgPct: s.percent_change || 0,
-          squeezeScore: Math.min(5, (s.percent_change / 5)),
-          vol: s.volume || 0,
-          status: s.percent_change > 15 ? '🔥 AKTİF' : '⚡ İzleniyor'
+          ...d, squeezeScore, signal,
+          status: d.chgPct>15?'🔥 AKTİF':d.chgPct>8?'⚡ Güçlü':'👁 İzleniyor'
         });
       }
     }
- 
-    for (const [sym, snap] of Object.entries(snaps)) {
-      const price = snap.latestTrade?.p || snap.dailyBar?.c || 0;
-      const open = snap.dailyBar?.o || price;
-      const chgPct = open ? ((price - open) / open * 100) : 0;
-      if (chgPct > 5 && !squeezeList.find(s => s.sym === sym)) {
-        squeezeList.push({
-          sym, price, chgPct,
-          squeezeScore: Math.min(5, chgPct / 5),
-          vol: snap.dailyBar?.v || 0,
-          status: chgPct > 15 ? '🔥 AKTİF' : '⚡ İzleniyor'
-        });
-      }
-    }
- 
     squeezeList.sort((a,b) => b.squeezeScore - a.squeezeScore);
  
     if (squeezeList.length === 0) {
       el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div>Aktif squeeze adayı yok</div>';
       return;
     }
- 
     el.innerHTML = `<table class="stock-table">
-      <thead><tr>
-        <th>#</th><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>Durum</th><th>Skor</th>
-      </tr></thead>
+      <thead><tr><th>#</th><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th><th>Giriş</th><th>Stop</th><th>Hedef</th><th>Durum</th></tr></thead>
       <tbody>
-        ${squeezeList.map((s, i) => `<tr onclick="openStockModal('${s.sym}')">
+        ${squeezeList.slice(0,20).map((s,i) => `<tr onclick="openStockModal('${s.sym}')">
           <td><span style="font-family:var(--font-mono);color:var(--text3);">${i+1}</span></td>
           <td><span class="ticker">${s.sym}</span></td>
           <td><span class="price-mono">$${s.price.toFixed(2)}</span></td>
           <td><span class="chg-badge up">+${s.chgPct.toFixed(2)}%</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${(s.vol/1000).toFixed(0)}K</span></td>
-          <td><span class="tag ${s.status.includes('AKTİF')?'tag-red':'tag-yellow'}">${s.status}</span></td>
-          <td><div class="strength-bar-wrap">
-            <div class="strength-bar"><div class="strength-fill" style="width:${s.squeezeScore/5*100}%;background:var(--yellow);"></div></div>
-            <span class="strength-label" style="color:var(--yellow)">${s.squeezeScore.toFixed(1)}</span>
-          </div></td>
+          <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(s.vol/1000).toFixed(0)}K</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${s.signal.entry?'$'+s.signal.entry.toFixed(2):'—'}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">${s.signal.stopL?'$'+s.signal.stopL.toFixed(2):'—'}</span></td>
+          <td><span style="font-family:var(--font-mono);color:var(--green);font-size:0.8rem;">${s.signal.target?'$'+s.signal.target.toFixed(2):'—'}</span></td>
+          <td><span class="tag ${s.status.includes('AKTİF')?'tag-red':s.status.includes('Güçlü')?'tag-orange':'tag-yellow'}">${s.status}</span></td>
         </tr>`).join('')}
-      </tbody>
-    </table>`;
-  } catch(e) {
-    el.innerHTML = errorHtml(e.message);
-  }
+      </tbody></table>`;
+  } catch(e) { el.innerHTML = errorHtml(e.message); }
 }
  
 // ═══════════════════════════════════════════════════════
