@@ -773,8 +773,8 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">💎 3-6 Ay İçinde 5-10x Adayları</div>
-            <div class="card-subtitle">Düşük fiyat · Sessiz birikim · Güçlü sektör · Kurumsal ilgi</div>
+            <div class="card-title">💎 ASTS/IONQ/PLTR Benzeri Adaylar</div>
+            <div class="card-subtitle">Devrimci sektör · Sessiz birikim · Kurumsal ilgi · Düşük fiyat → Yüksek potansiyel</div>
           </div>
           <button class="refresh-btn" onclick="loadMultibagger()">↻ Tara</button>
         </div>
@@ -1535,61 +1535,104 @@ async function loadPremarket() {
 // ═══════════════════════════════════════════════════════
 
 // Yüksek potansiyelli sektörler
-const HIGH_POTENTIAL_SECTORS = [
-  'IONQ','RGTI','QUBT','ARQQ','QMCO', // Kuantum
-  'BBAI','SOUN','AI','GFAI','IREN','KULR', // AI
-  'MARA','RIOT','CLSK','HIVE','BITF', // Kripto madencilik
-  'ACHR','JOBY','LILM','SPCE','RKLB', // Uzay/Havacılık
-  'EOSE','STEM','PLUG','BE','FCEL', // Temiz enerji
-  'IONQ','CTMX','OCGN','TNXP','MNKD', // Biotech
-  'SOFI','UPST','AFRM','HOOD', // Fintech
-  'NKLA','WKHS','MULN','FFIE', // EV
-  'ASTS','MNTS','ASTR', // Uzay
-  'RR','SOPA','VCX','EOSE','CTMX', // Özel izleme
+// ASTS/IONQ/PLTR benzeri hisseler — devrimci sektör + kurumsal ilgi + düşük fiyat
+const ASTS_LIKE_UNIVERSE = [
+  // Kuantum Bilgisayar (IONQ benzeri)
+  'IONQ','RGTI','QUBT','ARQQ','QMCO','QTUM',
+  // Uzay & Uydu (ASTS benzeri)
+  'ASTS','RKLB','MNTS','ASTR','VORB','LUNR','RDW','SPCE','IRDM',
+  // Savunma AI (PLTR benzeri küçükler)
+  'BBAI','SOUN','AI','GFAI','IREN','KULR','CODA','SINTX',
+  // Uçan Taksi / Yeni Nesil Ulaşım
+  'ACHR','JOBY','LILM','EVTL','BLADE',
+  // Temiz Enerji - Yeni Nesil
+  'EOSE','STEM','FCEL','BE','PLUG','CLNE',
+  // Biotech - Yüksek Potansiyel
+  'CTMX','OCGN','MNKD','TNXP','NRXP','ADTX',
+  // Fintech - Disruption
+  'SOFI','UPST','AFRM','DAVE','OPFI',
+  // Kripto Altyapı
+  'MARA','RIOT','CLSK','IREN','CIFR','BITF',
+  // Özel İzleme
+  'RR','SOPA','VCX','EOSE','CTMX','PLTR',
 ];
+
+// ASTS/IONQ/PLTR DNA skoru — ne kadar benziyor?
+function calcASTSLikeScore(sym, price, chgPct, vol, vwap, high, low) {
+  let score = 0;
+  const tags = [];
+
+  // 1. Fiyat aralığı: $0.50 - $30 (erken aşama ama çok penny değil)
+  if (price >= 0.5 && price <= 5) { score += 3; tags.push('💎 Erken Aşama'); }
+  else if (price > 5 && price <= 15) { score += 2; tags.push('📈 Büyüme Aşaması'); }
+  else if (price > 15 && price <= 30) { score += 1; tags.push('🚀 Olgunlaşıyor'); }
+
+  // 2. Devrimci sektör listesinde mi?
+  if (ASTS_LIKE_UNIVERSE.includes(sym)) { score += 4; tags.push('🔥 ASTS/IONQ Tipi Sektör'); }
+
+  // 3. Sessiz birikim (fiyat sakin ama hacim var)
+  if (Math.abs(chgPct) < 3 && vol > 100000) { score += 3; tags.push('🌊 Sessiz Birikim'); }
+  else if (Math.abs(chgPct) < 5 && vol > 50000) { score += 1; }
+
+  // 4. VWAP desteği (kurumlar fiyatı tutuyorlar)
+  if (price >= vwap * 0.98 && price <= vwap * 1.03) { score += 2; tags.push('🏛️ VWAP Desteği'); }
+  else if (price > vwap) { score += 1; tags.push('VWAP Üstü'); }
+
+  // 5. Düşük günlük volatilite = sıkışma = patlama öncesi
+  const atrPct = price > 0 ? ((high - low) / price * 100) : 0;
+  if (atrPct < 5 && Math.abs(chgPct) < 2) { score += 2; tags.push('⚡ Sıkışma'); }
+
+  // 6. Hacim yeterli (kurumlar girebiliyor)
+  if (vol > 500000) { score += 1; tags.push('✅ Hacim OK'); }
+
+  return { score, tags };
+}
 
 async function loadMultibagger() {
   const el = document.getElementById('multibagger-table');
   if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
-  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>5-10x adayları taranıyor...</div>';
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>ASTS/IONQ/PLTR benzeri adaylar taranıyor...</div>';
 
   try {
+    // Standart evren + ASTS benzeri özel liste
+    const extraSnaps = await getSnapshots(ASTS_LIKE_UNIVERSE);
     const allData = await scanAllSnapshots();
+
+    // ASTS benzeri hisseleri de ekle
+    for (const [sym, snap] of Object.entries(extraSnaps)) {
+      if (!allData.find(d => d.sym === sym)) {
+        const price = snap?.latestTrade?.p || snap?.dailyBar?.c || 0;
+        const open = snap?.dailyBar?.o || price;
+        const high = snap?.dailyBar?.h || price;
+        const low = snap?.dailyBar?.l || price;
+        const vol = snap?.dailyBar?.v || 0;
+        const vwap = snap?.dailyBar?.vw || price;
+        const chgPct = open ? ((price - open) / open * 100) : 0;
+        if (price > 0) allData.push({ sym, price, open, high, low, vol, vwap, chgPct, atr: high - low });
+      }
+    }
+
     const results = [];
 
     for (const d of allData) {
-      // Multibagger kriterleri
-      if (d.price <= 0.05 || d.price > 20) continue; // Fiyat aralığı $0.05 - $20
+      if (d.price <= 0.10 || d.price > 50) continue;
 
-      let score = 0;
-      const reasons = [];
+      const { score, tags } = calcASTSLikeScore(d.sym, d.price, d.chgPct, d.vol, d.vwap, d.high, d.low);
 
-      // 1. Düşük fiyat = yüksek patlama potansiyeli
-      if (d.price < 1) { score += 3; reasons.push('Penny Stock'); }
-      else if (d.price < 3) { score += 2; reasons.push('$1-3 Aralığı'); }
-      else if (d.price < 10) { score += 1; reasons.push('$10 Altı'); }
-
-      // 2. Yüksek potansiyelli sektörde mi?
-      if (HIGH_POTENTIAL_SECTORS.includes(d.sym)) { score += 3; reasons.push('🔥 Katalist Sektör'); }
-
-      // 3. Sessiz birikim devam ediyor
-      if (Math.abs(d.chgPct) < 2 && d.vol > 50000) { score += 2; reasons.push('🌊 Birikim'); }
-
-      // 4. VWAP yakını veya üstü
-      if (d.price >= d.vwap * 0.97 && d.price <= d.vwap * 1.05) { score += 1; reasons.push('VWAP Destek'); }
-
-      // 5. Hacim mevcut
-      if (d.vol > 200000) { score += 1; reasons.push('Hacim OK'); }
-
-      // 6. Yüksek ATR = patlama potansiyeli
-      const atrPct = d.price > 0 ? ((d.high - d.low) / d.price * 100) : 0;
-      if (atrPct > 8) { score += 1; reasons.push('Yüksek Volatilite'); }
-
-      if (score >= 4) {
+      if (score >= 5) {
         const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
-        // Hedef potansiyel hesabı (3-6 ay)
-        const potentialX = d.price < 1 ? '5-20x' : d.price < 3 ? '3-10x' : d.price < 10 ? '2-5x' : '1.5-3x';
-        const potentialTarget = d.price < 1 ? d.price * 8 : d.price < 3 ? d.price * 5 : d.price * 3;
+
+        // Potansiyel hesabı — ASTS/IONQ mantığıyla
+        let potentialX, potentialTarget, timeframe;
+        if (d.price < 2) {
+          potentialX = '10-50x'; potentialTarget = d.price * 15; timeframe = '6-18 ay';
+        } else if (d.price < 5) {
+          potentialX = '5-20x'; potentialTarget = d.price * 8; timeframe = '6-12 ay';
+        } else if (d.price < 15) {
+          potentialX = '3-10x'; potentialTarget = d.price * 5; timeframe = '3-9 ay';
+        } else {
+          potentialX = '2-5x'; potentialTarget = d.price * 3; timeframe = '3-6 ay';
+        }
 
         results.push({
           sym: d.sym,
@@ -1598,11 +1641,15 @@ async function loadMultibagger() {
           vol: d.vol,
           vwap: d.vwap,
           score,
-          reasons,
+          tags,
           potentialX,
           potentialTarget: parseFloat(potentialTarget.toFixed(2)),
-          entry: signal.entry,
-          stopL: signal.stopL,
+          timeframe,
+          entry: signal.entry || d.price,
+          stopL: signal.stopL || parseFloat((d.price * 0.85).toFixed(2)),
+          rr: signal.entry && signal.stopL && signal.target
+            ? ((signal.target - signal.entry) / Math.max(signal.entry - signal.stopL, 0.01)).toFixed(1)
+            : '—',
         });
       }
     }
@@ -1610,7 +1657,7 @@ async function loadMultibagger() {
     results.sort((a,b) => b.score - a.score);
 
     document.getElementById('mb-count').textContent = results.length;
-    document.getElementById('mb-high').textContent = results.filter(r => r.score >= 6).length;
+    document.getElementById('mb-high').textContent = results.filter(r => r.score >= 8).length;
     const avgP = results.length ? (results.reduce((s,r) => s+r.price,0)/results.length).toFixed(2) : '—';
     document.getElementById('mb-avgprice').textContent = '$' + avgP;
     document.getElementById('mb-updated').textContent = new Date().toLocaleTimeString('tr-TR');
@@ -1627,24 +1674,29 @@ async function loadMultibagger() {
       { key: 'vol', label: 'Hacim', num: 1 },
       { key: 'entry', label: 'Giriş', num: 1 },
       { key: 'stopL', label: 'Stop', num: 1 },
-      { key: 'potentialTarget', label: 'Hedef (3-6ay)', num: 1 },
+      { key: 'potentialTarget', label: 'Hedef Fiyat', num: 1 },
       { key: 'potentialX', label: 'Potansiyel', num: 0 },
+      { key: 'timeframe', label: 'Süre', num: 0 },
       { key: 'score', label: 'Skor', num: 1 },
     ];
 
     el.innerHTML = buildSortableTable('multibagger-table', results, cols, r => `
       <tr onclick="openStockModal('${r.sym}')">
-        <td><span class="ticker">${r.sym}</span></td>
+        <td>
+          <div><span class="ticker">${r.sym}</span></div>
+          <div style="margin-top:3px;">${r.tags.slice(0,2).map(t => `<span class="tag tag-purple" style="font-size:0.55rem;padding:1px 5px;">${t}</span>`).join(' ')}</div>
+        </td>
         <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
         <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
         <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000).toFixed(0)}K</span></td>
-        <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${r.entry?'$'+r.entry.toFixed(2):'—'}</span></td>
-        <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">${r.stopL?'$'+r.stopL.toFixed(2):'—'}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">$${r.entry.toFixed(2)}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">$${r.stopL.toFixed(2)}</span></td>
         <td><span style="font-family:var(--font-mono);color:var(--green);font-weight:700;">$${r.potentialTarget}</span></td>
         <td><span class="tag tag-purple">${r.potentialX}</span></td>
+        <td><span style="font-size:0.7rem;color:var(--text2);">${r.timeframe}</span></td>
         <td>
           <div class="strength-bar-wrap">
-            <div class="strength-bar"><div class="strength-fill" style="width:${Math.min(r.score/8*100,100)}%;background:var(--purple);"></div></div>
+            <div class="strength-bar"><div class="strength-fill" style="width:${Math.min(r.score/10*100,100)}%;background:var(--purple);"></div></div>
             <span class="strength-label" style="color:var(--purple)">${r.score}</span>
           </div>
         </td>
