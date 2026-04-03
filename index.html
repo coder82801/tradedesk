@@ -531,6 +531,9 @@
     <button class="tab-btn" onclick="switchTab('multibagger')" id="tab-multibagger">
       <span class="tab-icon">💎</span> 5-10x Adayı
     </button>
+    <button class="tab-btn" onclick="switchTab('scanner')" id="tab-scanner">
+      <span class="tab-icon">🔭</span> Tüm Piyasa
+    </button>
     <button class="tab-btn" onclick="switchTab('watchlist')" id="tab-watchlist">
       <span class="tab-icon">⭐</span> İzleme
     </button>
@@ -653,6 +656,39 @@
           <button class="refresh-btn" onclick="loadSqueeze()">↻ Tara</button>
         </div>
         <div id="squeeze-table"><div class="loading-spinner"><div class="spinner"></div>Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- SCANNER TAB -->
+    <div class="tab-panel" id="panel-scanner">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🔭 Tüm Piyasa Tarayıcı</div>
+            <div class="card-subtitle">300+ hisse · Pre-Market / Gün İçi / After-Hours · Yüzdelik değişime göre sırala</div>
+          </div>
+          <button class="refresh-btn" onclick="loadScanner()">↻ Tara</button>
+        </div>
+        <!-- Sub tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="save-api-btn" id="sc-btn-all" onclick="setScannerView('all')" style="font-size:0.75rem;padding:7px 14px;">📊 Tümü</button>
+          <button class="refresh-btn" id="sc-btn-gainers" onclick="setScannerView('gainers')" style="font-size:0.75rem;">📈 Yükselenler</button>
+          <button class="refresh-btn" id="sc-btn-losers" onclick="setScannerView('losers')" style="font-size:0.75rem;">📉 Düşenler</button>
+          <button class="refresh-btn" id="sc-btn-volume" onclick="setScannerView('volume')" style="font-size:0.75rem;">🔥 Hacim</button>
+          <div style="flex:1;min-width:120px;">
+            <input type="text" id="sc-search" placeholder="Sembol ara..." class="chart-symbol-input" style="width:100%;font-size:0.78rem;" oninput="filterScanner()">
+          </div>
+        </div>
+        <div class="stats-row" style="margin-bottom:12px;">
+          <div class="stat-box"><div class="stat-box-label">Toplam</div><div class="stat-box-val" id="sc-total">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Yükselenler</div><div class="stat-box-val up" id="sc-up">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Düşenler</div><div class="stat-box-val dn" id="sc-down">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Ort Değişim</div><div class="stat-box-val" id="sc-avg">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Güncelleme</div><div class="stat-box-val" id="sc-updated" style="font-size:0.65rem;color:var(--text3)">—</div></div>
+        </div>
+        <!-- Piyasa durumu göstergesi -->
+        <div id="sc-market-info" style="margin-bottom:10px;font-size:0.75rem;color:var(--text2);font-family:var(--font-mono);"></div>
+        <div id="scanner-table"><div class="loading-spinner"><div class="spinner"></div>Yükleniyor...</div></div>
       </div>
     </div>
 
@@ -1349,6 +1385,7 @@ function switchTab(name) {
   else if (name === 'squeeze') loadSqueeze();
   else if (name === 'premarket') loadPremarket();
   else if (name === 'multibagger') loadMultibagger();
+  else if (name === 'scanner') loadScanner();
   else if (name === 'watchlist') loadWatchlistFull();
   else if (name === 'chart') loadChart();
   else if (name === 'risk') calcRisk();
@@ -2058,6 +2095,143 @@ async function loadWhale() {
         </tr>`).join('')}
       </tbody></table>`;
   } catch(e) { el.innerHTML = errorHtml(e.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// TÜM PİYASA TARAYICI — PRE/MARKET/AFTER-HOURS
+// ═══════════════════════════════════════════════════════
+let scannerAllData = [];
+let scannerView = 'all';
+
+async function loadScanner() {
+  const el = document.getElementById('scanner-table');
+  if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>300+ hisse taranıyor, lütfen bekleyin...</div>';
+
+  // Piyasa durumu göster
+  const etDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const h = etDate.getHours(), m = etDate.getMinutes(), day = etDate.getDay();
+  let sessionLabel = '';
+  if (day === 0 || day === 6) sessionLabel = '🔴 Hafta Sonu — Veriler son kapanışa göre';
+  else if (h >= 4 && (h < 9 || (h === 9 && m < 30))) sessionLabel = '🟡 Pre-Market — 04:00-09:30 ET arası işlemler';
+  else if ((h === 9 && m >= 30) || (h > 9 && h < 16)) sessionLabel = '🟢 Piyasa Açık — Anlık veriler';
+  else if (h >= 16 && h < 20) sessionLabel = '🟠 After-Hours — 16:00-20:00 ET arası işlemler';
+  else sessionLabel = '⚫ Piyasa Kapalı — Son kapanış verileri';
+  document.getElementById('sc-market-info').textContent = sessionLabel;
+
+  try {
+    const allData = await scanAllSnapshots();
+    scannerAllData = allData.map(d => ({
+      sym: d.sym,
+      price: d.price,
+      chgPct: d.chgPct,
+      chgAbs: d.price - d.open,
+      vol: d.vol,
+      vwap: d.vwap,
+      high: d.high,
+      low: d.low,
+      open: d.open,
+    }));
+
+    // Varsayılan sıralama: yüzdelik değişim (büyükten küçüğe mutlak değer)
+    scannerAllData.sort((a,b) => Math.abs(b.chgPct) - Math.abs(a.chgPct));
+
+    // İstatistikler
+    const ups = scannerAllData.filter(d => d.chgPct > 0).length;
+    const downs = scannerAllData.filter(d => d.chgPct < 0).length;
+    const avg = scannerAllData.length ? (scannerAllData.reduce((s,d) => s + d.chgPct, 0) / scannerAllData.length).toFixed(2) : 0;
+    document.getElementById('sc-total').textContent = scannerAllData.length;
+    document.getElementById('sc-up').textContent = ups;
+    document.getElementById('sc-down').textContent = downs;
+    document.getElementById('sc-avg').textContent = (avg >= 0 ? '+' : '') + avg + '%';
+    document.getElementById('sc-avg').className = 'stat-box-val ' + (avg >= 0 ? 'up' : 'dn');
+    document.getElementById('sc-updated').textContent = new Date().toLocaleTimeString('tr-TR');
+
+    renderScanner();
+  } catch(e) {
+    el.innerHTML = errorHtml(e.message);
+  }
+}
+
+function setScannerView(view) {
+  scannerView = view;
+  // Button states
+  ['all','gainers','losers','volume'].forEach(v => {
+    const btn = document.getElementById('sc-btn-' + v);
+    if (!btn) return;
+    if (v === view) {
+      btn.className = 'save-api-btn';
+      btn.style.fontSize = '0.75rem';
+      btn.style.padding = '7px 14px';
+    } else {
+      btn.className = 'refresh-btn';
+      btn.style.fontSize = '0.75rem';
+      btn.style.padding = '';
+    }
+  });
+  renderScanner();
+}
+
+function filterScanner() {
+  renderScanner();
+}
+
+function renderScanner() {
+  const el = document.getElementById('scanner-table');
+  if (!el || !scannerAllData.length) return;
+
+  const search = (document.getElementById('sc-search')?.value || '').toUpperCase().trim();
+
+  let data = [...scannerAllData];
+
+  // Filtrele
+  if (scannerView === 'gainers') data = data.filter(d => d.chgPct > 0);
+  else if (scannerView === 'losers') data = data.filter(d => d.chgPct < 0);
+  else if (scannerView === 'volume') data.sort((a,b) => b.vol - a.vol);
+
+  if (search) data = data.filter(d => d.sym.includes(search));
+
+  // En fazla 100 hisse göster
+  data = data.slice(0, 100);
+
+  if (!data.length) {
+    el.innerHTML = '<div class="empty-state">Sonuç bulunamadı</div>';
+    return;
+  }
+
+  const cols = [
+    { key: 'sym', label: 'Sembol', num: 0 },
+    { key: 'price', label: 'Fiyat', num: 1 },
+    { key: 'chgPct', label: '% Değişim ⇅', num: 1 },
+    { key: 'chgAbs', label: '$ Değişim', num: 1 },
+    { key: 'vol', label: 'Hacim', num: 1 },
+    { key: 'high', label: 'Yüksek', num: 1 },
+    { key: 'low', label: 'Düşük', num: 1 },
+    { key: 'vwap', label: 'VWAP', num: 1 },
+  ];
+
+  el.innerHTML = buildSortableTable('scanner-table', data, cols, r => {
+    const cls = r.chgPct >= 0 ? 'up' : 'dn';
+    const barW = Math.min(Math.abs(r.chgPct) * 4, 100);
+    const barColor = r.chgPct >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<tr onclick="openStockModal('${r.sym}')">
+      <td><span class="ticker">${r.sym}</span></td>
+      <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="chg-badge ${cls}" style="min-width:70px;justify-content:center;">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span>
+          <div style="width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+            <div style="width:${barW}%;height:100%;background:${barColor};border-radius:2px;"></div>
+          </div>
+        </div>
+      </td>
+      <td><span class="${cls}" style="font-family:var(--font-mono);font-size:0.8rem;">${r.chgAbs>=0?'+':''}$${Math.abs(r.chgAbs).toFixed(2)}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${r.vol>=1000000?(r.vol/1000000).toFixed(1)+'M':(r.vol/1000).toFixed(0)+'K'}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--green);">$${r.high.toFixed(2)}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--red);">$${r.low.toFixed(2)}</span></td>
+      <td><span class="vwap-badge">$${r.vwap.toFixed(2)}</span></td>
+    </tr>`;
+  });
 }
 
 // ═══════════════════════════════════════════════════════
