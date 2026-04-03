@@ -1401,38 +1401,41 @@ function sortTable(tableId, col, data, columns) {
 
 // Sıralanabilir tablo yardımcısı
 function buildSortableTable(containerId, data, cols, rowFn) {
-  window['_tableData_' + containerId] = data;
-  let currentSort = { col: null, dir: -1 };
+  // ID'deki tire ve özel karakterleri kaldır (JS fonksiyon adı için)
+  const fnKey = containerId.replace(/[^a-zA-Z0-9]/g, '_');
+  window['_tableData_' + fnKey] = data;
+  window['_tableSort_' + fnKey] = { col: null, dir: -1 };
 
-  function render(rows) {
+  function render(rows, sortState) {
     const ths = cols.map(c => {
-      const isActive = currentSort.col === c.key;
-      const arrow = isActive ? (currentSort.dir > 0 ? '↑' : '↓') : '⇅';
-      return `<th style="cursor:pointer;user-select:none;white-space:nowrap;" onclick="__sort_${containerId}('${c.key}',${c.num?1:0})">${c.label} <span style="color:var(--text3);font-size:0.65em;">${arrow}</span></th>`;
+      const isActive = sortState.col === c.key;
+      const arrow = isActive ? (sortState.dir > 0 ? ' ↑' : ' ↓') : ' ⇅';
+      return `<th style="cursor:pointer;user-select:none;white-space:nowrap;padding:8px 12px;" onclick="window.__sortFn_${fnKey}('${c.key}',${c.num?1:0})">${c.label}<span style="color:var(--text3);font-size:0.65em;">${arrow}</span></th>`;
     }).join('');
-
     const trs = rows.map(r => rowFn(r)).join('');
     return `<table class="stock-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
   }
 
-  window[`__sort_${containerId}`] = function(key, isNum) {
-    if (currentSort.col === key) {
-      currentSort.dir *= -1;
+  window[`__sortFn_${fnKey}`] = function(key, isNum) {
+    const sortState = window['_tableSort_' + fnKey];
+    if (sortState.col === key) {
+      sortState.dir *= -1;
     } else {
-      currentSort.col = key;
-      currentSort.dir = -1;
+      sortState.col = key;
+      sortState.dir = -1;
     }
-    const sorted = [...data].sort((a,b) => {
+    const sourceData = window['_tableData_' + fnKey];
+    const sorted = [...sourceData].sort((a,b) => {
       const av = a[key] ?? (isNum ? 0 : '');
       const bv = b[key] ?? (isNum ? 0 : '');
-      if (!isNum) return currentSort.dir * String(av).localeCompare(String(bv));
-      return currentSort.dir * (Number(av) - Number(bv));
+      if (!isNum) return sortState.dir * String(av).localeCompare(String(bv));
+      return sortState.dir * (Number(av) - Number(bv));
     });
     const el = document.getElementById(containerId);
-    if (el) el.innerHTML = render(sorted);
+    if (el) el.innerHTML = render(sorted, sortState);
   };
 
-  return render(data);
+  return render(data, window['_tableSort_' + fnKey]);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2430,7 +2433,14 @@ async function openStockModal(sym) {
         <div class="stat-box"><div class="stat-box-label">Düşük</div><div class="stat-box-val dn">$${low.toFixed(2)}</div></div>
         <div class="stat-box"><div class="stat-box-label">ATR</div><div class="stat-box-val">$${(high-low).toFixed(2)}</div></div>
       </div>
-      <div class="signal-tags" style="margin-bottom:16px;">${signal.tags.map(t=>`<span class="tag ${t.cls}">${t.text}</span>`).join('')}</div>
+      <div class="signal-tags" style="margin-bottom:12px;">${signal.tags.map(t=>`<span class="tag ${t.cls}">${t.text}</span>`).join('')}</div>
+
+      <!-- MİNİ GRAFİK -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:6px;">GRAFİK (5 Günlük)</div>
+        <div id="modal-chart" style="height:200px;border-radius:8px;overflow:hidden;background:var(--bg3);"></div>
+      </div>
+
       <div class="price-zone" style="margin-bottom:16px;">
         <div style="font-size:0.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:8px;">GİRİŞ / STOP / HEDEF</div>
         <div class="zone-row"><span class="zone-label">🎯 Giriş Zone</span><span class="zone-val" style="color:var(--accent);">$${signal.entry?.toFixed(2) || '—'}</span></div>
@@ -2442,13 +2452,72 @@ async function openStockModal(sym) {
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="save-api-btn" onclick="switchToChart('${sym}');closeModal()">📈 Grafiği Aç</button>
+        <button class="save-api-btn" onclick="switchToChart('${sym}');closeModal()">📈 Tam Grafik</button>
         <button class="${inWatchlist?'refresh-btn':'save-api-btn'}" onclick="${inWatchlist?`removeFromWatchlist('${sym}');closeModal()`:`addTickerToWatchlist('${sym}')`}">
           ${inWatchlist ? '✕ Listeden Kaldır' : '⭐ İzleme Listesine Ekle'}
         </button>
       </div>`;
+
+    // Mini grafik yükle
+    loadModalChart(sym);
+
   } catch(e) {
     document.getElementById('modal-content').innerHTML = errorHtml(e.message);
+  }
+}
+
+async function loadModalChart(sym) {
+  const container = document.getElementById('modal-chart');
+  if (!container) return;
+
+  try {
+    const now = new Date();
+    const start = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+    const bars = await getBars(sym, '15Min',
+      start.toISOString().split('T')[0],
+      now.toISOString().split('T')[0]
+    );
+
+    if (!bars || bars.length === 0) {
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.8rem;">Grafik verisi yok</div>';
+      return;
+    }
+
+    const chart = LightweightCharts.createChart(container, {
+      width: container.clientWidth || 500,
+      height: 200,
+      layout: { background: { color: 'transparent' }, textColor: '#8899bb' },
+      grid: { vertLines: { color: '#1e2d4a' }, horzLines: { color: '#1e2d4a' } },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      rightPriceScale: { borderColor: '#1e2d4a' },
+      timeScale: { borderColor: '#1e2d4a', timeVisible: true },
+      handleScroll: false,
+      handleScale: false,
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#00ff88', downColor: '#ff3366',
+      borderUpColor: '#00ff88', borderDownColor: '#ff3366',
+      wickUpColor: '#00cc6a', wickDownColor: '#cc2952',
+    });
+
+    candleSeries.setData(bars.map(b => ({
+      time: Math.floor(new Date(b.t).getTime() / 1000),
+      open: b.o, high: b.h, low: b.l, close: b.c
+    })));
+
+    // VWAP çizgisi
+    if (bars.some(b => b.vw)) {
+      const vwapSeries = chart.addLineSeries({ color: '#9945ff', lineWidth: 1, lineStyle: 2 });
+      vwapSeries.setData(bars.filter(b => b.vw).map(b => ({
+        time: Math.floor(new Date(b.t).getTime() / 1000),
+        value: b.vw
+      })));
+    }
+
+    chart.timeScale().fitContent();
+  } catch(e) {
+    if (container) container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.75rem;">Grafik yüklenemedi</div>`;
   }
 }
 
