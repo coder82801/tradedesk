@@ -525,6 +525,12 @@
     <button class="tab-btn" onclick="switchTab('squeeze')" id="tab-squeeze">
       <span class="tab-icon">🎯</span> Short Squeeze
     </button>
+    <button class="tab-btn" onclick="switchTab('premarket')" id="tab-premarket">
+      <span class="tab-icon">🌅</span> Pre-Market
+    </button>
+    <button class="tab-btn" onclick="switchTab('multibagger')" id="tab-multibagger">
+      <span class="tab-icon">💎</span> 5-10x Adayı
+    </button>
     <button class="tab-btn" onclick="switchTab('watchlist')" id="tab-watchlist">
       <span class="tab-icon">⭐</span> İzleme
     </button>
@@ -736,6 +742,52 @@
             Hesap için değerler girin.
           </div>
         </div>
+      </div>
+    </div>
+ 
+    <!-- PRE-MARKET TAB -->
+    <div class="tab-panel" id="panel-premarket">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🌅 Pre-Market Hacim Anomalisi</div>
+            <div class="card-subtitle">⚠️ Veri kaynağı: Alpaca günlük snapshot · Pre-market anlık hacim için IEX feed kullanılıyor</div>
+          </div>
+          <button class="refresh-btn" onclick="loadPremarket()">↻ Tara</button>
+        </div>
+        <div style="background:rgba(255,204,0,0.08);border:1px solid rgba(255,204,0,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.75rem;color:var(--yellow);">
+          ⚡ Bu modül: Günün en erken saatinden itibaren anormal hacim artışı gösteren hisseleri bulur. Pre-market'te hacim patlar → açılışta spike büyük ihtimalle gelir.
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-box-label">Taranan</div><div class="stat-box-val" id="pm-total">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Hacim Anomali</div><div class="stat-box-val" style="color:var(--orange)" id="pm-anomaly">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Pre-Market Hareket</div><div class="stat-box-val up" id="pm-moving">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Güncelleme</div><div class="stat-box-val" id="pm-updated" style="font-size:0.7rem;color:var(--text3)">—</div></div>
+        </div>
+        <div id="premarket-table"><div class="loading-spinner"><div class="spinner"></div>Yükleniyor...</div></div>
+      </div>
+    </div>
+ 
+    <!-- MULTIBAGGER TAB -->
+    <div class="tab-panel" id="panel-multibagger">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">💎 3-6 Ay İçinde 5-10x Adayları</div>
+            <div class="card-subtitle">Düşük fiyat · Sessiz birikim · Güçlü sektör · Kurumsal ilgi</div>
+          </div>
+          <button class="refresh-btn" onclick="loadMultibagger()">↻ Tara</button>
+        </div>
+        <div style="background:rgba(153,69,255,0.08);border:1px solid rgba(153,69,255,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.75rem;color:var(--purple);">
+          💡 Kriterler: Fiyat &lt;$15 · Düşük günlük değişim (%±3 altı) · Sektör: AI/Kuantum/EV/Biotech/Kripto · VWAP üstü veya yakını · Hacim ortalamanın üstünde
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-box-label">Aday Sayısı</div><div class="stat-box-val" style="color:var(--purple)" id="mb-count">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Yüksek Potansiyel</div><div class="stat-box-val up" id="mb-high">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Ort. Fiyat</div><div class="stat-box-val" id="mb-avgprice">—</div></div>
+          <div class="stat-box"><div class="stat-box-label">Güncelleme</div><div class="stat-box-val" id="mb-updated" style="font-size:0.7rem;color:var(--text3)">—</div></div>
+        </div>
+        <div id="multibagger-table"><div class="loading-spinner"><div class="spinner"></div>Yükleniyor...</div></div>
       </div>
     </div>
  
@@ -1295,10 +1347,322 @@ function switchTab(name) {
   else if (name === 'risk') calcRisk();
 }
  
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  state.currentTab = name;
+ 
+  if (name === 'accumulation') loadAccumulation();
+  else if (name === 'whale') loadWhale();
+  else if (name === 'movers') loadMovers();
+  else if (name === 'squeeze') loadSqueeze();
+  else if (name === 'premarket') loadPremarket();
+  else if (name === 'multibagger') loadMultibagger();
+  else if (name === 'watchlist') loadWatchlistFull();
+  else if (name === 'chart') loadChart();
+  else if (name === 'risk') calcRisk();
+}
+ 
 // ═══════════════════════════════════════════════════════
-// LOAD ALL DATA
+// SIRALAМА SİSTEMİ — tüm tablolarda çalışır
 // ═══════════════════════════════════════════════════════
-async function loadAllData() {
+let sortState = {}; // { tableId: { col, dir } }
+ 
+function makeSortableTable(tableId, data, columns, renderRow) {
+  if (!sortState[tableId]) sortState[tableId] = { col: null, dir: 1 };
+ 
+  function render(sortedData) {
+    const headers = columns.map(c => `
+      <th style="cursor:pointer;user-select:none;" onclick="sortTable('${tableId}',${JSON.stringify(c)},${JSON.stringify(data)},${JSON.stringify(columns)})">
+        ${c.label}
+        <span style="color:var(--text3);font-size:0.7em;">
+          ${sortState[tableId].col === c.key ? (sortState[tableId].dir > 0 ? ' ↑' : ' ↓') : ' ⇅'}
+        </span>
+      </th>`).join('');
+ 
+    const rows = sortedData.map(row => renderRow(row)).join('');
+    return `<table class="stock-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+ 
+  return render(data);
+}
+ 
+function sortTable(tableId, col, data, columns) {
+  if (!sortState[tableId]) sortState[tableId] = { col: null, dir: 1 };
+  if (sortState[tableId].col === col.key) {
+    sortState[tableId].dir *= -1;
+  } else {
+    sortState[tableId].col = col.key;
+    sortState[tableId].dir = col.defaultDir || -1;
+  }
+ 
+  const dir = sortState[tableId].dir;
+  const sorted = [...data].sort((a, b) => {
+    const av = a[col.key] ?? 0;
+    const bv = b[col.key] ?? 0;
+    if (typeof av === 'string') return dir * av.localeCompare(bv);
+    return dir * (av - bv);
+  });
+ 
+  // Re-render into container
+  const container = document.getElementById(tableId + '-container') || document.getElementById(tableId);
+  if (container) {
+    // Find parent table and replace
+    const tbl = container.querySelector('table');
+    if (tbl) {
+      // Rebuild from scratch using sorted data
+      window['_tableData_' + tableId] = sorted;
+      window['_tableRender_' + tableId] && window['_tableRender_' + tableId](sorted);
+    }
+  }
+}
+ 
+// Sıralanabilir tablo yardımcısı
+function buildSortableTable(containerId, data, cols, rowFn) {
+  window['_tableData_' + containerId] = data;
+  let currentSort = { col: null, dir: -1 };
+ 
+  function render(rows) {
+    const ths = cols.map(c => {
+      const isActive = currentSort.col === c.key;
+      const arrow = isActive ? (currentSort.dir > 0 ? '↑' : '↓') : '⇅';
+      return `<th style="cursor:pointer;user-select:none;white-space:nowrap;" onclick="__sort_${containerId}('${c.key}',${c.num?1:0})">${c.label} <span style="color:var(--text3);font-size:0.65em;">${arrow}</span></th>`;
+    }).join('');
+ 
+    const trs = rows.map(r => rowFn(r)).join('');
+    return `<table class="stock-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+  }
+ 
+  window[`__sort_${containerId}`] = function(key, isNum) {
+    if (currentSort.col === key) {
+      currentSort.dir *= -1;
+    } else {
+      currentSort.col = key;
+      currentSort.dir = -1;
+    }
+    const sorted = [...data].sort((a,b) => {
+      const av = a[key] ?? (isNum ? 0 : '');
+      const bv = b[key] ?? (isNum ? 0 : '');
+      if (!isNum) return currentSort.dir * String(av).localeCompare(String(bv));
+      return currentSort.dir * (Number(av) - Number(bv));
+    });
+    const el = document.getElementById(containerId);
+    if (el) el.innerHTML = render(sorted);
+  };
+ 
+  return render(data);
+}
+ 
+// ═══════════════════════════════════════════════════════
+// PRE-MARKET MODÜLÜ
+// ═══════════════════════════════════════════════════════
+async function loadPremarket() {
+  const el = document.getElementById('premarket-table');
+  if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Pre-market verileri çekiliyor...</div>';
+ 
+  try {
+    const allData = await scanAllSnapshots();
+    const results = [];
+ 
+    for (const d of allData) {
+      // Pre-market sinyali: yüksek hacim + fiyat hareketi başlıyor
+      const volScore = d.vol > 2000000 ? 3 : d.vol > 500000 ? 2 : d.vol > 100000 ? 1 : 0;
+      const priceScore = Math.abs(d.chgPct) > 5 ? 3 : Math.abs(d.chgPct) > 2 ? 2 : Math.abs(d.chgPct) > 1 ? 1 : 0;
+      const vwapScore = d.price > d.vwap ? 1 : 0;
+      const totalScore = volScore + priceScore + vwapScore;
+ 
+      if (totalScore >= 3) {
+        const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+        // Pre-market spike tahmini
+        const spikeProb = Math.min(95, 40 + totalScore * 8 + (d.chgPct > 3 ? 15 : 0));
+        results.push({
+          sym: d.sym,
+          price: d.price,
+          chgPct: d.chgPct,
+          vol: d.vol,
+          vwap: d.vwap,
+          score: totalScore,
+          spikeProb,
+          signal,
+          entry: signal.entry,
+          stopL: signal.stopL,
+          target: signal.target,
+        });
+      }
+    }
+ 
+    results.sort((a,b) => b.spikeProb - a.spikeProb);
+ 
+    document.getElementById('pm-total').textContent = allData.length;
+    document.getElementById('pm-anomaly').textContent = results.filter(r => r.vol > 1000000).length;
+    document.getElementById('pm-moving').textContent = results.filter(r => Math.abs(r.chgPct) > 3).length;
+    document.getElementById('pm-updated').textContent = new Date().toLocaleTimeString('tr-TR');
+ 
+    if (results.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌅</div>Pre-market anomalisi tespit edilmedi</div>';
+      return;
+    }
+ 
+    const cols = [
+      { key: 'sym', label: 'Sembol', num: 0 },
+      { key: 'price', label: 'Fiyat', num: 1 },
+      { key: 'chgPct', label: '% Değişim', num: 1 },
+      { key: 'vol', label: 'Hacim', num: 1 },
+      { key: 'entry', label: 'Giriş', num: 1 },
+      { key: 'stopL', label: 'Stop', num: 1 },
+      { key: 'target', label: 'Hedef', num: 1 },
+      { key: 'spikeProb', label: 'Spike %', num: 1 },
+    ];
+ 
+    el.innerHTML = buildSortableTable('premarket-table', results, cols, r => `
+      <tr onclick="openStockModal('${r.sym}')">
+        <td><span class="ticker">${r.sym}</span></td>
+        <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
+        <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
+        <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000).toFixed(0)}K</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${r.entry?'$'+r.entry.toFixed(2):'—'}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">${r.stopL?'$'+r.stopL.toFixed(2):'—'}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--green);font-size:0.8rem;">${r.target?'$'+r.target.toFixed(2):'—'}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+              <div style="width:${r.spikeProb}%;height:100%;background:${r.spikeProb>70?'var(--orange)':r.spikeProb>50?'var(--yellow)':'var(--text3)'};border-radius:2px;"></div>
+            </div>
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:${r.spikeProb>70?'var(--orange)':'var(--yellow)'};">%${r.spikeProb}</span>
+          </div>
+        </td>
+      </tr>`);
+  } catch(e) { el.innerHTML = errorHtml(e.message); }
+}
+ 
+// ═══════════════════════════════════════════════════════
+// MULTİBAGGER — 3-6 AY 5-10x ADAYLARI
+// ═══════════════════════════════════════════════════════
+ 
+// Yüksek potansiyelli sektörler
+const HIGH_POTENTIAL_SECTORS = [
+  'IONQ','RGTI','QUBT','ARQQ','QMCO', // Kuantum
+  'BBAI','SOUN','AI','GFAI','IREN','KULR', // AI
+  'MARA','RIOT','CLSK','HIVE','BITF', // Kripto madencilik
+  'ACHR','JOBY','LILM','SPCE','RKLB', // Uzay/Havacılık
+  'EOSE','STEM','PLUG','BE','FCEL', // Temiz enerji
+  'IONQ','CTMX','OCGN','TNXP','MNKD', // Biotech
+  'SOFI','UPST','AFRM','HOOD', // Fintech
+  'NKLA','WKHS','MULN','FFIE', // EV
+  'ASTS','MNTS','ASTR', // Uzay
+  'RR','SOPA','VCX','EOSE','CTMX', // Özel izleme
+];
+ 
+async function loadMultibagger() {
+  const el = document.getElementById('multibagger-table');
+  if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
+  el.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>5-10x adayları taranıyor...</div>';
+ 
+  try {
+    const allData = await scanAllSnapshots();
+    const results = [];
+ 
+    for (const d of allData) {
+      // Multibagger kriterleri
+      if (d.price <= 0.05 || d.price > 20) continue; // Fiyat aralığı $0.05 - $20
+ 
+      let score = 0;
+      const reasons = [];
+ 
+      // 1. Düşük fiyat = yüksek patlama potansiyeli
+      if (d.price < 1) { score += 3; reasons.push('Penny Stock'); }
+      else if (d.price < 3) { score += 2; reasons.push('$1-3 Aralığı'); }
+      else if (d.price < 10) { score += 1; reasons.push('$10 Altı'); }
+ 
+      // 2. Yüksek potansiyelli sektörde mi?
+      if (HIGH_POTENTIAL_SECTORS.includes(d.sym)) { score += 3; reasons.push('🔥 Katalist Sektör'); }
+ 
+      // 3. Sessiz birikim devam ediyor
+      if (Math.abs(d.chgPct) < 2 && d.vol > 50000) { score += 2; reasons.push('🌊 Birikim'); }
+ 
+      // 4. VWAP yakını veya üstü
+      if (d.price >= d.vwap * 0.97 && d.price <= d.vwap * 1.05) { score += 1; reasons.push('VWAP Destek'); }
+ 
+      // 5. Hacim mevcut
+      if (d.vol > 200000) { score += 1; reasons.push('Hacim OK'); }
+ 
+      // 6. Yüksek ATR = patlama potansiyeli
+      const atrPct = d.price > 0 ? ((d.high - d.low) / d.price * 100) : 0;
+      if (atrPct > 8) { score += 1; reasons.push('Yüksek Volatilite'); }
+ 
+      if (score >= 4) {
+        const signal = analyzeStock(d.sym, d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+        // Hedef potansiyel hesabı (3-6 ay)
+        const potentialX = d.price < 1 ? '5-20x' : d.price < 3 ? '3-10x' : d.price < 10 ? '2-5x' : '1.5-3x';
+        const potentialTarget = d.price < 1 ? d.price * 8 : d.price < 3 ? d.price * 5 : d.price * 3;
+ 
+        results.push({
+          sym: d.sym,
+          price: d.price,
+          chgPct: d.chgPct,
+          vol: d.vol,
+          vwap: d.vwap,
+          score,
+          reasons,
+          potentialX,
+          potentialTarget: parseFloat(potentialTarget.toFixed(2)),
+          entry: signal.entry,
+          stopL: signal.stopL,
+        });
+      }
+    }
+ 
+    results.sort((a,b) => b.score - a.score);
+ 
+    document.getElementById('mb-count').textContent = results.length;
+    document.getElementById('mb-high').textContent = results.filter(r => r.score >= 6).length;
+    const avgP = results.length ? (results.reduce((s,r) => s+r.price,0)/results.length).toFixed(2) : '—';
+    document.getElementById('mb-avgprice').textContent = '$' + avgP;
+    document.getElementById('mb-updated').textContent = new Date().toLocaleTimeString('tr-TR');
+ 
+    if (results.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">💎</div>Kriterlere uyan aday bulunamadı</div>';
+      return;
+    }
+ 
+    const cols = [
+      { key: 'sym', label: 'Sembol', num: 0 },
+      { key: 'price', label: 'Fiyat', num: 1 },
+      { key: 'chgPct', label: '% Değişim', num: 1 },
+      { key: 'vol', label: 'Hacim', num: 1 },
+      { key: 'entry', label: 'Giriş', num: 1 },
+      { key: 'stopL', label: 'Stop', num: 1 },
+      { key: 'potentialTarget', label: 'Hedef (3-6ay)', num: 1 },
+      { key: 'potentialX', label: 'Potansiyel', num: 0 },
+      { key: 'score', label: 'Skor', num: 1 },
+    ];
+ 
+    el.innerHTML = buildSortableTable('multibagger-table', results, cols, r => `
+      <tr onclick="openStockModal('${r.sym}')">
+        <td><span class="ticker">${r.sym}</span></td>
+        <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
+        <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
+        <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000).toFixed(0)}K</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--accent);font-size:0.8rem;">${r.entry?'$'+r.entry.toFixed(2):'—'}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--red);font-size:0.8rem;">${r.stopL?'$'+r.stopL.toFixed(2):'—'}</span></td>
+        <td><span style="font-family:var(--font-mono);color:var(--green);font-weight:700;">$${r.potentialTarget}</span></td>
+        <td><span class="tag tag-purple">${r.potentialX}</span></td>
+        <td>
+          <div class="strength-bar-wrap">
+            <div class="strength-bar"><div class="strength-fill" style="width:${Math.min(r.score/8*100,100)}%;background:var(--purple);"></div></div>
+            <span class="strength-label" style="color:var(--purple)">${r.score}</span>
+          </div>
+        </td>
+      </tr>`);
+  } catch(e) { el.innerHTML = errorHtml(e.message); }
+}
+ 
+// ═══════════════════════════════════════════════════════
+// MOVERS — SIRALAМA DESTEKLİ
+// ═══════════════════════════════════════════════════════
   await Promise.all([
     loadMarketBar(),
     loadWatchlistQuick(),
@@ -1671,41 +2035,58 @@ async function loadMovers() {
       getMostActive()
     ]);
  
-    gEl.innerHTML = renderMoversTable(gainers.slice(0,10), true);
-    lEl.innerHTML = renderMoversTable(losers.slice(0,10), false);
+    gEl.innerHTML = renderMoversTable(gainers.slice(0,20), true, 'gainers-table');
+    lEl.innerHTML = renderMoversTable(losers.slice(0,20), false, 'losers-table');
     aEl.innerHTML = renderActiveTable(active.slice(0,10));
   } catch(e) {
     [gEl,lEl,aEl].forEach(el => el.innerHTML = errorHtml(e.message));
   }
 }
  
-function renderMoversTable(list, isGainers) {
+function renderMoversTable(list, isGainers, containerId) {
   if (!list.length) return '<div class="empty-state">Veri yok</div>';
-  return `<table class="stock-table">
-    <thead><tr><th>Sembol</th><th>Fiyat</th><th>${isGainers ? 'Değişim' : 'Değişim'}</th></tr></thead>
-    <tbody>
-      ${list.map(s => `<tr onclick="openStockModal('${s.symbol}')">
-        <td><div class="ticker-cell"><span class="ticker">${s.symbol}</span></div></td>
-        <td><span class="price-mono">$${(s.price||0).toFixed(2)}</span></td>
-        <td><span class="chg-badge ${isGainers?'up':'dn'}">${isGainers?'+':''}${(s.percent_change||0).toFixed(2)}%</span></td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
+  const data = list.map(s => ({
+    sym: s.symbol || s.sym,
+    price: s.price || 0,
+    chgPct: s.percent_change || s.chgPct || 0,
+    vol: s.volume || s.vol || 0,
+  }));
+  const cols = [
+    { key: 'sym', label: 'Sembol', num: 0 },
+    { key: 'price', label: 'Fiyat', num: 1 },
+    { key: 'chgPct', label: '% Değişim', num: 1 },
+    { key: 'vol', label: 'Hacim', num: 1 },
+  ];
+  return buildSortableTable(containerId, data, cols, r => `
+    <tr onclick="openStockModal('${r.sym}')">
+      <td><span class="ticker">${r.sym}</span></td>
+      <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
+      <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000).toFixed(0)}K</span></td>
+    </tr>`);
 }
  
 function renderActiveTable(list) {
   if (!list.length) return '<div class="empty-state">Veri yok</div>';
-  return `<table class="stock-table">
-    <thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim</th></tr></thead>
-    <tbody>
-      ${list.map(s => `<tr onclick="openStockModal('${s.symbol}')">
-        <td><span class="ticker">${s.symbol}</span></td>
-        <td><span class="price-mono">$${(s.price||0).toFixed(2)}</span></td>
-        <td><span class="chg-badge ${(s.percent_change||0)>=0?'up':'dn'}">${(s.percent_change||0)>=0?'+':''}${(s.percent_change||0).toFixed(2)}%</span></td>
-        <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${((s.volume||0)/1000000).toFixed(2)}M</span></td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
+  const data = list.map(s => ({
+    sym: s.symbol || s.sym,
+    price: s.price || 0,
+    chgPct: s.percent_change || s.chgPct || 0,
+    vol: s.volume || s.vol || 0,
+  }));
+  const cols = [
+    { key: 'sym', label: 'Sembol', num: 0 },
+    { key: 'price', label: 'Fiyat', num: 1 },
+    { key: 'chgPct', label: '% Değişim', num: 1 },
+    { key: 'vol', label: 'Hacim', num: 1 },
+  ];
+  return buildSortableTable('active-table', data, cols, r => `
+    <tr onclick="openStockModal('${r.sym}')">
+      <td><span class="ticker">${r.sym}</span></td>
+      <td><span class="price-mono">$${r.price.toFixed(2)}</span></td>
+      <td><span class="chg-badge ${r.chgPct>=0?'up':'dn'}">${r.chgPct>=0?'+':''}${r.chgPct.toFixed(2)}%</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.75rem;">${(r.vol/1000000).toFixed(2)}M</span></td>
+    </tr>`);
 }
  
 // ═══════════════════════════════════════════════════════
@@ -2129,3 +2510,4 @@ loadState();
 </script>
 </body>
 </html>
+ 
