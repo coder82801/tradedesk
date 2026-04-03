@@ -1043,13 +1043,22 @@ async function getSnapshots(symbols) {
 }
 
 async function getBars(symbol, timeframe, start, end) {
-  const url = `/v2/stocks/${symbol}/bars?timeframe=${timeframe}&start=${start}&end=${end}&limit=500&feed=iex&adjustment=raw`;
+  // SIP feed daha geniş kapsama sahip; paper hesapta iex fallback
+  const feed = state.apiMode === 'live' ? 'sip' : 'iex';
+  const url = `/v2/stocks/${encodeURIComponent(symbol)}/bars?timeframe=${timeframe}&start=${start}&end=${end}&limit=1000&feed=${feed}&adjustment=raw`;
   try {
     const data = await alpacaFetch(url, true);
     return data.bars || [];
   } catch(e) {
-    console.error('Bars error:', e);
-    return [];
+    // Fallback: iex dene
+    try {
+      const url2 = `/v2/stocks/${encodeURIComponent(symbol)}/bars?timeframe=${timeframe}&start=${start}&end=${end}&limit=1000&feed=iex&adjustment=raw`;
+      const data2 = await alpacaFetch(url2, true);
+      return data2.bars || [];
+    } catch(e2) {
+      console.error('Bars error:', e2);
+      return [];
+    }
   }
 }
 
@@ -2472,26 +2481,36 @@ async function loadModalChart(sym) {
 
   try {
     const now = new Date();
-    const start = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
-    const bars = await getBars(sym, '15Min',
-      start.toISOString().split('T')[0],
-      now.toISOString().split('T')[0]
-    );
+    // Bugünden 7 gün öncesi (hafta sonu ve tatil için buffer)
+    const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fmt = d => d.toISOString().split('T')[0];
+
+    // Önce 15 dakikalık bar dene, olmadıysa günlük dene
+    let bars = await getBars(sym, '15Min', fmt(start), fmt(now));
 
     if (!bars || bars.length === 0) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.8rem;">Grafik verisi yok</div>';
+      // Fallback: 1 aylık günlük bar
+      const start30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      bars = await getBars(sym, '1Day', fmt(start30), fmt(now));
+    }
+
+    if (!bars || bars.length === 0) {
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.8rem;font-family:var(--font-mono);">Grafik verisi bulunamadı</div>';
       return;
     }
 
+    // Container boyutunu al
+    const w = container.offsetWidth || 520;
+
     const chart = LightweightCharts.createChart(container, {
-      width: container.clientWidth || 500,
+      width: w,
       height: 200,
-      layout: { background: { color: 'transparent' }, textColor: '#8899bb' },
+      layout: { background: { color: '#0d1424' }, textColor: '#8899bb' },
       grid: { vertLines: { color: '#1e2d4a' }, horzLines: { color: '#1e2d4a' } },
       crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-      rightPriceScale: { borderColor: '#1e2d4a' },
-      timeScale: { borderColor: '#1e2d4a', timeVisible: true },
-      handleScroll: false,
+      rightPriceScale: { borderColor: '#1e2d4a', scaleMargins: { top: 0.1, bottom: 0.1 } },
+      timeScale: { borderColor: '#1e2d4a', timeVisible: true, secondsVisible: false },
+      handleScroll: true,
       handleScale: false,
     });
 
@@ -2501,23 +2520,32 @@ async function loadModalChart(sym) {
       wickUpColor: '#00cc6a', wickDownColor: '#cc2952',
     });
 
-    candleSeries.setData(bars.map(b => ({
+    const candleData = bars.map(b => ({
       time: Math.floor(new Date(b.t).getTime() / 1000),
       open: b.o, high: b.h, low: b.l, close: b.c
-    })));
+    })).filter(b => b.time > 0);
+
+    if (candleData.length > 0) {
+      candleSeries.setData(candleData);
+    }
 
     // VWAP çizgisi
-    if (bars.some(b => b.vw)) {
-      const vwapSeries = chart.addLineSeries({ color: '#9945ff', lineWidth: 1, lineStyle: 2 });
-      vwapSeries.setData(bars.filter(b => b.vw).map(b => ({
+    const vwapBars = bars.filter(b => b.vw && b.vw > 0);
+    if (vwapBars.length > 0) {
+      const vwapSeries = chart.addLineSeries({
+        color: '#9945ff', lineWidth: 1, lineStyle: 2, title: 'VWAP',
+      });
+      vwapSeries.setData(vwapBars.map(b => ({
         time: Math.floor(new Date(b.t).getTime() / 1000),
         value: b.vw
       })));
     }
 
     chart.timeScale().fitContent();
+
   } catch(e) {
-    if (container) container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.75rem;">Grafik yüklenemedi</div>`;
+    console.error('Modal chart error:', e);
+    if (container) container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.75rem;font-family:var(--font-mono);">Grafik: ${e.message}</div>`;
   }
 }
 
