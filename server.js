@@ -111,76 +111,88 @@ async function fetchAlpacaFallback(symbolsArr) {
 
   const symbols = symbolsArr.join(",");
 
-  // Snapshots endpoint: latest trade + latest quote + minute/daily/prevDaily bars
   const snapRes = await fetch(
-    `${ALPACA_DATA_BASE}/v2/stocks/snapshots?symbols=${encodeURIComponent(symbols)}&feed=iex`,
+    `${ALPACA_DATA_BASE}/v2/stocks/snapshots?symbols=${encodeURIComponent(symbols)}`,
     { headers }
   );
 
-  const snapText = snapRes.ok ? null : await snapRes.text();
+  const snapText = await snapRes.text();
 
   if (!snapRes.ok) {
-    throw new Error(`Alpaca snapshots failed | status=${snapRes.status} ${snapText || ""}`);
+    throw new Error(`Alpaca snapshots failed | status=${snapRes.status} | body=${snapText.slice(0, 500)}`);
   }
 
-  const snapJson = await snapRes.json();
+  let snapJson;
+  try {
+    snapJson = JSON.parse(snapText);
+  } catch {
+    throw new Error(`Alpaca snapshots JSON parse error | body=${snapText.slice(0, 500)}`);
+  }
+
   const snapshots = snapJson?.snapshots || {};
 
-  return symbolsArr
-    .map((sym) => {
-      const s = snapshots[sym] || {};
-      const latestTrade = s.latestTrade || {};
-      const latestQuote = s.latestQuote || {};
-      const minuteBar = s.minuteBar || {};
-      const dailyBar = s.dailyBar || {};
-      const prevDailyBar = s.prevDailyBar || {};
+  const rows = symbolsArr.map((sym) => {
+    const s = snapshots[sym] || {};
+    const latestTrade = s.latestTrade || {};
+    const latestQuote = s.latestQuote || {};
+    const minuteBar = s.minuteBar || {};
+    const dailyBar = s.dailyBar || {};
+    const prevDailyBar = s.prevDailyBar || {};
 
-      const price =
-        minuteBar.c ??
-        latestTrade.p ??
-        latestQuote.ap ??
-        latestQuote.bp ??
-        null;
+    const price =
+      minuteBar.c ??
+      latestTrade.p ??
+      latestQuote.ap ??
+      latestQuote.bp ??
+      null;
 
-      const open =
-        dailyBar.o ??
-        minuteBar.o ??
-        prevDailyBar.c ??
-        null;
+    const open =
+      dailyBar.o ??
+      minuteBar.o ??
+      prevDailyBar.c ??
+      null;
 
-      const high = dailyBar.h ?? minuteBar.h ?? null;
-      const low = dailyBar.l ?? minuteBar.l ?? null;
-      const volume = dailyBar.v ?? minuteBar.v ?? 0;
-      const avgVolume = dailyBar.v ?? 1;
+    const high = dailyBar.h ?? minuteBar.h ?? null;
+    const low = dailyBar.l ?? minuteBar.l ?? null;
+    const volume = dailyBar.v ?? minuteBar.v ?? 0;
+    const avgVolume = dailyBar.v ?? 1;
 
-      let chgPct = 0;
-      if (price != null && open != null && open !== 0) {
-        chgPct = ((price - open) / open) * 100;
+    let chgPct = 0;
+    if (price != null && open != null && open !== 0) {
+      chgPct = ((price - open) / open) * 100;
+    }
+
+    return {
+      symbol: sym,
+      shortName: sym,
+      regularMarketPrice: price,
+      regularMarketChangePercent: chgPct,
+      regularMarketVolume: volume,
+      averageVolume: avgVolume,
+      regularMarketOpen: open,
+      regularMarketDayHigh: high,
+      regularMarketDayLow: low,
+      fiftyTwoWeekHigh: null,
+      fiftyTwoWeekLow: null,
+      marketCap: null,
+      preMarketPrice: null,
+      preMarketChangePercent: null,
+      postMarketPrice: null,
+      postMarketChangePercent: null,
+      shortPercentOfFloat: 0,
+      forwardPE: null,
+      trailingPE: null,
+      _debug: {
+        hasSnapshot: !!snapshots[sym],
+        hasLatestTrade: !!s.latestTrade,
+        hasLatestQuote: !!s.latestQuote,
+        hasMinuteBar: !!s.minuteBar,
+        hasDailyBar: !!s.dailyBar
       }
+    };
+  });
 
-      return {
-        symbol: sym,
-        shortName: sym,
-        regularMarketPrice: price,
-        regularMarketChangePercent: chgPct,
-        regularMarketVolume: volume,
-        averageVolume: avgVolume,
-        regularMarketOpen: open,
-        regularMarketDayHigh: high,
-        regularMarketDayLow: low,
-        fiftyTwoWeekHigh: null,
-        fiftyTwoWeekLow: null,
-        marketCap: null,
-        preMarketPrice: null,
-        preMarketChangePercent: null,
-        postMarketPrice: null,
-        postMarketChangePercent: null,
-        shortPercentOfFloat: 0,
-        forwardPE: null,
-        trailingPE: null
-      };
-    })
-    .filter((x) => x.regularMarketPrice != null);
+  return rows.filter((x) => x.regularMarketPrice != null);
 }
 
 app.get("/api/quote", async (req, res) => {
@@ -192,7 +204,7 @@ app.get("/api/quote", async (req, res) => {
 
     const symbolsArr = rawSymbols
       .split(",")
-      .map((s) => s.trim())
+      .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
     if (!symbolsArr.length) {
@@ -232,23 +244,35 @@ app.get("/api/quote", async (req, res) => {
 });
 
 app.get("/api/debug-quote", async (req, res) => {
-  try {
-    const symbols = req.query.symbols || "AAPL,TSLA";
-    const data = await fetchYahoo(symbols);
-    res.json({ ok: true, source: "yahoo", count: data.length, data });
-  } catch (err) {
-    try {
-      const symbolsArr = String(req.query.symbols || "AAPL,TSLA")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
+  const symbols = String(req.query.symbols || "AAPL,TSLA")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
 
-      const data = await fetchAlpacaFallback(symbolsArr);
-      res.json({ ok: true, source: "alpaca", count: data.length, data });
+  try {
+    const yahooData = await fetchYahoo(symbols.join(","));
+    return res.json({
+      ok: true,
+      source: "yahoo",
+      count: yahooData.length,
+      data: yahooData
+    });
+  } catch (yahooErr) {
+    try {
+      const alpacaData = await fetchAlpacaFallback(symbols);
+
+      return res.json({
+        ok: true,
+        source: "alpaca",
+        count: alpacaData.length,
+        requested: symbols,
+        data: alpacaData
+      });
     } catch (alpacaErr) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
-        yahooError: err.message,
+        requested: symbols,
+        yahooError: yahooErr.message,
         alpacaError: alpacaErr.message
       });
     }
