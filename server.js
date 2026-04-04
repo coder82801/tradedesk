@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
@@ -221,7 +222,7 @@ async function fetchYahooChartFallback(symbol) {
         }
       }
     } catch (error) {
-      // fallback denemeye devam
+      // devam
     }
   }
 
@@ -329,14 +330,15 @@ async function getQuotesWithFallback(symbols) {
   return finalResults;
 }
 
+/* ---------------- STATIC FRONTEND ---------------- */
+
+app.use(express.static(__dirname));
+
 app.get("/", (req, res) => {
-  res.json({
-    ok: true,
-    app: "TradeDesk backend",
-    version: "3.0",
-    endpoints: ["/health", "/api/quote?symbols=AAPL,TSLA", "/api/feargreed"]
-  });
+  res.sendFile(path.join(__dirname, "index.html"));
 });
+
+/* ---------------- API ---------------- */
 
 app.get("/health", (req, res) => {
   res.json({
@@ -425,6 +427,8 @@ app.get("/api/feargreed", async (req, res) => {
     }
   });
 });
+
+/* ---------------- 404 ---------------- */
 
 app.use((req, res) => {
   res.status(404).json({
