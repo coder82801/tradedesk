@@ -1219,17 +1219,52 @@ async function getSnapshots(symbols) {
 }
 
 async function fillMissingWithBars(symbols, result) {
-  // Önce Alpaca bars dene, olmadıysa Yahoo Finance proxy
-  const now = new Date();
-  const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const fmt = d => d.toISOString().split('T')[0];
+  // Yahoo Finance v8 API — cors-anywhere proxy ile
+  const PROXY = 'https://corsproxy.io/?';
 
   await Promise.allSettled(symbols.map(async sym => {
     try {
-      // 1. Alpaca bars dene
-      let filled = false;
+      const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
+      const res = await fetch(PROXY + encodeURIComponent(yahooUrl), { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error('fetch failed');
+      const parsed = await res.json();
+      const q = parsed?.chart?.result?.[0];
+      if (!q) throw new Error('no data');
+
+      const closes = q.indicators?.quote?.[0]?.close || [];
+      const opens = q.indicators?.quote?.[0]?.open || [];
+      const highs = q.indicators?.quote?.[0]?.high || [];
+      const lows = q.indicators?.quote?.[0]?.low || [];
+      const volumes = q.indicators?.quote?.[0]?.volume || [];
+      const len = closes.length;
+      if (len === 0) throw new Error('empty');
+
+      const i = len - 1;
+      const pi = len - 2;
+      const c = closes[i] || 0;
+      const pc = pi >= 0 ? (closes[pi] || 0) : (opens[i] || c);
+
+      result[sym] = {
+        latestTrade: { p: c },
+        dailyBar: {
+          o: opens[i] || c,
+          h: highs[i] || c,
+          l: lows[i] || c,
+          c: c,
+          v: volumes[i] || 0,
+          vw: c,
+        },
+        prevDailyBar: { c: pc },
+        _fromBars: true,
+        _fromYahoo: true,
+      };
+    } catch(e) {
+      // Yahoo da olmadıysa Alpaca bars son çare
       try {
-        const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex&adjustment=raw`;
+        const now = new Date();
+        const start = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+        const fmt = d => d.toISOString().split('T')[0];
+        const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex`;
         const data = await alpacaFetch(url, true);
         const bars = data.bars || [];
         if (bars.length > 0) {
@@ -1240,48 +1275,10 @@ async function fillMissingWithBars(symbols, result) {
             dailyBar: { o: last.o, h: last.h, l: last.l, c: last.c, v: last.v, vw: last.vw || last.c },
             prevDailyBar: prev ? { c: prev.c } : null,
             _fromBars: true,
-            _barDate: last.t,
           };
-          filled = true;
         }
-      } catch(e) {}
-
-      // 2. Alpaca olmadıysa Yahoo Finance allorigins proxy
-      if (!filled) {
-        try {
-          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
-          const res = await fetch(proxyUrl);
-          const json = await res.json();
-          const parsed = JSON.parse(json.contents);
-          const quotes = parsed?.chart?.result?.[0];
-          if (quotes) {
-            const timestamps = quotes.timestamp || [];
-            const ohlcv = quotes.indicators?.quote?.[0] || {};
-            const adjClose = quotes.indicators?.adjclose?.[0]?.adjclose || [];
-            const len = timestamps.length;
-            if (len > 0) {
-              const i = len - 1;
-              const pi = len - 2;
-              result[sym] = {
-                latestTrade: { p: ohlcv.close?.[i] || 0 },
-                dailyBar: {
-                  o: ohlcv.open?.[i] || 0,
-                  h: ohlcv.high?.[i] || 0,
-                  l: ohlcv.low?.[i] || 0,
-                  c: ohlcv.close?.[i] || 0,
-                  v: ohlcv.volume?.[i] || 0,
-                  vw: ohlcv.close?.[i] || 0,
-                },
-                prevDailyBar: pi >= 0 ? { c: ohlcv.close?.[pi] || 0 } : null,
-                _fromBars: true,
-                _fromYahoo: true,
-              };
-            }
-          }
-        } catch(e2) { /* sessizce geç */ }
-      }
-    } catch(e) {}
+      } catch(e2) {}
+    }
   }));
 }
 
@@ -2047,7 +2044,8 @@ function quickCard(sym, snap) {
   if (!snap) return `<div class="watchlist-card" onclick="openStockModal('${sym}')"><div class="wc-ticker">${sym}</div><div class="wc-price" style="color:var(--text3)">—</div></div>`;
   const price = snap.latestTrade?.p || snap.dailyBar?.c || 0;
   const open = snap.dailyBar?.o || price;
-  const chgPct = open ? ((price - open) / open * 100) : 0;
+  const prevClose = snap.prevDailyBar?.c || open;
+  const chgPct = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
   const cls = chgPct > 0 ? 'up' : chgPct < 0 ? 'dn' : 'neutral';
   const fillColor = chgPct > 0 ? 'var(--green)' : chgPct < 0 ? 'var(--red)' : 'var(--text3)';
   const fillWidth = Math.min(Math.abs(chgPct) * 5, 100);
