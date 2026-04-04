@@ -1075,6 +1075,8 @@ function saveState() {
       watchlist: state.watchlist,
       refreshInterval: state.refreshInterval,
     }));
+    // Oturum bilgisini sessionStorage'a kaydet (sekme kapanana kadar)
+    sessionStorage.setItem('tradedesk_logged_in', '1');
   } catch(e) {}
 }
 
@@ -1085,6 +1087,7 @@ window.doLogin = function doLogin() {
   loadState();
   const pass = document.getElementById('login-pass').value;
   if (pass === state.password) {
+    sessionStorage.setItem('tradedesk_logged_in', '1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     onAppStart();
@@ -1095,6 +1098,7 @@ window.doLogin = function doLogin() {
 }
 
 function doLogout() {
+  sessionStorage.removeItem('tradedesk_logged_in');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-pass').value = '';
@@ -1200,86 +1204,86 @@ async function getQuotes(symbols) {
 }
 
 async function getSnapshots(symbols) {
-  const syms = symbols.join(',');
+  if (!symbols || symbols.length === 0) return {};
+  const result = {};
+
+  // Her zaman çalışan yöntem: Alpaca latest bars (SIP feed hafta sonu da çalışır)
+  await fillMissingWithBars(symbols, result);
+
+  // Piyasa açıksa snapshot ile üzerine yaz (daha güncel)
   try {
-    const data = await alpacaFetch(`/v2/stocks/snapshots?symbols=${syms}&feed=iex`, true);
-    // Hafta sonu/kapalı saatlerde snapshot boş gelir — bars ile doldur
-    const result = data || {};
-    const missing = symbols.filter(s => !result[s] || !result[s].dailyBar);
-    if (missing.length > 0) {
-      await fillMissingWithBars(missing, result);
+    const syms = symbols.join(',');
+    const data = await alpacaFetch(`/v2/stocks/snapshots?symbols=${syms}&feed=sip`, true);
+    if (data) {
+      for (const [sym, snap] of Object.entries(data)) {
+        if (snap && snap.dailyBar && snap.dailyBar.c > 0) {
+          result[sym] = snap;
+        }
+      }
     }
-    return result;
   } catch(e) {
-    // Tamamen başarısız olursa bars'tan çek
-    const result = {};
-    await fillMissingWithBars(symbols, result);
-    return result;
+    // Snapshot olmadı, bars verisi yeterli
   }
+
+  return result;
 }
 
 async function fillMissingWithBars(symbols, result) {
-  // Yahoo Finance v8 API — cors-anywhere proxy ile
-  const PROXY = 'https://corsproxy.io/?';
+  if (!symbols || symbols.length === 0) return;
 
-  await Promise.allSettled(symbols.map(async sym => {
+  const now = new Date();
+  const start = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  // Batch olarak 20'şerli gruplar halinde çek
+  const batchSize = 20;
+  for (let i = 0; i < symbols.length; i += batchSize) {
+    const batch = symbols.slice(i, i + batchSize);
+    const symsParam = batch.join(',');
+
+    // Toplu bars endpoint — çok daha hızlı
     try {
-      const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
-      const res = await fetch(PROXY + encodeURIComponent(yahooUrl), { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) throw new Error('fetch failed');
-      const parsed = await res.json();
-      const q = parsed?.chart?.result?.[0];
-      if (!q) throw new Error('no data');
+      const url = `/v2/stocks/bars?symbols=${symsParam}&timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=sip&adjustment=raw`;
+      const data = await alpacaFetch(url, true);
+      const bars = data.bars || {};
 
-      const closes = q.indicators?.quote?.[0]?.close || [];
-      const opens = q.indicators?.quote?.[0]?.open || [];
-      const highs = q.indicators?.quote?.[0]?.high || [];
-      const lows = q.indicators?.quote?.[0]?.low || [];
-      const volumes = q.indicators?.quote?.[0]?.volume || [];
-      const len = closes.length;
-      if (len === 0) throw new Error('empty');
-
-      const i = len - 1;
-      const pi = len - 2;
-      const c = closes[i] || 0;
-      const pc = pi >= 0 ? (closes[pi] || 0) : (opens[i] || c);
-
-      result[sym] = {
-        latestTrade: { p: c },
-        dailyBar: {
-          o: opens[i] || c,
-          h: highs[i] || c,
-          l: lows[i] || c,
-          c: c,
-          v: volumes[i] || 0,
-          vw: c,
-        },
-        prevDailyBar: { c: pc },
-        _fromBars: true,
-        _fromYahoo: true,
-      };
-    } catch(e) {
-      // Yahoo da olmadıysa Alpaca bars son çare
-      try {
-        const now = new Date();
-        const start = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
-        const fmt = d => d.toISOString().split('T')[0];
-        const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex`;
-        const data = await alpacaFetch(url, true);
-        const bars = data.bars || [];
-        if (bars.length > 0) {
-          const last = bars[bars.length - 1];
-          const prev = bars.length > 1 ? bars[bars.length - 2] : null;
+      for (const sym of batch) {
+        const symBars = bars[sym] || [];
+        if (symBars.length > 0) {
+          const last = symBars[symBars.length - 1];
+          const prev = symBars.length > 1 ? symBars[symBars.length - 2] : null;
           result[sym] = {
             latestTrade: { p: last.c },
-            dailyBar: { o: last.o, h: last.h, l: last.l, c: last.c, v: last.v, vw: last.vw || last.c },
-            prevDailyBar: prev ? { c: prev.c } : null,
+            dailyBar: {
+              o: last.o, h: last.h, l: last.l, c: last.c,
+              v: last.v, vw: last.vw || last.c,
+            },
+            prevDailyBar: prev ? { c: prev.c } : { c: last.o },
             _fromBars: true,
           };
         }
-      } catch(e2) {}
+      }
+    } catch(e) {
+      // Toplu olmadı, tek tek dene
+      await Promise.allSettled(batch.map(async sym => {
+        try {
+          const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex`;
+          const data = await alpacaFetch(url, true);
+          const symBars = data.bars || [];
+          if (symBars.length > 0) {
+            const last = symBars[symBars.length - 1];
+            const prev = symBars.length > 1 ? symBars[symBars.length - 2] : null;
+            result[sym] = {
+              latestTrade: { p: last.c },
+              dailyBar: { o: last.o, h: last.h, l: last.l, c: last.c, v: last.v, vw: last.vw || last.c },
+              prevDailyBar: prev ? { c: prev.c } : { c: last.o },
+              _fromBars: true,
+            };
+          }
+        } catch(e2) {}
+      }));
     }
-  }));
+  }
 }
 
 async function getBars(symbol, timeframe, start, end) {
@@ -3529,10 +3533,17 @@ function errorHtml(msg) {
 // Init
 loadState();
 
-// Login event listener - DOM hazır olduktan sonra
+// Sayfa yenilenince otomatik giriş (sekme açık kaldığı sürece)
 document.addEventListener('DOMContentLoaded', function() {
   const lp = document.getElementById('login-pass');
   if (lp) lp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // Oturum aktifse otomatik giriş yap
+  if (sessionStorage.getItem('tradedesk_logged_in') === '1' && state.apiKey) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    onAppStart();
+  }
 });
 </script>
 </body>
