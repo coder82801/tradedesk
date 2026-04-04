@@ -109,23 +109,23 @@ async function fetchAlpacaFallback(symbolsArr) {
 
   const symbols = symbolsArr.join(",");
 
-  const [quotesRes, barsRes] = await Promise.all([
-    const quotesRes = await fetch(
-  `${ALPACA_DATA_BASE}/v1beta1/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
-  { headers }
-);
+  const quotesRes = await fetch(
+    `${ALPACA_DATA_BASE}/v1beta1/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
+    { headers }
+  );
 
-const barsRes = await fetch(
-  `${ALPACA_DATA_BASE}/v1beta1/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
-  { headers }
-);
-  ]);
+  const barsRes = await fetch(
+    `${ALPACA_DATA_BASE}/v1beta1/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
+    { headers }
+  );
 
   const quotesText = quotesRes.ok ? null : await quotesRes.text();
   const barsText = barsRes.ok ? null : await barsRes.text();
 
   if (!quotesRes.ok && !barsRes.ok) {
-    throw new Error(`Alpaca fallback failed | quotes=${quotesRes.status} ${quotesText || ""} | bars=${barsRes.status} ${barsText || ""}`);
+    throw new Error(
+      `Alpaca fallback failed | quotes=${quotesRes.status} ${quotesText || ""} | bars=${barsRes.status} ${barsText || ""}`
+    );
   }
 
   const quotesJson = quotesRes.ok ? await quotesRes.json() : {};
@@ -134,43 +134,45 @@ const barsRes = await fetch(
   const quotes = quotesJson?.quotes || {};
   const bars = barsJson?.bars || {};
 
-  return symbolsArr.map((sym) => {
-    const q = quotes[sym] || {};
-    const b = bars[sym] || {};
+  return symbolsArr
+    .map((sym) => {
+      const q = quotes[sym] || {};
+      const b = bars[sym] || {};
 
-    const price = b.c ?? q.ap ?? q.bp ?? null;
-    const open = b.o ?? null;
-    const high = b.h ?? null;
-    const low = b.l ?? null;
-    const volume = b.v ?? 0;
+      const price = b.c ?? q.ap ?? q.bp ?? null;
+      const open = b.o ?? null;
+      const high = b.h ?? null;
+      const low = b.l ?? null;
+      const volume = b.v ?? 0;
 
-    let chgPct = 0;
-    if (price != null && open != null && open !== 0) {
-      chgPct = ((price - open) / open) * 100;
-    }
+      let chgPct = 0;
+      if (price != null && open != null && open !== 0) {
+        chgPct = ((price - open) / open) * 100;
+      }
 
-    return {
-      symbol: sym,
-      shortName: sym,
-      regularMarketPrice: price,
-      regularMarketChangePercent: chgPct,
-      regularMarketVolume: volume,
-      averageVolume: 1,
-      regularMarketOpen: open,
-      regularMarketDayHigh: high,
-      regularMarketDayLow: low,
-      fiftyTwoWeekHigh: null,
-      fiftyTwoWeekLow: null,
-      marketCap: null,
-      preMarketPrice: null,
-      preMarketChangePercent: null,
-      postMarketPrice: null,
-      postMarketChangePercent: null,
-      shortPercentOfFloat: 0,
-      forwardPE: null,
-      trailingPE: null
-    };
-  }).filter(x => x.regularMarketPrice != null);
+      return {
+        symbol: sym,
+        shortName: sym,
+        regularMarketPrice: price,
+        regularMarketChangePercent: chgPct,
+        regularMarketVolume: volume,
+        averageVolume: 1,
+        regularMarketOpen: open,
+        regularMarketDayHigh: high,
+        regularMarketDayLow: low,
+        fiftyTwoWeekHigh: null,
+        fiftyTwoWeekLow: null,
+        marketCap: null,
+        preMarketPrice: null,
+        preMarketChangePercent: null,
+        postMarketPrice: null,
+        postMarketChangePercent: null,
+        shortPercentOfFloat: 0,
+        forwardPE: null,
+        trailingPE: null
+      };
+    })
+    .filter((x) => x.regularMarketPrice != null);
 }
 
 app.get("/api/quote", async (req, res) => {
@@ -228,7 +230,11 @@ app.get("/api/debug-quote", async (req, res) => {
     res.json({ ok: true, source: "yahoo", count: data.length, data });
   } catch (err) {
     try {
-      const symbolsArr = String(req.query.symbols || "AAPL,TSLA").split(",").map(s => s.trim()).filter(Boolean);
+      const symbolsArr = String(req.query.symbols || "AAPL,TSLA")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
       const data = await fetchAlpacaFallback(symbolsArr);
       res.json({ ok: true, source: "alpaca", count: data.length, data });
     } catch (alpacaErr) {
