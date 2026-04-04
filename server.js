@@ -18,10 +18,85 @@ const ALPACA_KEY = process.env.ALPACA_KEY || "";
 const ALPACA_SECRET = process.env.ALPACA_SECRET || "";
 const ALPACA_DATA_BASE = process.env.ALPACA_DATA_BASE || "https://data.alpaca.markets";
 
+/**
+ * Squeeze modülü için proxy short-float değerleri.
+ * Alpaca bunu vermediği için yaklaşık radar amaçlı kullanılıyor.
+ * Gerçek short-interest datası için ayrı provider gerekir.
+ */
+const SHORT_FLOAT_PROXY = {
+  GME: 0.18,
+  AMC: 0.16,
+  CLOV: 0.12,
+  SPCE: 0.17,
+  CVNA: 0.11,
+  UPST: 0.14,
+  KOSS: 0.20,
+  SNDL: 0.10,
+  SOUN: 0.09,
+  NKLA: 0.11,
+  PLUG: 0.10,
+  IONQ: 0.08,
+  RGTI: 0.09,
+  QUBT: 0.10,
+  FFIE: 0.19,
+  LCID: 0.11,
+  MULN: 0.18,
+  BBBY: 0.25
+};
+
+const quoteCache = new Map();
+const CACHE_TTL_MS = 20 * 1000;
+
+let fearGreedCache = {
+  ts: 0,
+  data: {
+    fear_and_greed: {
+      score: 0,
+      rating: "unavailable"
+    }
+  }
+};
+
 function chunkArray(arr, size) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
+}
+
+function avg(arr) {
+  if (!arr || !arr.length) return 0;
+  return arr.reduce((s, x) => s + x, 0) / arr.length;
+}
+
+function safeNum(n, fallback = null) {
+  return Number.isFinite(Number(n)) ? Number(n) : fallback;
+}
+
+function midpoint(a, b) {
+  const aa = safeNum(a, null);
+  const bb = safeNum(b, null);
+  if (aa != null && bb != null) return (aa + bb) / 2;
+  return aa ?? bb ?? null;
+}
+
+function cacheKeyForSymbols(symbolsArr) {
+  return [...symbolsArr].sort().join(",");
+}
+
+function getCache(symbolsArr) {
+  const key = cacheKeyForSymbols(symbolsArr);
+  const hit = quoteCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.ts > CACHE_TTL_MS) {
+    quoteCache.delete(key);
+    return null;
+  }
+  return hit.data;
+}
+
+function setCache(symbolsArr, data) {
+  const key = cacheKeyForSymbols(symbolsArr);
+  quoteCache.set(key, { ts: Date.now(), data });
 }
 
 function normalizeYahooQuote(q) {
@@ -42,7 +117,7 @@ function normalizeYahooQuote(q) {
     preMarketChangePercent: q.preMarketChangePercent ?? null,
     postMarketPrice: q.postMarketPrice ?? null,
     postMarketChangePercent: q.postMarketChangePercent ?? null,
-    shortPercentOfFloat: q.shortPercentOfFloat ?? 0,
+    shortPercentOfFloat: q.shortPercentOfFloat ?? SHORT_FLOAT_PROXY[q.symbol] ?? 0,
     forwardPE: q.forwardPE ?? null,
     trailingPE: q.trailingPE ?? null
   };
@@ -84,13 +159,13 @@ async function fetchYahoo(symbols) {
 
       const results = data?.quoteResponse?.result || [];
       if (!results.length) {
-        throw new Error(`Yahoo empty result for symbols=${symbols} | raw=${text.slice(0, 300)}`);
+        throw new Error(`Yahoo empty result for symbols=${symbols}`);
       }
 
       return results.map(normalizeYahooQuote);
     } catch (err) {
       lastError = err;
-      console.error("fetchYahoo failed for url:", url);
+      console.error("fetchYahoo failed:", url);
       console.error(err.message);
     }
   }
@@ -98,107 +173,153 @@ async function fetchYahoo(symbols) {
   throw lastError || new Error("Yahoo fetch failed");
 }
 
+async function alpacaGet(url) {
+  const r = await fetch(url, {
+    headers: {
+      "APCA-API-KEY-ID": ALPACA_KEY,
+      "APCA-API-SECRET-KEY": ALPACA_SECRET,
+      "Accept": "application/json"
+    }
+  });
+
+  const text = await r.text();
+
+  if (!r.ok) {
+    throw new Error(`Alpaca HTTP ${r.status} | ${text.slice(0, 500)}`);
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Alpaca JSON parse error | ${text.slice(0, 500)}`);
+  }
+}
+
 async function fetchAlpacaFallback(symbolsArr) {
   if (!ALPACA_KEY || !ALPACA_SECRET || !symbolsArr.length) {
     throw new Error("Alpaca keys missing");
   }
 
-  const headers = {
-    "APCA-API-KEY-ID": ALPACA_KEY,
-    "APCA-API-SECRET-KEY": ALPACA_SECRET,
-    "Accept": "application/json"
-  };
+  const filtered = symbolsArr
+    .map((s) => String(s).trim().toUpperCase())
+    .filter(Boolean)
+    .filter((s) => !s.startsWith("^"));
 
-  const symbols = symbolsArr.join(",");
+  if (!filtered.length) return [];
 
-  const [barsRes, quotesRes] = await Promise.all([
-    fetch(
-      `${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
-      { headers }
-    ),
-    fetch(
-      `${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
-      { headers }
-    )
-  ]);
+  const cached = getCache(filtered);
+  if (cached) return cached;
 
-  const barsText = await barsRes.text();
-  const quotesText = await quotesRes.text();
+  const symbols = filtered.join(",");
 
-  if (!barsRes.ok && !quotesRes.ok) {
-    throw new Error(
-      `Alpaca latest failed | bars=${barsRes.status} ${barsText.slice(0, 300)} | quotes=${quotesRes.status} ${quotesText.slice(0, 300)}`
-    );
-  }
+  // 1) latest quotes
+  const quotesJson = await alpacaGet(
+    `${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`
+  );
 
-  let barsJson = {};
-  let quotesJson = {};
+  // 2) son ~90 günlük daily bars
+  const dailyJson = await alpacaGet(
+    `${ALPACA_DATA_BASE}/v2/stocks/bars?symbols=${encodeURIComponent(symbols)}&timeframe=1Day&limit=90&adjustment=raw`
+  );
 
-  if (barsRes.ok) {
-    try {
-      barsJson = JSON.parse(barsText);
-    } catch {
-      throw new Error(`Alpaca latest bars JSON parse error | body=${barsText.slice(0, 300)}`);
-    }
-  }
-
-  if (quotesRes.ok) {
-    try {
-      quotesJson = JSON.parse(quotesText);
-    } catch {
-      throw new Error(`Alpaca latest quotes JSON parse error | body=${quotesText.slice(0, 300)}`);
-    }
-  }
-
-  const bars = barsJson?.bars || {};
   const quotes = quotesJson?.quotes || {};
+  const dailyBars = dailyJson?.bars || {};
 
-  return symbolsArr
+  const result = filtered
     .map((sym) => {
-      const b = bars[sym] || null;
-      const q = quotes[sym] || null;
+      const q = quotes[sym] || {};
+      const bars = Array.isArray(dailyBars[sym]) ? dailyBars[sym] : [];
 
-      const price = b?.c ?? q?.ap ?? q?.bp ?? null;
-      const open = b?.o ?? null;
-      const high = b?.h ?? null;
-      const low = b?.l ?? null;
-      const volume = b?.v ?? 0;
+      if (!bars.length) return null;
 
-      if (price == null) return null;
+      const lastBar = bars[bars.length - 1] || null;
+      const prevBar = bars.length >= 2 ? bars[bars.length - 2] : null;
 
-      let chgPct = 0;
-      if (price != null && open != null && open !== 0) {
-        chgPct = ((price - open) / open) * 100;
+      // Fiyat: latest quote midpoint -> ask -> bid -> last close
+      const livePrice =
+        midpoint(q.ap, q.bp) ??
+        safeNum(q.ap, null) ??
+        safeNum(q.bp, null) ??
+        safeNum(lastBar?.c, null);
+
+      if (livePrice == null) return null;
+
+      const dayOpen = safeNum(lastBar?.o, null);
+      const dayHigh = safeNum(lastBar?.h, null);
+      const dayLow = safeNum(lastBar?.l, null);
+
+      const prevClose = safeNum(prevBar?.c, dayOpen ?? livePrice);
+
+      let changePct = 0;
+      if (prevClose && prevClose !== 0) {
+        changePct = ((livePrice - prevClose) / prevClose) * 100;
+      }
+
+      const priorBars = bars.slice(Math.max(0, bars.length - 21), bars.length - 1);
+      const avg20Volume = Math.round(avg(priorBars.map((b) => safeNum(b.v, 0)).filter((v) => v != null))) || 1;
+
+      const volToday = safeNum(lastBar?.v, 0) || 0;
+
+      const highs = bars.map((b) => safeNum(b.h, null)).filter((x) => x != null);
+      const lows = bars.map((b) => safeNum(b.l, null)).filter((x) => x != null);
+
+      const fiftyTwoWeekHigh = highs.length ? Math.max(...highs) : null;
+      const fiftyTwoWeekLow = lows.length ? Math.min(...lows) : null;
+
+      const ask = safeNum(q.ap, null);
+      const bid = safeNum(q.bp, null);
+
+      let preMarketPrice = null;
+      let postMarketPrice = null;
+      let preMarketChangePercent = null;
+      let postMarketChangePercent = null;
+
+      // Market kapalıyken latest quote'u pre/after için de kullanmakta sakınca yok;
+      // UI tarafında en azından tablo boş kalmasın.
+      if (livePrice != null && prevClose != null && prevClose !== 0) {
+        const extPct = ((livePrice - prevClose) / prevClose) * 100;
+        preMarketPrice = livePrice;
+        postMarketPrice = livePrice;
+        preMarketChangePercent = extPct;
+        postMarketChangePercent = extPct;
       }
 
       return {
         symbol: sym,
         shortName: sym,
-        regularMarketPrice: price,
-        regularMarketChangePercent: chgPct,
-        regularMarketVolume: volume,
-        averageVolume: volume || 1,
-        regularMarketOpen: open,
-        regularMarketDayHigh: high,
-        regularMarketDayLow: low,
-        fiftyTwoWeekHigh: null,
-        fiftyTwoWeekLow: null,
+        regularMarketPrice: livePrice,
+        regularMarketChangePercent: changePct,
+        regularMarketVolume: volToday,
+        averageVolume: avg20Volume,
+        regularMarketOpen: dayOpen,
+        regularMarketDayHigh: dayHigh,
+        regularMarketDayLow: dayLow,
+        fiftyTwoWeekHigh,
+        fiftyTwoWeekLow,
         marketCap: null,
-        preMarketPrice: null,
-        preMarketChangePercent: null,
-        postMarketPrice: null,
-        postMarketChangePercent: null,
-        shortPercentOfFloat: 0,
+        preMarketPrice,
+        preMarketChangePercent,
+        postMarketPrice,
+        postMarketChangePercent,
+        shortPercentOfFloat: SHORT_FLOAT_PROXY[sym] ?? 0,
         forwardPE: null,
         trailingPE: null,
         _debug: {
-          source: "alpaca-latest",
-          hasBar: !!b,
-          hasQuote: !!q
+          source: "alpaca-daily+quote",
+          hasQuote: !!quotes[sym],
+          dailyBars: bars.length,
+          ask,
+          bid,
+          prevClose,
+          avg20Volume,
+          volToday
         }
       };
     })
     .filter(Boolean);
+
+  setCache(filtered, result);
+  return result;
 }
 
 app.get("/api/quote", async (req, res) => {
@@ -224,9 +345,9 @@ app.get("/api/quote", async (req, res) => {
       try {
         const yahooData = await fetchYahoo(chunk.join(","));
         allResults.push(...yahooData);
-      } catch (err) {
+      } catch (yahooErr) {
         console.error("Yahoo chunk failed:", chunk.join(","));
-        console.error(err.message);
+        console.error(yahooErr.message);
 
         try {
           const alpacaData = await fetchAlpacaFallback(chunk);
@@ -267,7 +388,6 @@ app.get("/api/debug-quote", async (req, res) => {
   } catch (yahooErr) {
     try {
       const alpacaData = await fetchAlpacaFallback(symbols);
-
       return res.json({
         ok: true,
         source: "alpaca",
@@ -287,6 +407,10 @@ app.get("/api/debug-quote", async (req, res) => {
 });
 
 app.get("/api/feargreed", async (_req, res) => {
+  if (Date.now() - fearGreedCache.ts < 15 * 60 * 1000) {
+    return res.json(fearGreedCache.data);
+  }
+
   try {
     const r = await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", {
       headers: {
@@ -296,23 +420,17 @@ app.get("/api/feargreed", async (_req, res) => {
     });
 
     if (!r.ok) {
-      return res.json({
-        fear_and_greed: {
-          score: 0,
-          rating: "unavailable"
-        }
-      });
+      return res.json(fearGreedCache.data);
     }
 
     const data = await r.json();
+    fearGreedCache = {
+      ts: Date.now(),
+      data
+    };
     res.json(data);
   } catch {
-    res.json({
-      fear_and_greed: {
-        score: 0,
-        rating: "unavailable"
-      }
-    });
+    res.json(fearGreedCache.data);
   }
 });
 
