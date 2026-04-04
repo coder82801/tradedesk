@@ -3,36 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDesk v3</title>
+  <title>TradeDesk v3 Pro</title>
   <style>
     :root{
-      --bg:#09101f;
-      --bg2:#0d1730;
-      --panel:#121c39;
-      --panel2:#18244a;
-      --soft:#25356a;
-      --line:rgba(255,255,255,.08);
+      --bg:#07101f;
+      --bg2:#0a1430;
+      --panel:#121c3d;
+      --panel2:#17254d;
+      --soft:#21325f;
       --text:#edf3ff;
-      --muted:#9eb0df;
+      --muted:#9fb1df;
       --green:#22c55e;
       --red:#ef4444;
       --yellow:#f59e0b;
       --blue:#38bdf8;
       --purple:#8b5cf6;
-      --shadow:0 14px 34px rgba(0,0,0,.28);
-      --radius:18px;
-      --radius-sm:12px;
+      --border:1px solid rgba(255,255,255,.08);
+      --radius:20px;
+      --radius-sm:14px;
+      --shadow:0 14px 40px rgba(0,0,0,.28);
     }
 
     *{box-sizing:border-box}
     html,body{
       margin:0;
       padding:0;
-      background:linear-gradient(180deg,#07101d 0%, #0b1327 100%);
+      background:
+        radial-gradient(circle at top left, rgba(75,85,255,.14), transparent 28%),
+        linear-gradient(180deg, #06101f 0%, #091225 100%);
       color:var(--text);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
-    body{min-height:100vh}
+
     button,input,select{font:inherit}
     .hidden{display:none !important}
 
@@ -47,8 +49,8 @@
     .login-card{
       width:100%;
       max-width:430px;
-      background:linear-gradient(180deg,rgba(19,28,57,.98),rgba(14,22,45,.98));
-      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(18,28,61,.96), rgba(14,22,47,.96));
+      border:var(--border);
       border-radius:24px;
       box-shadow:var(--shadow);
       padding:28px;
@@ -56,33 +58,37 @@
 
     .brand{
       display:flex;
+      gap:14px;
       align-items:center;
-      gap:12px;
-      margin-bottom:18px;
     }
 
-    .brand-icon{
+    .brand-badge{
       width:48px;
       height:48px;
-      border-radius:16px;
+      border-radius:14px;
+      background:linear-gradient(135deg, #38bdf8, #7c3aed);
       display:grid;
       place-items:center;
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
       font-size:24px;
       font-weight:800;
     }
 
-    h1,h2,h3,p{margin:0}
-    .title{font-size:28px;font-weight:800}
+    .title{
+      margin:0;
+      font-size:28px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
     .subtitle{
-      margin-top:6px;
+      margin:6px 0 0 0;
       color:var(--muted);
       font-size:14px;
       line-height:1.45;
     }
 
     .field{margin-top:16px}
-    .label{
+    .field label{
       display:block;
       margin-bottom:8px;
       color:var(--muted);
@@ -94,49 +100,51 @@
       border-radius:14px;
       padding:12px 14px;
       border:1px solid rgba(255,255,255,.1);
+      background:#0b1634;
+      color:var(--text);
       outline:none;
     }
 
-    .input,.select{
-      background:#0d1530;
-      color:var(--text);
-    }
     .input:focus,.select:focus{
       border-color:rgba(56,189,248,.6);
-      box-shadow:0 0 0 3px rgba(56,189,248,.14);
+      box-shadow:0 0 0 3px rgba(56,189,248,.15);
     }
 
     .btn{
       cursor:pointer;
-      color:#fff;
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
-      border:none;
       font-weight:800;
+      border:none;
       transition:.18s ease;
+      background:linear-gradient(135deg,#2563eb,#7c3aed);
     }
+
     .btn:hover{transform:translateY(-1px)}
     .btn.secondary{
-      background:#182446;
+      background:#162448;
       border:1px solid rgba(255,255,255,.08);
     }
     .btn.ghost{
       background:transparent;
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.09);
     }
-    .btn.green{background:linear-gradient(135deg,#15803d,#22c55e)}
-    .btn.red{background:linear-gradient(135deg,#b91c1c,#ef4444)}
+    .btn.green{
+      background:linear-gradient(135deg,#15803d,#22c55e);
+    }
+    .btn.red{
+      background:linear-gradient(135deg,#b91c1c,#ef4444);
+    }
 
     .error{
       margin-top:12px;
       padding:10px 12px;
       border-radius:12px;
-      font-size:13px;
-      background:rgba(127,29,29,.3);
-      border:1px solid rgba(239,68,68,.25);
+      background:rgba(127,29,29,.28);
       color:#fecaca;
+      border:1px solid rgba(239,68,68,.24);
+      font-size:13px;
     }
 
-    .app{
+    .app-shell{
       min-height:100vh;
       padding:18px;
     }
@@ -144,54 +152,62 @@
     .topbar{
       display:flex;
       justify-content:space-between;
-      gap:14px;
-      align-items:flex-start;
+      gap:16px;
       flex-wrap:wrap;
+      align-items:flex-start;
       margin-bottom:16px;
     }
 
     .topbar-right{
       display:flex;
       gap:10px;
-      align-items:center;
       flex-wrap:wrap;
+      align-items:center;
     }
 
-    .badges{
+    .version{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
+
+    .flex{
       display:flex;
+      gap:10px;
+      align-items:center;
       flex-wrap:wrap;
-      gap:8px;
-      margin-top:8px;
     }
 
     .badge{
       display:inline-flex;
       align-items:center;
-      padding:7px 10px;
+      gap:6px;
+      padding:8px 12px;
       border-radius:999px;
-      background:#142046;
+      background:#132148;
       border:1px solid rgba(255,255,255,.08);
       color:var(--muted);
       font-size:12px;
+      line-height:1;
     }
 
     .ticker-grid{
       display:grid;
-      grid-template-columns:repeat(6,minmax(0,1fr));
+      grid-template-columns: repeat(6,minmax(0,1fr));
       gap:12px;
       margin-bottom:16px;
     }
 
     .mini-card,.card{
-      background:linear-gradient(180deg,rgba(24,36,74,.98),rgba(13,22,46,.98));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(24,36,75,.98), rgba(14,22,46,.98));
+      border:var(--border);
       box-shadow:var(--shadow);
+      border-radius:var(--radius);
     }
 
     .mini-card{
-      padding:16px;
-      min-height:112px;
+      padding:18px;
+      min-height:118px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -199,52 +215,47 @@
 
     .mini-label{
       color:var(--muted);
-      font-size:12px;
-      margin-bottom:10px;
-      letter-spacing:.3px;
+      font-size:13px;
+      margin-bottom:8px;
     }
 
     .mini-value{
-      font-size:28px;
+      font-size:26px;
       font-weight:800;
       line-height:1.05;
-      margin-bottom:8px;
       word-break:break-word;
     }
 
     .mini-change{
+      margin-top:8px;
       font-size:13px;
+      font-weight:700;
       color:var(--muted);
-      word-break:break-word;
     }
 
-    .card{
-      padding:16px;
-    }
-
-    .tabs-card{
+    .tabs-wrap{
       margin-bottom:16px;
     }
 
     .tabs{
       display:flex;
-      gap:10px;
       flex-wrap:wrap;
+      gap:8px;
     }
 
     .tab-btn{
       border:none;
-      padding:12px 16px;
       border-radius:999px;
-      background:#172443;
-      color:#fff;
+      padding:12px 18px;
+      background:#152247;
+      color:var(--text);
       cursor:pointer;
       font-weight:800;
       border:1px solid rgba(255,255,255,.08);
     }
 
     .tab-btn.active{
-      background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      background:linear-gradient(135deg,#4f46e5,#8b5cf6);
     }
 
     .page{display:none}
@@ -252,54 +263,82 @@
 
     .grid-2{
       display:grid;
-      grid-template-columns:1.2fr .8fr;
+      grid-template-columns: 1.2fr .8fr;
       gap:16px;
+    }
+
+    .card{
+      padding:16px;
     }
 
     .card-head{
       display:flex;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
       align-items:flex-start;
       flex-wrap:wrap;
       margin-bottom:14px;
     }
 
     .card-title{
+      margin:0;
       font-size:18px;
       font-weight:800;
     }
 
     .card-sub{
-      margin-top:4px;
       color:var(--muted);
       font-size:13px;
+      margin-top:4px;
       line-height:1.45;
     }
 
-    .stats{
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .stats-row{
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns: repeat(4,minmax(0,1fr));
       gap:10px;
       margin-bottom:12px;
     }
 
     .stat{
-      background:#0e1735;
+      background:#0e1836;
       border:1px solid rgba(255,255,255,.07);
       border-radius:14px;
       padding:12px;
     }
 
-    .stat-k{
+    .stat .k{
       color:var(--muted);
       font-size:12px;
       margin-bottom:8px;
     }
 
-    .stat-v{
-      font-size:21px;
+    .stat .v{
+      font-size:20px;
       font-weight:800;
+      line-height:1.1;
+      word-break:break-word;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:12px;
+    }
+
+    .toolbar .input,.toolbar .select{
+      flex:1 1 180px;
+      width:auto;
+      min-width:140px;
     }
 
     .list{
@@ -307,33 +346,48 @@
       gap:10px;
     }
 
-    .item{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
+    .row{
+      display:grid;
+      grid-template-columns: 110px 1fr 92px 92px 110px 110px;
+      gap:10px;
       align-items:center;
-      background:#0d1632;
+      background:#0d1735;
       border:1px solid rgba(255,255,255,.06);
       border-radius:14px;
       padding:12px;
     }
 
-    .item-main{
-      min-width:0;
-      flex:1;
-    }
-
-    .item-title{
+    .row.header{
+      background:transparent;
+      border:none;
+      padding:0 4px 6px 4px;
+      color:var(--muted);
+      font-size:12px;
       font-weight:800;
-      font-size:15px;
     }
 
-    .item-sub{
-      margin-top:4px;
+    .watchlist-item{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      background:#0d1735;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .symbol{
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .name{
       color:var(--muted);
       font-size:13px;
-      line-height:1.45;
-      word-break:break-word;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .pill{
@@ -347,71 +401,27 @@
       font-weight:800;
       border:1px solid rgba(255,255,255,.08);
       background:#152144;
-      text-align:center;
     }
 
-    .signal-strong{background:rgba(34,197,94,.14);color:#86efac}
-    .signal-mid{background:rgba(245,158,11,.14);color:#fcd34d}
-    .signal-low{background:rgba(59,130,246,.14);color:#93c5fd}
-    .signal-risk{background:rgba(239,68,68,.14);color:#fca5a5}
+    .signal-strong{background:rgba(34,197,94,.15);color:#86efac}
+    .signal-mid{background:rgba(245,158,11,.15);color:#fcd34d}
+    .signal-low{background:rgba(59,130,246,.15);color:#93c5fd}
+    .signal-risk{background:rgba(239,68,68,.15);color:#fca5a5}
 
     .green{color:#86efac}
     .red{color:#fca5a5}
     .yellow{color:#fcd34d}
     .muted{color:var(--muted)}
     .strong{font-weight:800}
+    .small{font-size:12px;color:var(--muted)}
 
     .empty{
       padding:18px;
       border-radius:14px;
-      background:#0c1430;
+      background:#0b1531;
       border:1px dashed rgba(255,255,255,.1);
       color:var(--muted);
       text-align:center;
-    }
-
-    .toolbar{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:12px;
-    }
-
-    .toolbar .input,.toolbar .select{
-      width:auto;
-      flex:1 1 180px;
-      min-width:150px;
-    }
-
-    .filter-btn.active{
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
-      border:none;
-    }
-
-    .table{
-      display:grid;
-      gap:10px;
-    }
-
-    .trow{
-      display:grid;
-      grid-template-columns:100px 1fr 96px 96px 110px 110px;
-      gap:10px;
-      align-items:center;
-      background:#0d1632;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .trow.header{
-      background:transparent;
-      border:none;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-      padding:0 4px 6px 4px;
     }
 
     .watch-add{
@@ -421,14 +431,16 @@
       margin-bottom:12px;
     }
 
-    .watch-add .input{flex:1 1 180px}
+    .watch-add .input{
+      flex:1 1 180px;
+    }
 
     .iframe-wrap{
       height:560px;
       border-radius:16px;
       overflow:hidden;
+      background:#071228;
       border:1px solid rgba(255,255,255,.08);
-      background:#0b1125;
     }
 
     iframe{
@@ -439,43 +451,50 @@
 
     .risk-grid{
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns: repeat(2,minmax(0,1fr));
       gap:10px;
     }
 
     .result-grid{
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns: repeat(4,minmax(0,1fr));
       gap:10px;
       margin-top:14px;
     }
 
-    .small{
-      font-size:12px;
+    .footer-note{
       color:var(--muted);
-      line-height:1.45;
+      font-size:13px;
+      line-height:1.55;
     }
 
-    @media (max-width: 1200px){
+    hr.sep{
+      border:none;
+      border-top:1px solid rgba(255,255,255,.08);
+      margin:18px 0;
+    }
+
+    @media (max-width:1200px){
       .ticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
       .grid-2{grid-template-columns:1fr}
-      .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))}
       .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
-    @media (max-width: 820px){
-      .app{padding:14px}
+    @media (max-width:780px){
+      .app-shell{padding:12px}
       .ticker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .trow{grid-template-columns:1fr}
-      .trow.header{display:none}
       .risk-grid{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr;gap:6px}
+      .row.header{display:none}
     }
 
-    @media (max-width: 560px){
+    @media (max-width:560px){
       .ticker-grid{grid-template-columns:1fr}
-      .stats{grid-template-columns:1fr}
+      .stats-row{grid-template-columns:1fr}
       .result-grid{grid-template-columns:1fr}
-      .mini-value{font-size:24px}
+      .tabs{gap:6px}
+      .tab-btn{padding:10px 14px}
     }
   </style>
 </head>
@@ -483,38 +502,38 @@
   <div id="loginView" class="login-wrap">
     <div class="login-card">
       <div class="brand">
-        <div class="brand-icon">📈</div>
+        <div class="brand-badge">📈</div>
         <div>
           <h1 class="title">TradeDesk v3</h1>
-          <p class="subtitle">Backend proxy + screener destekli piyasa tarama arayüzü</p>
+          <p class="subtitle">Backend proxy + frontend analiz modülleri</p>
         </div>
       </div>
 
       <div class="field">
-        <label class="label" for="passwordInput">Şifre</label>
-        <input id="passwordInput" class="input" type="password" placeholder="Şifrenizi girin" />
+        <label for="passwordInput">Şifre</label>
+        <input id="passwordInput" class="input" type="password" placeholder="Şifre girin" />
       </div>
 
       <div class="field">
-        <button id="loginBtn" class="btn">Giriş Yap</button>
+        <button id="loginBtn" class="btn">Giriş →</button>
       </div>
 
-      <div id="loginError" class="error hidden">Şifre yanlış.</div>
+      <div id="loginError" class="error hidden">Yanlış şifre</div>
       <div class="field small">Varsayılan şifre: 1234</div>
     </div>
   </div>
 
-  <div id="appView" class="app hidden">
+  <div id="appView" class="app-shell hidden">
     <div class="topbar">
       <div>
-        <div class="brand" style="margin-bottom:0">
-          <div class="brand-icon">📊</div>
+        <div class="brand">
+          <div class="brand-badge">📊</div>
           <div>
-            <h1 class="title" style="font-size:24px">TradeDesk v3.0</h1>
-            <p class="subtitle">Veri akışı backend üzerinden yönetilir</p>
+            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3.0</h1>
+            <div class="version">Veri akışı backend environment üzerinden yönetilir</div>
           </div>
         </div>
-        <div class="badges">
+        <div class="flex" style="margin-top:8px">
           <span class="badge">Backend Proxy</span>
           <span class="badge">Yahoo + Alpaca Fallback</span>
           <span class="badge" id="marketTimeBadge">ABD Piyasa: kontrol ediliyor...</span>
@@ -523,48 +542,24 @@
       </div>
 
       <div class="topbar-right">
-        <button id="refreshAllBtn" class="btn secondary">↻ Yenile</button>
-        <button id="logoutBtn" class="btn ghost">Çıkış</button>
+        <button class="btn secondary" id="refreshAllBtn">↻ Yenile</button>
+        <button class="btn ghost" id="logoutBtn">Çıkış</button>
       </div>
     </div>
 
     <div class="ticker-grid">
-      <div class="mini-card">
-        <div class="mini-label">SPY</div>
-        <div id="spyPrice" class="mini-value">—</div>
-        <div id="spyChange" class="mini-change">—</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-label">QQQ</div>
-        <div id="qqqPrice" class="mini-value">—</div>
-        <div id="qqqChange" class="mini-change">—</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-label">VIX</div>
-        <div id="vixPrice" class="mini-value">—</div>
-        <div id="vixChange" class="mini-change">—</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-label">IWM</div>
-        <div id="iwmPrice" class="mini-value">—</div>
-        <div id="iwmChange" class="mini-change">—</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-label">NASDAQ</div>
-        <div id="nasdaqPrice" class="mini-value">—</div>
-        <div id="nasdaqChange" class="mini-change">—</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-label">Fear &amp; Greed</div>
-        <div id="fgValue" class="mini-value">—</div>
-        <div id="fgText" class="mini-change">—</div>
-      </div>
+      <div class="mini-card"><div class="mini-label">SPY</div><div class="mini-value" id="spyPrice">—</div><div class="mini-change" id="spyChange">—</div></div>
+      <div class="mini-card"><div class="mini-label">QQQ</div><div class="mini-value" id="qqqPrice">—</div><div class="mini-change" id="qqqChange">—</div></div>
+      <div class="mini-card"><div class="mini-label">VIX</div><div class="mini-value" id="vixPrice">—</div><div class="mini-change" id="vixChange">—</div></div>
+      <div class="mini-card"><div class="mini-label">IWM</div><div class="mini-value" id="iwmPrice">—</div><div class="mini-change" id="iwmChange">—</div></div>
+      <div class="mini-card"><div class="mini-label">NASDAQ</div><div class="mini-value" id="nasdaqPrice">—</div><div class="mini-change" id="nasdaqChange">—</div></div>
+      <div class="mini-card"><div class="mini-label">Fear &amp; Greed</div><div class="mini-value" id="fgValue">—</div><div class="mini-change" id="fgText">—</div></div>
     </div>
 
-    <div class="card tabs-card">
+    <div class="card tabs-wrap">
       <div class="tabs">
         <button class="tab-btn active" data-page="summary">📊 Özet</button>
-        <button class="tab-btn" data-page="market">🔭 Tüm Piyasa</button>
+        <button class="tab-btn" data-page="market">⛏️ Tüm Piyasa</button>
         <button class="tab-btn" data-page="accum">🌊 Birikim</button>
         <button class="tab-btn" data-page="whales">🐋 Balina</button>
         <button class="tab-btn" data-page="squeeze">🎯 Squeeze</button>
@@ -583,12 +578,14 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <div class="card-title">🔥 Öne Çıkan Fırsatlar</div>
-              <div class="card-sub">Screener sonuçlarından en güçlü adaylar</div>
+              <h2 class="card-title">🔥 Öne Çıkan Fırsatlar</h2>
+              <div class="card-sub">Balina / birikim / squeeze / breakout arasında en güçlü adaylar</div>
             </div>
-            <button id="refreshHighlightsBtn" class="btn secondary" style="width:auto">↻ Yenile</button>
+            <div class="actions">
+              <button class="btn secondary" id="refreshHighlightsBtn">↻ Yenile</button>
+            </div>
           </div>
-          <div id="highlightsList" class="list">
+          <div class="list" id="highlightsList">
             <div class="empty">Yükleniyor...</div>
           </div>
         </div>
@@ -596,11 +593,11 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <div class="card-title">🔔 Alertler</div>
-              <div class="card-sub">Balina / breakout / squeeze sinyalleri</div>
+              <h2 class="card-title">🔔 Alertler</h2>
+              <div class="card-sub">En güçlü piyasa uyarıları</div>
             </div>
           </div>
-          <div id="alertsList" class="list">
+          <div class="list" id="alertsList">
             <div class="empty">Yükleniyor...</div>
           </div>
         </div>
@@ -609,12 +606,14 @@
       <div class="card" style="margin-top:16px">
         <div class="card-head">
           <div>
-            <div class="card-title">⭐ İzleme Listesi Anlık</div>
+            <h2 class="card-title">⭐ İzleme Listesi Anlık</h2>
             <div class="card-sub">Kendi eklediğin hisselerde hızlı görünüm</div>
           </div>
-          <button id="refreshWatchSummaryBtn" class="btn secondary" style="width:auto">↻</button>
+          <div class="actions">
+            <button class="btn secondary" id="refreshWatchSummaryBtn">↻</button>
+          </div>
         </div>
-        <div id="watchSummaryList" class="list">
+        <div class="list" id="watchSummaryList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -624,28 +623,30 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">🔭 Tüm Piyasa Tarayıcı</div>
-            <div class="card-sub">Screener listesi · filtrelenebilir görünüm</div>
+            <h2 class="card-title">🔭 Tüm Piyasa Tarayıcı</h2>
+            <div class="card-sub">Client-side analiz · tek endpoint üzerinden hesaplanır</div>
           </div>
-          <button id="scanMarketBtn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanMarketBtn">↻ Tara</button>
+          </div>
         </div>
 
-        <div class="stats">
-          <div class="stat"><div class="stat-k">Toplam</div><div id="marketTotal" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Yükselen</div><div id="marketUp" class="stat-v green">—</div></div>
-          <div class="stat"><div class="stat-k">Düşen</div><div id="marketDown" class="stat-v red">—</div></div>
-          <div class="stat"><div class="stat-k">Ort. Değişim</div><div id="marketAvg" class="stat-v">—</div></div>
+        <div class="stats-row">
+          <div class="stat"><div class="k">Toplam</div><div class="v" id="marketTotal">—</div></div>
+          <div class="stat"><div class="k">Yükselenler</div><div class="v green" id="marketUp">—</div></div>
+          <div class="stat"><div class="k">Düşenler</div><div class="v red" id="marketDown">—</div></div>
+          <div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="marketAvg">—</div></div>
         </div>
 
         <div class="toolbar">
-          <button class="btn ghost filter-btn active" data-filter="all" style="width:auto">Tümü</button>
-          <button class="btn ghost filter-btn" data-filter="gainers" style="width:auto">📈 Yükselenler</button>
-          <button class="btn ghost filter-btn" data-filter="losers" style="width:auto">📉 Düşenler</button>
-          <button class="btn ghost filter-btn" data-filter="volume" style="width:auto">🔥 Hacim</button>
-          <input id="marketSearch" class="input" placeholder="Ara..." />
+          <button class="btn ghost filter-btn active" data-filter="all">Tümü</button>
+          <button class="btn ghost filter-btn" data-filter="gainers">📈 Yükselenler</button>
+          <button class="btn ghost filter-btn" data-filter="losers">📉 Düşenler</button>
+          <button class="btn ghost filter-btn" data-filter="volume">🔥 Hacim</button>
+          <input id="marketSearch" class="input" placeholder="Sembol / isim ara..." />
         </div>
 
-        <div id="marketList" class="table">
+        <div class="list" id="marketList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -655,20 +656,22 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">🌊 Sessiz Birikim</div>
-            <div class="card-sub">Hacim artışı var, hareket henüz sınırlı</div>
+            <h2 class="card-title">🌊 Sessiz Birikim</h2>
+            <div class="card-sub">Hacim yükseliyor, fiyat sakin kalıyor</div>
           </div>
-          <button id="scanAccumBtn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanAccumBtn">↻ Tara</button>
+          </div>
         </div>
 
-        <div class="stats">
-          <div class="stat"><div class="stat-k">Taranan</div><div id="accumScanned" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Aday</div><div id="accumCount" class="stat-v blue">—</div></div>
-          <div class="stat"><div class="stat-k">Güçlü</div><div id="accumStrong" class="stat-v green">—</div></div>
-          <div class="stat"><div class="stat-k">Güncelleme</div><div id="accumUpdate" class="stat-v">—</div></div>
+        <div class="stats-row">
+          <div class="stat"><div class="k">Taranan</div><div class="v" id="accumScanned">—</div></div>
+          <div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="accumStrong">—</div></div>
+          <div class="stat"><div class="k">Toplam Aday</div><div class="v blue" id="accumCount">—</div></div>
+          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="accumUpdate">—</div></div>
         </div>
 
-        <div id="accumList" class="list">
+        <div class="list" id="accumList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -678,20 +681,22 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">🐋 Balina Alertleri</div>
-            <div class="card-sub">Hacim spike ve sert hareket tespiti</div>
+            <h2 class="card-title">🐋 Balina Alertleri</h2>
+            <div class="card-sub">Aşırı hacim + anlamlı fiyat hareketi</div>
           </div>
-          <button id="scanWhalesBtn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanWhalesBtn">↻ Tara</button>
+          </div>
         </div>
 
-        <div class="stats">
-          <div class="stat"><div class="stat-k">Aktif Alert</div><div id="whaleActive" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">En Yüksek Vol×</div><div id="whaleMaxVol" class="stat-v yellow">—</div></div>
-          <div class="stat"><div class="stat-k">Ort. Değişim</div><div id="whaleAvgMove" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Güncelleme</div><div id="whaleUpdate" class="stat-v">—</div></div>
+        <div class="stats-row">
+          <div class="stat"><div class="k">Aktif Alert</div><div class="v" id="whaleActive">—</div></div>
+          <div class="stat"><div class="k">En Yüksek Vol×</div><div class="v yellow" id="whaleMaxVol">—</div></div>
+          <div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="whaleAvgMove">—</div></div>
+          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="whaleUpdate">—</div></div>
         </div>
 
-        <div id="whalesList" class="list">
+        <div class="list" id="whalesList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -701,12 +706,15 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">🎯 Squeeze Radar</div>
-            <div class="card-sub">Düşük hareket + sıkışma görünümü</div>
+            <h2 class="card-title">🎯 Short Squeeze Radar</h2>
+            <div class="card-sub">Volatilite sıkışması + hacim baskısı + momentum</div>
           </div>
-          <button id="scanSqueezeBtn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanSqueezeBtn">↻ Tara</button>
+          </div>
         </div>
-        <div id="squeezeList" class="list">
+
+        <div class="list" id="squeezeList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -716,12 +724,14 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">🌅 Pre-Market / After-Hours Proxy</div>
-            <div class="card-sub">Şimdilik screener verisinden türetilen hareketler</div>
+            <h2 class="card-title">🌅 Pre-Market &amp; After-Hours</h2>
+            <div class="card-sub">Gerçek veri yoksa fallback momentum listesi gösterilir</div>
           </div>
-          <button id="scanPreAfterBtn" class="btn secondary" style="width:auto">↻ Yenile</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanPreAfterBtn">↻ Yenile</button>
+          </div>
         </div>
-        <div id="preafterList" class="list">
+        <div class="list" id="preafterList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -731,20 +741,26 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">💥 Yarın Patlayacak Radar</div>
-            <div class="card-sub">Breakout ve hacim ivmesine göre seçilir</div>
+            <h2 class="card-title">💥 Yarın Patlayacak Radar</h2>
+            <div class="card-sub">Momentum + hacim + gün içi konum birleşik skoru</div>
           </div>
-          <button id="scanTomorrowBtn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanTomorrowBtn">↻ Tara</button>
+          </div>
         </div>
 
-        <div class="stats">
-          <div class="stat"><div class="stat-k">Taranan</div><div id="tomorrowScanned" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Aday</div><div id="tomorrowStrong" class="stat-v green">—</div></div>
-          <div class="stat"><div class="stat-k">Ort. Spike %</div><div id="tomorrowAvgSpike" class="stat-v yellow">—</div></div>
-          <div class="stat"><div class="stat-k">Güncelleme</div><div id="tomorrowUpdate" class="stat-v">—</div></div>
+        <div class="footer-note" style="margin-bottom:12px">
+          Kapanışa yakın ya da seans sonrası kullanımda daha anlamlı sonuç verir.
         </div>
 
-        <div id="tomorrowList" class="list">
+        <div class="stats-row">
+          <div class="stat"><div class="k">Taranan</div><div class="v" id="tomorrowScanned">—</div></div>
+          <div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="tomorrowStrong">—</div></div>
+          <div class="stat"><div class="k">Ort. Spike %</div><div class="v yellow" id="tomorrowAvgSpike">—</div></div>
+          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="tomorrowUpdate">—</div></div>
+        </div>
+
+        <div class="list" id="tomorrowList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -754,20 +770,22 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">💎 5-10x Adayları</div>
-            <div class="card-sub">Düşük/orta fiyat + ivme + tema bazlı aday listesi</div>
+            <h2 class="card-title">💎 5-10x Adayları</h2>
+            <div class="card-sub">Tematik sektör + makul fiyat + birikim eğilimi</div>
           </div>
-          <button id="scanX10Btn" class="btn secondary" style="width:auto">↻ Tara</button>
+          <div class="actions">
+            <button class="btn secondary" id="scanX10Btn">↻ Tara</button>
+          </div>
         </div>
 
-        <div class="stats">
-          <div class="stat"><div class="stat-k">Aday</div><div id="x10Count" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Yüksek Potansiyel</div><div id="x10HighPotential" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Ort. Fiyat</div><div id="x10AvgPrice" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">Güncelleme</div><div id="x10Update" class="stat-v">—</div></div>
+        <div class="stats-row">
+          <div class="stat"><div class="k">Aday</div><div class="v" id="x10Count">—</div></div>
+          <div class="stat"><div class="k">Yüksek Potansiyel</div><div class="v" id="x10HighPotential">—</div></div>
+          <div class="stat"><div class="k">Ort. Fiyat</div><div class="v" id="x10AvgPrice">—</div></div>
+          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="x10Update">—</div></div>
         </div>
 
-        <div id="x10List" class="list">
+        <div class="list" id="x10List">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -777,19 +795,21 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">⭐ İzleme Listesi</div>
-            <div class="card-sub">Anlık fiyat + sinyal özeti</div>
+            <h2 class="card-title">⭐ İzleme Listesi</h2>
+            <div class="card-sub">Kendi seçtiğin sembollerde hızlı analiz</div>
           </div>
-          <button id="refreshWatchBtn" class="btn secondary" style="width:auto">↻ Yenile</button>
+          <div class="actions">
+            <button class="btn secondary" id="refreshWatchBtn">↻ Yenile</button>
+          </div>
         </div>
 
         <div class="watch-add">
-          <input id="watchInput" class="input" placeholder="Sembol (AAPL)" />
-          <button id="addWatchBtn" class="btn green" style="width:auto">+ Ekle</button>
-          <button id="clearWatchBtn" class="btn red" style="width:auto">Temizle</button>
+          <input id="watchInput" class="input" placeholder="Sembol ekle (AAPL)" />
+          <button class="btn green" id="addWatchBtn">+ Ekle</button>
+          <button class="btn red" id="clearWatchBtn">Temizle</button>
         </div>
 
-        <div id="watchList" class="list">
+        <div class="list" id="watchList">
           <div class="empty">Yükleniyor...</div>
         </div>
       </div>
@@ -799,8 +819,8 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">📈 TradingView Grafik</div>
-            <div class="card-sub">RSI · MACD · Hacim · VWAP</div>
+            <h2 class="card-title">📈 TradingView Grafik</h2>
+            <div class="card-sub">RSI · MACD · Volume · VWAP</div>
           </div>
         </div>
 
@@ -813,7 +833,7 @@
             <option value="15">15 Dk</option>
             <option value="5">5 Dk</option>
           </select>
-          <button id="loadChartBtn" class="btn secondary" style="width:auto">Yükle</button>
+          <button class="btn secondary" id="loadChartBtn">Yükle</button>
         </div>
 
         <div class="iframe-wrap">
@@ -826,7 +846,7 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">⚖️ Pozisyon Hesaplayıcı</div>
+            <h2 class="card-title">⚖️ Pozisyon Hesaplayıcı</h2>
             <div class="card-sub">Risk / ödül ve lot hesabı</div>
           </div>
         </div>
@@ -837,21 +857,21 @@
           <input id="riskEntry" class="input" type="number" step="0.0001" placeholder="Giriş Fiyatı" value="2.50" />
           <input id="riskStop" class="input" type="number" step="0.0001" placeholder="Stop Loss" value="2.20" />
           <input id="riskTarget" class="input" type="number" step="0.0001" placeholder="Hedef Fiyat" value="3.50" />
-          <button id="calcRiskBtn" class="btn">Hesapla</button>
+          <button class="btn" id="calcRiskBtn">Hesapla</button>
         </div>
 
         <div class="result-grid">
-          <div class="stat"><div class="stat-k">MAX RİSK ($)</div><div id="rrMaxRisk" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">LOT</div><div id="rrShares" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">TOPLAM GİRİŞ</div><div id="rrCost" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">STOP MESAFE</div><div id="rrStopDistance" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">HEDEF KAR</div><div id="rrProfit" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">RISK / ÖDÜL</div><div id="rrRatio" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">KAZANÇ %</div><div id="rrGainPct" class="stat-v">—</div></div>
-          <div class="stat"><div class="stat-k">KAYIP %</div><div id="rrLossPct" class="stat-v">—</div></div>
+          <div class="stat"><div class="k">MAX RİSK ($)</div><div class="v" id="rrMaxRisk">—</div></div>
+          <div class="stat"><div class="k">LOT SAYISI</div><div class="v" id="rrShares">—</div></div>
+          <div class="stat"><div class="k">TOPLAM GİRİŞ</div><div class="v" id="rrCost">—</div></div>
+          <div class="stat"><div class="k">STOP UZAKLIK</div><div class="v" id="rrStopDistance">—</div></div>
+          <div class="stat"><div class="k">HEDEF KAR</div><div class="v" id="rrProfit">—</div></div>
+          <div class="stat"><div class="k">RISK / ÖDÜL</div><div class="v" id="rrRatio">—</div></div>
+          <div class="stat"><div class="k">KAZANÇ %</div><div class="v" id="rrGainPct">—</div></div>
+          <div class="stat"><div class="k">KAYIP %</div><div class="v" id="rrLossPct">—</div></div>
         </div>
 
-        <div id="riskNote" class="small" style="margin-top:12px">Değerleri girin.</div>
+        <div class="footer-note" id="riskNote" style="margin-top:12px">Değerleri girin.</div>
       </div>
     </section>
 
@@ -859,34 +879,36 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">⚙️ Ayarlar</div>
-            <div class="card-sub">Login ve otomatik yenileme ayarları</div>
+            <h2 class="card-title">⚙️ Ayarlar</h2>
+            <div class="card-sub">Frontend tarafında anahtar tutulmaz</div>
           </div>
         </div>
 
-        <div class="small" style="margin-bottom:18px">
-          Veri akışı backend environment üzerinden yönetilir. Frontend tarafında API key tutulmaz.
+        <div class="footer-note">
+          Veri akışı backend üzerinden yönetilir. Frontend yalnızca `/api/quote`, `/api/feargreed` ve `/health` endpointlerini kullanır.
         </div>
+
+        <hr class="sep" />
 
         <div class="card-head">
           <div>
-            <div class="card-title">🔒 Şifre Değiştir</div>
-            <div class="card-sub">Minimum 4 karakter</div>
+            <h2 class="card-title">🔒 Şifre Değiştir</h2>
+            <div class="card-sub">Min 4 karakter</div>
           </div>
         </div>
 
         <div class="toolbar">
-          <input id="newPasswordInput" class="input" type="password" placeholder="Yeni Şifre" />
-          <button id="changePasswordBtn" class="btn" style="width:auto">Değiştir</button>
+          <input id="newPasswordInput" class="input" type="password" placeholder="Yeni şifre" />
+          <button class="btn" id="changePasswordBtn">Değiştir</button>
         </div>
         <div id="passwordMsg" class="small"></div>
 
-        <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:18px 0">
+        <hr class="sep" />
 
         <div class="card-head">
           <div>
-            <div class="card-title">🔄 Otomatik Yenileme</div>
-            <div class="card-sub">Periyodik veri yenileme</div>
+            <h2 class="card-title">🔄 Otomatik Yenileme</h2>
+            <div class="card-sub">Belirli periyotlarda veri yenile</div>
           </div>
         </div>
 
@@ -898,9 +920,9 @@
             <option value="5">5 dakika</option>
             <option value="10">10 dakika</option>
           </select>
-          <button id="saveAutoRefreshBtn" class="btn secondary" style="width:auto">Kaydet</button>
+          <button class="btn secondary" id="saveAutoRefreshBtn">Kaydet</button>
         </div>
-        <div id="autoRefreshMsg" class="small">—</div>
+        <div class="small" id="autoRefreshMsg">—</div>
       </div>
     </section>
   </div>
@@ -915,21 +937,72 @@
       const WATCHLIST_KEY = "tradedesk_watchlist";
       const AUTO_REFRESH_KEY = "tradedesk_auto_refresh_min";
 
-      const state = {
-        screener: [],
-        screenerMap: {},
-        watchlist: [],
-        marketFilter: "all",
-        autoRefreshTimer: null
+      const HEADER_SYMBOLS = ["SPY", "QQQ", "VIX", "IWM", "NASDAQ"];
+      const MARKET_SYMBOLS = [
+        "AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","AMD","PLTR","SMCI",
+        "AVGO","NFLX","COIN","MSTR","RIVN","SOFI","INTC","MU","BABA","PDD",
+        "UBER","LYFT","SHOP","SNOW","CRM","ORCL","ADBE","PANW","CRWD","NET",
+        "ARM","QCOM","MRVL","LRCX","KLAC","ASML","AMAT","TSM","F","GM",
+        "NIO","LI","XPEV","LCID","IONQ","QBTS","RGTI","QUBT","SOUN","BBAI",
+        "AI","ASTS","RKLB","LUNR","PL","JOBY","ACHR","ARQQ","SATS","RIOT",
+        "MARA","CLSK","BTBT","HUT","IREN","WULF","CIFR","BITF","HIVE","AFRM",
+        "UPST","HOOD","PYPL","SQ","DKNG","ROKU","OPEN","CVNA","CAR","DAL",
+        "UAL","AAL","CCL","RCL","NCLH","BA","GE","JBLU","SAVE","XOM",
+        "CVX","OXY","SLB","HAL","COP","DVN","EOG","APA","MRO","JNJ",
+        "PFE","MRNA","LLY","NVO","REGN","VRTX","BMY","ABBV","BIIB","WMT",
+        "COST","TGT","HD","LOW","NKE","DIS","SBUX","MCD","CMG","XBI",
+        "ARKK","SPWR","SEDG","ENPH","RUN","FSLR","BE","CHPT","QS","NKLA",
+        "ENVX","EOSE","MVST","STEM","DNA","RXRX","TEM","HIMS","CELH","DJT",
+        "GME","AMC","BB","SIRI","TLRY","CGC","APLD","S","IOT","DDOG",
+        "MDB","PATH","U","RBLX","TTD","APP","DUOL","ONON","ETSY","TNA",
+        "SOXL","LABU","FNGU","NVDL","TQQQ","SQQQ","UVXY","BOIL","KOLD"
+      ];
+
+      const SECTOR_HINTS = {
+        ASTS: "Uzay",
+        RKLB: "Uzay",
+        LUNR: "Uzay",
+        PL: "Uzay",
+        IONQ: "Kuantum",
+        QBTS: "Kuantum",
+        RGTI: "Kuantum",
+        QUBT: "Kuantum",
+        SOUN: "AI",
+        BBAI: "AI",
+        AI: "AI",
+        PLTR: "AI",
+        TEM: "AI/Sağlık",
+        RXRX: "AI/Biyotek",
+        DNA: "Biyotek",
+        TSLA: "EV/AI",
+        RIVN: "EV",
+        LCID: "EV",
+        NIO: "EV",
+        LI: "EV",
+        XPEV: "EV",
+        CLSK: "Kripto",
+        RIOT: "Kripto",
+        MARA: "Kripto",
+        HUT: "Kripto",
+        IREN: "Kripto",
+        CIFR: "Kripto",
+        BITF: "Kripto",
+        HIVE: "Kripto",
+        JOBY: "eVTOL",
+        ACHR: "eVTOL",
+        ENVX: "Batarya",
+        QS: "Batarya",
+        STEM: "Enerji",
+        BE: "Enerji"
       };
 
-      const THEMES = {
-        AI: ["NVDA","AMD","PLTR","SOUN","BBAI","SMCI","MSFT","GOOGL","META"],
-        SPACE: ["RKLB","LUNR","ASTS","PL"],
-        QUANTUM: ["IONQ","QBTS","RGTI","QUBT"],
-        CRYPTO: ["COIN","MSTR","MARA","RIOT","CLSK"],
-        EV: ["TSLA","RIVN","LCID","NIO","LI","XPEV"],
-        GROWTH: ["PLTR","SMCI","NFLX","AMZN","META","TSLA","AMD","COIN"]
+      const state = {
+        quotes: [],
+        quoteMap: {},
+        watchlist: [],
+        marketFilter: "all",
+        autoRefreshTimer: null,
+        health: null
       };
 
       const $ = (id) => document.getElementById(id);
@@ -949,7 +1022,7 @@
       function formatPrice(v) {
         if (v == null || Number.isNaN(Number(v))) return "—";
         const num = Number(v);
-        const digits = num >= 100 ? 2 : num >= 10 ? 2 : num >= 1 ? 2 : 4;
+        const digits = num < 1 ? 4 : num < 10 ? 3 : 2;
         return "$" + formatNumber(num, digits);
       }
 
@@ -991,17 +1064,17 @@
       function getWatchlist() {
         try {
           const raw = localStorage.getItem(WATCHLIST_KEY);
-          const list = raw ? JSON.parse(raw) : ["AAPL","TSLA","NVDA","PLTR"];
+          const list = raw ? JSON.parse(raw) : ["AAPL","TSLA","PLTR","IONQ"];
           return Array.isArray(list)
-            ? [...new Set(list.map(x => String(x).trim().toUpperCase()).filter(Boolean))]
-            : ["AAPL","TSLA","NVDA","PLTR"];
+            ? [...new Set(list.map(s => String(s).trim().toUpperCase()).filter(Boolean))]
+            : ["AAPL","TSLA","PLTR","IONQ"];
         } catch {
-          return ["AAPL","TSLA","NVDA","PLTR"];
+          return ["AAPL","TSLA","PLTR","IONQ"];
         }
       }
 
       function saveWatchlist(list) {
-        state.watchlist = [...new Set(list.map(x => String(x).trim().toUpperCase()).filter(Boolean))];
+        state.watchlist = [...new Set(list.map(s => String(s).trim().toUpperCase()).filter(Boolean))];
         localStorage.setItem(WATCHLIST_KEY, JSON.stringify(state.watchlist));
       }
 
@@ -1022,279 +1095,360 @@
       async function fetchQuotes(symbols) {
         const unique = [...new Set(symbols.map(s => String(s).trim().toUpperCase()).filter(Boolean))];
         if (!unique.length) return [];
-        const data = await fetchJSON(`/api/quote?symbols=${encodeURIComponent(unique.join(","))}`);
+        const url = `/api/quote?symbols=${encodeURIComponent(unique.join(","))}`;
+        const data = await fetchJSON(url);
         const results = data?.quoteResponse?.result || [];
         return Array.isArray(results) ? results : [];
+      }
+
+      async function fetchHealth() {
+        try {
+          return await fetchJSON("/health");
+        } catch {
+          return null;
+        }
       }
 
       async function fetchFearGreed() {
         try {
           const data = await fetchJSON("/api/feargreed");
+          const fg = data?.fear_and_greed || {};
           return {
-            score: Number(data?.fear_and_greed?.score ?? 0),
-            rating: String(data?.fear_and_greed?.rating || "neutral")
+            score: Number(fg.score ?? 0),
+            rating: String(fg.rating || "neutral")
           };
         } catch {
-          return { score: 0, rating: "neutral" };
+          return { score: 50, rating: "neutral" };
         }
       }
 
-      async function fetchScreener() {
-        const data = await fetchJSON("/api/screener");
-        return Array.isArray(data) ? data : [];
+      function normalizeQuote(q) {
+        return {
+          symbol: String(q?.symbol || "").toUpperCase(),
+          originalSymbol: String(q?.originalSymbol || q?.symbol || "").toUpperCase(),
+          shortName: q?.shortName || q?.longName || q?.symbol || "",
+          regularMarketPrice: Number(q?.regularMarketPrice ?? NaN),
+          regularMarketChangePercent: Number(q?.regularMarketChangePercent ?? 0),
+          regularMarketChange: Number(q?.regularMarketChange ?? 0),
+          regularMarketVolume: Number(q?.regularMarketVolume ?? 0),
+          averageVolume: Number(q?.averageVolume ?? q?.averageDailyVolume3Month ?? 1),
+          regularMarketOpen: Number(q?.regularMarketOpen ?? NaN),
+          regularMarketDayHigh: Number(q?.regularMarketDayHigh ?? NaN),
+          regularMarketDayLow: Number(q?.regularMarketDayLow ?? NaN),
+          regularMarketPreviousClose: Number(q?.regularMarketPreviousClose ?? NaN),
+          fiftyTwoWeekHigh: Number(q?.fiftyTwoWeekHigh ?? NaN),
+          fiftyTwoWeekLow: Number(q?.fiftyTwoWeekLow ?? NaN),
+          marketCap: q?.marketCap ?? null,
+          preMarketPrice: q?.preMarketPrice == null ? null : Number(q.preMarketPrice),
+          preMarketChangePercent: q?.preMarketChangePercent == null ? null : Number(q.preMarketChangePercent),
+          postMarketPrice: q?.postMarketPrice == null ? null : Number(q.postMarketPrice),
+          postMarketChangePercent: q?.postMarketChangePercent == null ? null : Number(q.postMarketChangePercent),
+          shortPercentOfFloat: q?.shortPercentOfFloat == null ? null : Number(q.shortPercentOfFloat),
+          quoteType: q?.quoteType || "",
+          exchange: q?.exchange || ""
+        };
+      }
+
+      function validPrice(v) {
+        return Number.isFinite(Number(v));
+      }
+
+      function getVolumeRatio(q) {
+        const vol = Number(q.regularMarketVolume || 0);
+        const avg = Number(q.averageVolume || 0);
+        if (!avg || !Number.isFinite(avg)) return 0;
+        return vol / avg;
+      }
+
+      function getDayRangePercent(q) {
+        const h = Number(q.regularMarketDayHigh);
+        const l = Number(q.regularMarketDayLow);
+        if (!validPrice(h) || !validPrice(l) || h <= l) return 0;
+        return ((h - l) / l) * 100;
+      }
+
+      function getCloseNearHigh(q) {
+        const high = Number(q.regularMarketDayHigh);
+        const low = Number(q.regularMarketDayLow);
+        const price = Number(q.regularMarketPrice);
+        if (!validPrice(high) || !validPrice(low) || !validPrice(price) || high <= low) return false;
+        return price >= low + (high - low) * 0.72;
+      }
+
+      function getRangePosition(q) {
+        const low = Number(q.fiftyTwoWeekLow);
+        const high = Number(q.fiftyTwoWeekHigh);
+        const price = Number(q.regularMarketPrice);
+        if (!validPrice(low) || !validPrice(high) || !validPrice(price) || high <= low) return null;
+        return ((price - low) / (high - low)) * 100;
+      }
+
+      function getMomentumScore(q) {
+        const chg = Number(q.regularMarketChangePercent || 0);
+        const volx = getVolumeRatio(q);
+        const dayRange = getDayRangePercent(q);
+        return (chg * 1.4) + (volx * 5.5) + (dayRange * 0.5);
+      }
+
+      function getAccumulationScore(q) {
+        const volx = getVolumeRatio(q);
+        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
+        const dayRange = getDayRangePercent(q);
+        const rangePos = getRangePosition(q);
+        let score = 0;
+
+        if (volx >= 1.15 && volx <= 3.8) score += 30;
+        if (absChg <= 3.5) score += 25;
+        if (dayRange <= 4.5) score += 18;
+        if (rangePos != null && rangePos < 58) score += 15;
+        if (validPrice(q.regularMarketPrice) && q.regularMarketPrice > 0.7) score += 8;
+
+        return Math.round(score + (volx * 5));
+      }
+
+      function getWhaleScore(q) {
+        const volx = getVolumeRatio(q);
+        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
+        const dayRange = getDayRangePercent(q);
+        return Math.round((volx * 20) + (absChg * 7) + (dayRange * 1.2));
+      }
+
+      function getSqueezeScore(q) {
+        const volx = getVolumeRatio(q);
+        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
+        const dayRange = getDayRangePercent(q);
+        const price = Number(q.regularMarketPrice || 0);
+        let score = 0;
+
+        if (dayRange > 0 && dayRange <= 4.2) score += 24;
+        if (absChg <= 3.2) score += 18;
+        if (volx >= 1.1 && volx <= 2.8) score += 18;
+        if (getCloseNearHigh(q) && Number(q.regularMarketChangePercent || 0) >= 0) score += 20;
+        if (price > 1 && price < 40) score += 10;
+        if (q.shortPercentOfFloat && q.shortPercentOfFloat >= 8) score += Math.min(18, q.shortPercentOfFloat);
+
+        return Math.round(score);
+      }
+
+      function getPreAfterMove(q) {
+        if (q.preMarketChangePercent != null) return Number(q.preMarketChangePercent);
+        if (q.postMarketChangePercent != null) return Number(q.postMarketChangePercent);
+
+        const live = Number(q.regularMarketChangePercent || 0);
+        const volx = getVolumeRatio(q);
+        if (Math.abs(live) >= 2.5 || volx >= 1.6) return live;
+        return null;
+      }
+
+      function getTomorrowScore(q) {
+        const chg = Number(q.regularMarketChangePercent || 0);
+        const volx = getVolumeRatio(q);
+        const dayRange = getDayRangePercent(q);
+        const price = Number(q.regularMarketPrice || 0);
+        let score = 0;
+
+        if (chg > 2) score += 20;
+        if (chg > 4) score += 12;
+        if (volx > 1.6) score += 22;
+        if (volx > 2.5) score += 12;
+        if (getCloseNearHigh(q)) score += 18;
+        if (dayRange > 2.5) score += 10;
+        if (price > 0.8 && price < 25) score += 10;
+
+        return Math.round(score);
+      }
+
+      function getX10Score(q) {
+        const sector = SECTOR_HINTS[q.symbol];
+        const price = Number(q.regularMarketPrice || 0);
+        const accum = getAccumulationScore(q);
+        let score = 0;
+
+        if (sector) score += 28;
+        if (price > 0.5 && price < 30) score += 25;
+        if (accum >= 50) score += 22;
+        if (getVolumeRatio(q) >= 1.1) score += 10;
+        if (getRangePosition(q) != null && getRangePosition(q) < 60) score += 10;
+
+        return Math.round(score);
+      }
+
+      function signalPill(label, klass) {
+        return `<span class="pill ${klass}">${label}</span>`;
+      }
+
+      function rowHtml(item, extra = "") {
+        const chg = Number(item.regularMarketChangePercent || 0);
+        const cls = chg >= 0 ? "green" : "red";
+        return `
+          <div class="row">
+            <div class="symbol">${item.symbol}</div>
+            <div>
+              <div>${item.shortName || item.symbol}</div>
+              <div class="name">${extra}</div>
+            </div>
+            <div class="strong">${formatPrice(item.regularMarketPrice)}</div>
+            <div class="${cls} strong">${formatPct(chg)}</div>
+            <div class="muted">Vol× ${formatNumber(getVolumeRatio(item), 2)}</div>
+            <div class="muted">${formatCompact(item.regularMarketVolume || 0)}</div>
+          </div>
+        `;
+      }
+
+      function watchHtml(q, pillLabel, pillClass, note, removeButton = false) {
+        return `
+          <div class="watchlist-item">
+            <div>
+              <div class="strong">${q.symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?'green':'red'}">${formatPct(q.regularMarketChangePercent)}</span></div>
+              <div class="name">${note}</div>
+            </div>
+            <div class="flex">
+              ${signalPill(pillLabel, pillClass)}
+              ${removeButton ? `<button class="btn ghost remove-watch-btn" data-symbol="${q.symbol}" style="width:auto;padding:8px 12px">Sil</button>` : ""}
+            </div>
+          </div>
+        `;
       }
 
       function buildMarketTimeBadge() {
-        const tr = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
-        const ny = new Date(tr);
+        const nyString = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+        const ny = new Date(nyString);
         const day = ny.getDay();
-        const min = ny.getHours() * 60 + ny.getMinutes();
+        const minutes = ny.getHours() * 60 + ny.getMinutes();
 
         let text = "Kapalı";
         if (day >= 1 && day <= 5) {
-          if (min >= 240 && min < 570) text = "Pre-Market";
-          else if (min >= 570 && min < 960) text = "Piyasa Açık";
-          else if (min >= 960 && min < 1200) text = "After-Hours";
+          if (minutes >= 240 && minutes < 570) text = "Pre-Market";
+          else if (minutes >= 570 && minutes < 960) text = "Piyasa Açık";
+          else if (minutes >= 960 && minutes < 1200) text = "After-Hours";
         }
+
         safeText($("marketTimeBadge"), `ABD Piyasa: ${text}`);
       }
 
-      function scoreWhale(item) {
-        return (Number(item.volumeSpike || 0) * 30) + (Math.abs(Number(item.change || 0)) * 6);
-      }
-
-      function scoreAccum(item) {
-        return (Number(item.volumeSpike || 0) * 18) + (4 - Math.min(4, Math.abs(Number(item.change || 0)))) * 10;
-      }
-
-      function scoreSqueeze(item) {
-        return (2 - Math.min(2, Math.abs(Number(item.change || 0)))) * 25 + (2 - Math.min(2, Number(item.volumeSpike || 0))) * 16;
-      }
-
-      function scoreTomorrow(item) {
-        return (Number(item.breakout ? 1 : 0) * 45) + (Math.max(0, Number(item.change || 0)) * 7) + (Number(item.volumeSpike || 0) * 12);
-      }
-
-      function scoreX10(item) {
-        const symbol = String(item.symbol || "").toUpperCase();
-        const price = Number(item.price || 0);
-        const theme =
-          Object.values(THEMES).some(arr => arr.includes(symbol)) ? 35 : 10;
-        let priceScore = 0;
-        if (price > 0 && price < 10) priceScore = 30;
-        else if (price >= 10 && price < 40) priceScore = 18;
-        return theme + priceScore + Math.min(30, scoreTomorrow(item) / 3);
-      }
-
-      function itemPill(text, cls) {
-        return `<span class="pill ${cls}">${text}</span>`;
-      }
-
-      function renderMiniTicker(prefix, item) {
-        if (!item) {
+      function updateMiniTicker(prefix, q) {
+        if (!q) {
           safeText($(`${prefix}Price`), "—");
           safeText($(`${prefix}Change`), "—");
           return;
         }
 
-        safeText($(`${prefix}Price`), formatPrice(item.regularMarketPrice));
-        const el = $(`${prefix}Change`);
-        if (el) {
-          el.textContent = formatPct(item.regularMarketChangePercent);
-          el.className = "mini-change " + (Number(item.regularMarketChangePercent || 0) >= 0 ? "green" : "red");
+        safeText($(`${prefix}Price`), formatPrice(q.regularMarketPrice));
+
+        const chgEl = $(`${prefix}Change`);
+        if (chgEl) {
+          chgEl.textContent = formatPct(q.regularMarketChangePercent);
+          chgEl.className = "mini-change " + (Number(q.regularMarketChangePercent || 0) >= 0 ? "green" : "red");
         }
       }
 
-      async function loadTopCards() {
-        const quotes = await fetchQuotes(["SPY","QQQ","VIX","IWM","NASDAQ"]);
-        const map = Object.fromEntries(quotes.map(q => [String(q.symbol).toUpperCase(), q]));
-        renderMiniTicker("spy", map.SPY);
-        renderMiniTicker("qqq", map.QQQ);
-        renderMiniTicker("vix", map.VIX);
-        renderMiniTicker("iwm", map.IWM);
-        renderMiniTicker("nasdaq", map.NASDAQ);
+      async function loadHeaderData() {
+        const quotes = (await fetchQuotes(HEADER_SYMBOLS)).map(normalizeQuote);
+        const map = Object.fromEntries(quotes.map(q => [q.symbol, q]));
+
+        updateMiniTicker("spy", map.SPY);
+        updateMiniTicker("qqq", map.QQQ);
+        updateMiniTicker("vix", map.VIX);
+        updateMiniTicker("iwm", map.IWM);
+        updateMiniTicker("nasdaq", map.NASDAQ);
 
         const fg = await fetchFearGreed();
         safeText($("fgValue"), fg.score ? formatNumber(fg.score, 2) : "0");
-        safeText($("fgText"), fg.rating);
+        safeText($("fgText"), fg.rating || "neutral");
       }
 
-      async function loadScreenerData() {
-        const data = await fetchScreener();
-        state.screener = data.map(item => ({
-          ...item,
-          symbol: String(item.symbol || "").toUpperCase(),
-          price: Number(item.price || 0),
-          change: Number(item.change || 0),
-          volume: Number(item.volume || 0),
-          avgVol: Number(item.avgVol || 1),
-          volumeSpike: Number(item.volumeSpike || 0),
-          whale: Boolean(item.whale),
-          accumulation: Boolean(item.accumulation),
-          squeeze: Boolean(item.squeeze),
-          breakout: Boolean(item.breakout)
-        }));
-        state.screenerMap = Object.fromEntries(state.screener.map(x => [x.symbol, x]));
+      async function scanMarket() {
+        $("marketList").innerHTML = '<div class="empty">Taranıyor...</div>';
+
+        const raw = await fetchQuotes(MARKET_SYMBOLS);
+        const quotes = raw
+          .map(normalizeQuote)
+          .filter(q => q.symbol && validPrice(q.regularMarketPrice));
+
+        state.quotes = quotes;
+        state.quoteMap = Object.fromEntries(quotes.map(q => [q.symbol, q]));
+
+        const total = quotes.length;
+        const up = quotes.filter(q => Number(q.regularMarketChangePercent || 0) >= 0).length;
+        const down = total - up;
+        const avg = total ? quotes.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / total : 0;
+
+        safeText($("marketTotal"), String(total));
+        safeText($("marketUp"), String(up));
+        safeText($("marketDown"), String(down));
+        safeText($("marketAvg"), formatPct(avg));
+
+        renderMarketList();
+        renderAccumulation();
+        renderWhales();
+        renderSqueeze();
+        renderPreAfter();
+        renderTomorrow();
+        renderX10();
+        renderHighlights();
+        renderAlerts();
+        await refreshWatchlist();
       }
 
-      function renderHighlights() {
-        const ranked = [...state.screener]
-          .map(item => {
-            const topScore = Math.max(
-              scoreWhale(item),
-              scoreAccum(item),
-              scoreSqueeze(item),
-              scoreTomorrow(item),
-              scoreX10(item)
-            );
-            return { ...item, topScore };
-          })
-          .sort((a,b) => b.topScore - a.topScore)
-          .slice(0, 8);
-
-        const el = $("highlightsList");
-        if (!ranked.length) {
-          el.innerHTML = '<div class="empty">Öne çıkan fırsat yok</div>';
-          return;
-        }
-
-        el.innerHTML = ranked.map(item => {
-          let label = "İzle";
-          let cls = "signal-mid";
-
-          if (item.whale) { label = "Balina"; cls = "signal-strong"; }
-          else if (item.breakout) { label = "Breakout"; cls = "signal-strong"; }
-          else if (item.accumulation) { label = "Birikim"; cls = "signal-mid"; }
-          else if (item.squeeze) { label = "Squeeze"; cls = "signal-low"; }
-
-          return `
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-                <div class="item-sub">Vol× ${formatNumber(item.volumeSpike, 2)} · Hacim ${formatCompact(item.volume)} · Skor ${formatNumber(item.topScore, 0)}</div>
-              </div>
-              <div>${itemPill(label, cls)}</div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      function renderAlerts() {
-        const alerts = [];
-        const whale = [...state.screener].filter(x => x.whale).sort((a,b) => scoreWhale(b) - scoreWhale(a))[0];
-        const breakout = [...state.screener].filter(x => x.breakout).sort((a,b) => scoreTomorrow(b) - scoreTomorrow(a))[0];
-        const squeeze = [...state.screener].filter(x => x.squeeze).sort((a,b) => scoreSqueeze(b) - scoreSqueeze(a))[0];
-
-        if (whale) {
-          alerts.push(`
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${whale.symbol} balina hareketi</div>
-                <div class="item-sub">Vol× ${formatNumber(whale.volumeSpike,2)} · ${formatPct(whale.change)}</div>
-              </div>
-              <div>${itemPill("Güçlü", "signal-strong")}</div>
-            </div>
-          `);
-        }
-
-        if (breakout) {
-          alerts.push(`
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${breakout.symbol} breakout alarmı</div>
-                <div class="item-sub">Vol× ${formatNumber(breakout.volumeSpike,2)} · ${formatPct(breakout.change)}</div>
-              </div>
-              <div>${itemPill("Breakout", "signal-strong")}</div>
-            </div>
-          `);
-        }
-
-        if (squeeze) {
-          alerts.push(`
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${squeeze.symbol} squeeze radarında</div>
-                <div class="item-sub">Düşük hareket · Vol× ${formatNumber(squeeze.volumeSpike,2)}</div>
-              </div>
-              <div>${itemPill("Sıkışma", "signal-low")}</div>
-            </div>
-          `);
-        }
-
-        $("alertsList").innerHTML = alerts.length ? alerts.join("") : '<div class="empty">Alert yok</div>';
-      }
-
-      function getFilteredMarket() {
-        let list = [...state.screener];
+      function getFilteredMarketQuotes() {
+        let list = [...state.quotes];
         const search = ($("marketSearch").value || "").trim().toUpperCase();
 
         if (search) {
-          list = list.filter(x => x.symbol.includes(search));
+          list = list.filter(q =>
+            q.symbol.includes(search) ||
+            String(q.shortName || "").toUpperCase().includes(search)
+          );
         }
 
         if (state.marketFilter === "gainers") {
-          list = list.filter(x => x.change > 0).sort((a,b) => b.change - a.change);
+          list = list
+            .filter(q => Number(q.regularMarketChangePercent || 0) > 0)
+            .sort((a,b) => b.regularMarketChangePercent - a.regularMarketChangePercent);
         } else if (state.marketFilter === "losers") {
-          list = list.filter(x => x.change < 0).sort((a,b) => a.change - b.change);
+          list = list
+            .filter(q => Number(q.regularMarketChangePercent || 0) < 0)
+            .sort((a,b) => a.regularMarketChangePercent - b.regularMarketChangePercent);
         } else if (state.marketFilter === "volume") {
-          list = list.sort((a,b) => b.volumeSpike - a.volumeSpike);
+          list = list.sort((a,b) => getVolumeRatio(b) - getVolumeRatio(a));
         } else {
-          list = list.sort((a,b) => Math.abs(b.change) + b.volumeSpike - (Math.abs(a.change) + a.volumeSpike));
+          list = list.sort((a,b) => getMomentumScore(b) - getMomentumScore(a));
         }
 
-        return list;
+        return list.slice(0, 100);
       }
 
-      function renderMarket() {
-        const list = getFilteredMarket();
-
-        safeText($("marketTotal"), String(state.screener.length));
-        safeText($("marketUp"), String(state.screener.filter(x => x.change >= 0).length));
-        safeText($("marketDown"), String(state.screener.filter(x => x.change < 0).length));
-
-        const avg = state.screener.length
-          ? state.screener.reduce((sum, x) => sum + x.change, 0) / state.screener.length
-          : 0;
-        safeText($("marketAvg"), formatPct(avg));
-
+      function renderMarketList() {
+        const list = getFilteredMarketQuotes();
         const el = $("marketList");
+
         if (!list.length) {
           el.innerHTML = '<div class="empty">Veri yok</div>';
           return;
         }
 
         el.innerHTML = `
-          <div class="trow header">
-            <div>Sembol</div>
-            <div>Durum</div>
-            <div>Fiyat</div>
-            <div>Değişim</div>
-            <div>Vol×</div>
-            <div>Hacim</div>
+          <div class="row header">
+            <div>Sembol</div><div>Ad</div><div>Fiyat</div><div>Değişim</div><div>Hacim</div><div>Volüm</div>
           </div>
-          ${list.map(item => `
-            <div class="trow">
-              <div class="strong">${item.symbol}</div>
-              <div class="muted">
-                ${item.whale ? "Balina · " : ""}${item.breakout ? "Breakout · " : ""}${item.accumulation ? "Birikim · " : ""}${item.squeeze ? "Squeeze" : ""}
-              </div>
-              <div class="strong">${formatPrice(item.price)}</div>
-              <div class="${item.change >= 0 ? "green" : "red"} strong">${formatPct(item.change)}</div>
-              <div class="muted">${formatNumber(item.volumeSpike, 2)}</div>
-              <div class="muted">${formatCompact(item.volume)}</div>
-            </div>
-          `).join("")}
+          ${list.map(q => rowHtml(q, `Hacim ${formatCompact(q.regularMarketVolume || 0)} · Ortalama ${formatCompact(q.averageVolume || 0)}`)).join("")}
         `;
       }
 
       function renderAccumulation() {
-        const list = [...state.screener]
-          .filter(x => x.accumulation)
-          .sort((a,b) => scoreAccum(b) - scoreAccum(a));
+        const list = state.quotes
+          .map(q => ({ ...q, _score: getAccumulationScore(q) }))
+          .filter(q =>
+            getVolumeRatio(q) >= 1.1 &&
+            Math.abs(Number(q.regularMarketChangePercent || 0)) <= 4.5 &&
+            getDayRangePercent(q) <= 5.5
+          )
+          .sort((a,b) => b._score - a._score)
+          .slice(0, 30);
 
-        safeText($("accumScanned"), String(state.screener.length));
+        safeText($("accumScanned"), String(state.quotes.length));
+        safeText($("accumStrong"), String(list.filter(x => x._score >= 68).length));
         safeText($("accumCount"), String(list.length));
-        safeText($("accumStrong"), String(list.filter(x => scoreAccum(x) >= 35).length));
         safeText($("accumUpdate"), nowText());
 
         const el = $("accumList");
@@ -1303,25 +1457,27 @@
           return;
         }
 
-        el.innerHTML = list.map(item => `
-          <div class="item">
-            <div class="item-main">
-              <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-              <div class="item-sub">Vol× ${formatNumber(item.volumeSpike,2)} · Hacim ${formatCompact(item.volume)} · Birikim skoru ${formatNumber(scoreAccum(item),0)}</div>
-            </div>
-            <div>${itemPill(scoreAccum(item) >= 35 ? "Güçlü" : "İzle", scoreAccum(item) >= 35 ? "signal-strong" : "signal-mid")}</div>
-          </div>
-        `).join("");
+        el.innerHTML = list.map(q => {
+          const tag = q._score >= 70 ? "signal-strong" : q._score >= 58 ? "signal-mid" : "signal-low";
+          const label = q._score >= 70 ? "Güçlü" : q._score >= 58 ? "Orta" : "İzle";
+          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Gün içi aralık ${formatNumber(getDayRangePercent(q),2)}% · Birikim skoru ${q._score}`;
+          return watchHtml(q, label, tag, note);
+        }).join("");
       }
 
       function renderWhales() {
-        const list = [...state.screener]
-          .filter(x => x.whale)
-          .sort((a,b) => scoreWhale(b) - scoreWhale(a));
+        const list = state.quotes
+          .map(q => ({ ...q, _score: getWhaleScore(q) }))
+          .filter(q =>
+            getVolumeRatio(q) >= 1.8 ||
+            Math.abs(Number(q.regularMarketChangePercent || 0)) >= 4
+          )
+          .sort((a,b) => b._score - a._score)
+          .slice(0, 25);
 
         safeText($("whaleActive"), String(list.length));
-        safeText($("whaleMaxVol"), list.length ? formatNumber(Math.max(...list.map(x => x.volumeSpike)), 2) : "—");
-        safeText($("whaleAvgMove"), list.length ? formatPct(list.reduce((s,x) => s + x.change, 0) / list.length) : "—");
+        safeText($("whaleMaxVol"), list.length ? formatNumber(Math.max(...list.map(q => getVolumeRatio(q))), 2) : "—");
+        safeText($("whaleAvgMove"), list.length ? formatPct(list.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / list.length) : "—");
         safeText($("whaleUpdate"), nowText());
 
         const el = $("whalesList");
@@ -1330,21 +1486,25 @@
           return;
         }
 
-        el.innerHTML = list.map(item => `
-          <div class="item">
-            <div class="item-main">
-              <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-              <div class="item-sub">Vol× ${formatNumber(item.volumeSpike,2)} · Hacim ${formatCompact(item.volume)} · Balina skoru ${formatNumber(scoreWhale(item),0)}</div>
-            </div>
-            <div>${itemPill(scoreWhale(item) >= 90 ? "Balina" : "Aktif", scoreWhale(item) >= 90 ? "signal-strong" : "signal-mid")}</div>
-          </div>
-        `).join("");
+        el.innerHTML = list.map(q => {
+          const tag = q._score >= 78 ? "signal-strong" : "signal-mid";
+          const label = q._score >= 78 ? "Balina" : "Aktif";
+          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Gün içi aralık ${formatNumber(getDayRangePercent(q),2)}% · Skor ${q._score}`;
+          return watchHtml(q, label, tag, note);
+        }).join("");
       }
 
       function renderSqueeze() {
-        const list = [...state.screener]
-          .filter(x => x.squeeze)
-          .sort((a,b) => scoreSqueeze(b) - scoreSqueeze(a));
+        const squeezeMemes = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
+        const list = state.quotes
+          .map(q => {
+            let score = getSqueezeScore(q);
+            if (squeezeMemes.includes(q.symbol)) score += 10;
+            return { ...q, _score: score };
+          })
+          .filter(q => q._score >= 45)
+          .sort((a,b) => b._score - a._score)
+          .slice(0, 25);
 
         const el = $("squeezeList");
         if (!list.length) {
@@ -1352,56 +1512,51 @@
           return;
         }
 
-        el.innerHTML = list.map(item => `
-          <div class="item">
-            <div class="item-main">
-              <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-              <div class="item-sub">Vol× ${formatNumber(item.volumeSpike,2)} · Sıkışma skoru ${formatNumber(scoreSqueeze(item),0)} · Düşük hareket bölgesi</div>
-            </div>
-            <div>${itemPill("Squeeze", scoreSqueeze(item) >= 35 ? "signal-mid" : "signal-low")}</div>
-          </div>
-        `).join("");
+        el.innerHTML = list.map(q => {
+          const label = q._score >= 65 ? "Squeeze" : "İzle";
+          const tag = q._score >= 65 ? "signal-strong" : "signal-mid";
+          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Dar range ${formatNumber(getDayRangePercent(q),2)}% · Skor ${q._score}`;
+          return watchHtml(q, label, tag, note);
+        }).join("");
       }
 
       function renderPreAfter() {
-        const list = [...state.screener]
-          .filter(x => Math.abs(x.change) >= 1.5 || x.volumeSpike >= 1.8)
-          .sort((a,b) => Math.abs(b.change) + b.volumeSpike - (Math.abs(a.change) + a.volumeSpike))
-          .slice(0, 20);
+        const list = state.quotes
+          .map(q => {
+            let move = getPreAfterMove(q);
+            let source = "fallback";
+            if (q.preMarketChangePercent != null) source = "pre";
+            else if (q.postMarketChangePercent != null) source = "after";
+            return { ...q, _paMove: move, _paSource: source };
+          })
+          .filter(q => q._paMove != null && !Number.isNaN(Number(q._paMove)))
+          .sort((a,b) => Math.abs(b._paMove) - Math.abs(a._paMove))
+          .slice(0, 25);
 
         const el = $("preafterList");
         if (!list.length) {
-          el.innerHTML = '<div class="empty">Pre/After proxy verisi yok</div>';
+          el.innerHTML = '<div class="empty">Pre/After veri yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(item => {
-          const tag = Math.abs(item.change) >= 4 || item.volumeSpike >= 2.8 ? "signal-strong" : "signal-mid";
-          const label = item.change >= 0 ? "Gap Up" : "Gap Risk";
-          return `
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-                <div class="item-sub">Proxy hareket · Vol× ${formatNumber(item.volumeSpike,2)} · Hacim ${formatCompact(item.volume)}</div>
-              </div>
-              <div>${itemPill(label, tag)}</div>
-            </div>
-          `;
+        el.innerHTML = list.map(q => {
+          const sourceLabel = q._paSource === "pre" ? "Pre" : q._paSource === "after" ? "After" : "Fallback";
+          const tag = Math.abs(Number(q._paMove || 0)) >= 5 ? "signal-strong" : Math.abs(Number(q._paMove || 0)) >= 2.5 ? "signal-mid" : "signal-low";
+          const note = `${q.shortName} · ${sourceLabel} move ${formatPct(q._paMove)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
+          return watchHtml(q, sourceLabel, tag, note);
         }).join("");
       }
 
       function renderTomorrow() {
-        const list = [...state.screener]
-          .filter(x => x.breakout || (x.change > 1.8 && x.volumeSpike > 1.7))
-          .sort((a,b) => scoreTomorrow(b) - scoreTomorrow(a));
+        const list = state.quotes
+          .map(q => ({ ...q, _score: getTomorrowScore(q) }))
+          .filter(q => q._score >= 38)
+          .sort((a,b) => b._score - a._score)
+          .slice(0, 25);
 
-        safeText($("tomorrowScanned"), String(state.screener.length));
-        safeText($("tomorrowStrong"), String(list.length));
-
-        const avgSpike = list.length
-          ? list.reduce((sum, x) => sum + Math.max(3, Math.min(18, scoreTomorrow(x) / 6)), 0) / list.length
-          : 0;
-        safeText($("tomorrowAvgSpike"), list.length ? formatPct(avgSpike) : "—");
+        safeText($("tomorrowScanned"), String(state.quotes.length));
+        safeText($("tomorrowStrong"), String(list.filter(x => x._score >= 62).length));
+        safeText($("tomorrowAvgSpike"), list.length ? formatPct(list.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / list.length) : "—");
         safeText($("tomorrowUpdate"), nowText());
 
         const el = $("tomorrowList");
@@ -1410,40 +1565,25 @@
           return;
         }
 
-        el.innerHTML = list.map(item => {
-          const estimated = Math.max(3, Math.min(18, scoreTomorrow(item) / 6));
-          return `
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${item.symbol} · ${formatPrice(item.price)} · <span class="${item.change >= 0 ? "green" : "red"}">${formatPct(item.change)}</span></div>
-                <div class="item-sub">Vol× ${formatNumber(item.volumeSpike,2)} · Tahmini spike potansiyeli ${formatPct(estimated)} · Breakout skoru ${formatNumber(scoreTomorrow(item),0)}</div>
-              </div>
-              <div>${itemPill("Yarın", scoreTomorrow(item) >= 65 ? "signal-strong" : "signal-mid")}</div>
-            </div>
-          `;
+        el.innerHTML = list.map(q => {
+          const estimated = Math.max(3, Math.min(18, q._score / 5));
+          const tag = q._score >= 62 ? "signal-strong" : "signal-mid";
+          const label = q._score >= 62 ? "Güçlü" : "İzle";
+          const note = `${q.shortName} · Tahmini spike ${formatPct(estimated)} · Close near high: ${getCloseNearHigh(q) ? "Evet" : "Hayır"} · Skor ${q._score}`;
+          return watchHtml(q, label, tag, note);
         }).join("");
       }
 
-      function detectTheme(symbol) {
-        const s = String(symbol || "").toUpperCase();
-        if (THEMES.AI.includes(s)) return "AI";
-        if (THEMES.SPACE.includes(s)) return "Uzay";
-        if (THEMES.QUANTUM.includes(s)) return "Kuantum";
-        if (THEMES.CRYPTO.includes(s)) return "Kripto";
-        if (THEMES.EV.includes(s)) return "EV";
-        if (THEMES.GROWTH.includes(s)) return "Büyüme";
-        return "Momentum";
-      }
-
       function renderX10() {
-        const list = [...state.screener]
-          .map(item => ({ ...item, x10Score: scoreX10(item), theme: detectTheme(item.symbol) }))
-          .filter(x => x.x10Score >= 35)
-          .sort((a,b) => b.x10Score - a.x10Score);
+        const list = state.quotes
+          .map(q => ({ ...q, _score: getX10Score(q), _sector: SECTOR_HINTS[q.symbol] || "Yüksek Beta" }))
+          .filter(q => q._score >= 42)
+          .sort((a,b) => b._score - a._score)
+          .slice(0, 20);
 
         safeText($("x10Count"), String(list.length));
-        safeText($("x10HighPotential"), String(list.filter(x => x.x10Score >= 55).length));
-        safeText($("x10AvgPrice"), list.length ? formatPrice(list.reduce((s,x) => s + x.price, 0) / list.length) : "—");
+        safeText($("x10HighPotential"), String(list.filter(x => x._score >= 68).length));
+        safeText($("x10AvgPrice"), list.length ? formatPrice(list.reduce((a,b) => a + Number(b.regularMarketPrice || 0), 0) / list.length) : "—");
         safeText($("x10Update"), nowText());
 
         const el = $("x10List");
@@ -1452,15 +1592,116 @@
           return;
         }
 
-        el.innerHTML = list.map(item => `
-          <div class="item">
-            <div class="item-main">
-              <div class="item-title">${item.symbol} · ${item.theme} · ${formatPrice(item.price)}</div>
-              <div class="item-sub">Vol× ${formatNumber(item.volumeSpike,2)} · ${formatPct(item.change)} · Potansiyel skor ${formatNumber(item.x10Score,0)}</div>
+        el.innerHTML = list.map(q => {
+          const tag = q._score >= 68 ? "signal-strong" : "signal-mid";
+          const label = q._score >= 68 ? "Yüksek" : "Aday";
+          const note = `${q.shortName} · ${q._sector} · Birikim ${getAccumulationScore(q)} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Potansiyel ${q._score}`;
+          return watchHtml(q, label, tag, note);
+        }).join("");
+      }
+
+      function renderHighlights() {
+        const pool = [];
+
+        state.quotes.forEach(q => {
+          pool.push({ type: "Balina", score: getWhaleScore(q), q });
+          pool.push({ type: "Birikim", score: getAccumulationScore(q), q });
+          pool.push({ type: "Squeeze", score: getSqueezeScore(q), q });
+          pool.push({ type: "Yarın", score: getTomorrowScore(q), q });
+        });
+
+        pool.sort((a,b) => b.score - a.score);
+
+        const unique = [];
+        const seen = new Set();
+
+        for (const item of pool) {
+          if (!item.q || seen.has(item.q.symbol) || item.score < 45) continue;
+          seen.add(item.q.symbol);
+          unique.push(item);
+          if (unique.length >= 10) break;
+        }
+
+        const el = $("highlightsList");
+        if (!unique.length) {
+          el.innerHTML = '<div class="empty">Öne çıkan fırsat yok</div>';
+          return;
+        }
+
+        el.innerHTML = unique.map(item => {
+          const tag = item.score >= 75 ? "signal-strong" : "signal-mid";
+          return `
+            <div class="watchlist-item">
+              <div>
+                <div class="strong">${item.q.symbol} · ${item.type} · ${formatPrice(item.q.regularMarketPrice)}</div>
+                <div class="name">${item.q.shortName} · ${formatPct(item.q.regularMarketChangePercent)} · Vol× ${formatNumber(getVolumeRatio(item.q),2)} · Skor ${item.score}</div>
+              </div>
+              <div>${signalPill(item.type, tag)}</div>
             </div>
-            <div>${itemPill("Aday", item.x10Score >= 55 ? "signal-strong" : "signal-mid")}</div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
+      }
+
+      function renderAlerts() {
+        const alerts = [];
+
+        const whale = [...state.quotes].sort((a,b) => getWhaleScore(b) - getWhaleScore(a))[0];
+        if (whale && getWhaleScore(whale) >= 55) {
+          alerts.push(`
+            <div class="watchlist-item">
+              <div>
+                <div class="strong">${whale.symbol} balina hareketi</div>
+                <div class="name">Vol× ${formatNumber(getVolumeRatio(whale),2)} · ${formatPct(whale.regularMarketChangePercent)}</div>
+              </div>
+              <div>${signalPill("Balina", "signal-strong")}</div>
+            </div>
+          `);
+        }
+
+        const squeeze = [...state.quotes].sort((a,b) => getSqueezeScore(b) - getSqueezeScore(a))[0];
+        if (squeeze && getSqueezeScore(squeeze) >= 50) {
+          alerts.push(`
+            <div class="watchlist-item">
+              <div>
+                <div class="strong">${squeeze.symbol} squeeze radarında</div>
+                <div class="name">Skor ${getSqueezeScore(squeeze)} · Gün içi aralık ${formatNumber(getDayRangePercent(squeeze),2)}%</div>
+              </div>
+              <div>${signalPill("Squeeze", "signal-mid")}</div>
+            </div>
+          `);
+        }
+
+        const pa = [...state.quotes]
+          .map(q => ({ q, m: getPreAfterMove(q) }))
+          .filter(x => x.m != null)
+          .sort((a,b) => Math.abs(b.m) - Math.abs(a.m))[0];
+
+        if (pa && Math.abs(pa.m) >= 3) {
+          alerts.push(`
+            <div class="watchlist-item">
+              <div>
+                <div class="strong">${pa.q.symbol} seans dışı hareket</div>
+                <div class="name">Hareket ${formatPct(pa.m)}</div>
+              </div>
+              <div>${signalPill("Pre/After", "signal-mid")}</div>
+            </div>
+          `);
+        }
+
+        const tomorrow = [...state.quotes].sort((a,b) => getTomorrowScore(b) - getTomorrowScore(a))[0];
+        if (tomorrow && getTomorrowScore(tomorrow) >= 55) {
+          alerts.push(`
+            <div class="watchlist-item">
+              <div>
+                <div class="strong">${tomorrow.symbol} yarın için güçlü aday</div>
+                <div class="name">Skor ${getTomorrowScore(tomorrow)} · Close near high ${getCloseNearHigh(tomorrow) ? "evet" : "hayır"}</div>
+              </div>
+              <div>${signalPill("Yarın", "signal-strong")}</div>
+            </div>
+          `);
+        }
+
+        $("alertsList").innerHTML = alerts.length ? alerts.join("") : '<div class="empty">Alert yok</div>';
       }
 
       async function refreshWatchlist() {
@@ -1468,80 +1709,60 @@
         saveWatchlist(list);
 
         const watchEl = $("watchList");
-        const summaryEl = $("watchSummaryList");
+        const sumEl = $("watchSummaryList");
 
         if (!list.length) {
           watchEl.innerHTML = '<div class="empty">İzleme listesi boş</div>';
-          summaryEl.innerHTML = '<div class="empty">İzleme listesi boş</div>';
+          sumEl.innerHTML = '<div class="empty">İzleme listesi boş</div>';
           return;
         }
 
         watchEl.innerHTML = '<div class="empty">Yükleniyor...</div>';
-        summaryEl.innerHTML = '<div class="empty">Yükleniyor...</div>';
+        sumEl.innerHTML = '<div class="empty">Yükleniyor...</div>';
 
-        const quotes = await fetchQuotes(list);
+        const quotes = (await fetchQuotes(list))
+          .map(normalizeQuote)
+          .filter(q => q.symbol && validPrice(q.regularMarketPrice));
 
         if (!quotes.length) {
-          watchEl.innerHTML = '<div class="empty">İzleme verisi alınamadı</div>';
-          summaryEl.innerHTML = '<div class="empty">İzleme verisi alınamadı</div>';
+          watchEl.innerHTML = '<div class="empty">İzleme listesi verisi alınamadı</div>';
+          sumEl.innerHTML = '<div class="empty">İzleme listesi verisi alınamadı</div>';
           return;
         }
 
-        const rows = quotes.map(q => {
-          const symbol = String(q.symbol || "").toUpperCase();
-          const scr = state.screenerMap[symbol];
-          const signalScore = scr
-            ? Math.max(scoreWhale(scr), scoreAccum(scr), scoreSqueeze(scr), scoreTomorrow(scr), scoreX10(scr))
-            : Math.abs(Number(q.regularMarketChangePercent || 0)) * 8;
-
-          const signal = signalScore >= 70
-            ? ["Güçlü", "signal-strong"]
-            : signalScore >= 40
-              ? ["İzle", "signal-mid"]
-              : ["Zayıf", "signal-low"];
-
-          const entry = Number(q.regularMarketPrice || 0) * 0.97;
-          const exit = Number(q.regularMarketPrice || 0) * 1.08;
-
-          return `
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent || 0) >= 0 ? "green" : "red"}">${formatPct(q.regularMarketChangePercent)}</span></div>
-                <div class="item-sub">Giriş ${formatPrice(entry)} · Çıkış ${formatPrice(exit)} · Vol ${formatCompact(q.regularMarketVolume || 0)}</div>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                ${itemPill(signal[0], signal[1])}
-                <button class="btn ghost remove-watch-btn" data-symbol="${symbol}" style="width:auto;padding:8px 12px">Sil</button>
-              </div>
-            </div>
-          `;
+        watchEl.innerHTML = quotes.map(q => {
+          const score = Math.max(
+            getAccumulationScore(q),
+            getWhaleScore(q),
+            getSqueezeScore(q),
+            getTomorrowScore(q)
+          );
+          const tag = score >= 70 ? "signal-strong" : score >= 52 ? "signal-mid" : "signal-low";
+          const label = score >= 70 ? "Güçlü" : score >= 52 ? "İzle" : "Zayıf";
+          const entry = validPrice(q.regularMarketPrice) ? q.regularMarketPrice * 0.97 : null;
+          const exit = validPrice(q.regularMarketPrice) ? q.regularMarketPrice * 1.08 : null;
+          const note = `${q.shortName} · Giriş ${formatPrice(entry)} · Çıkış ${formatPrice(exit)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
+          return watchHtml(q, label, tag, note, true);
         }).join("");
 
-        watchEl.innerHTML = rows;
-
-        summaryEl.innerHTML = quotes.slice(0, 6).map(q => {
-          const symbol = String(q.symbol || "").toUpperCase();
-          const scr = state.screenerMap[symbol];
-          const sig = scr
-            ? Math.max(scoreWhale(scr), scoreAccum(scr), scoreSqueeze(scr), scoreTomorrow(scr), scoreX10(scr))
-            : Math.abs(Number(q.regularMarketChangePercent || 0)) * 8;
-          const tag = sig >= 70 ? "signal-strong" : sig >= 40 ? "signal-mid" : "signal-low";
-
-          return `
-            <div class="item">
-              <div class="item-main">
-                <div class="item-title">${symbol} · ${formatPrice(q.regularMarketPrice)}</div>
-                <div class="item-sub">${formatPct(q.regularMarketChangePercent)} · Vol ${formatCompact(q.regularMarketVolume || 0)}</div>
-              </div>
-              <div>${itemPill(sig >= 70 ? "Güçlü" : "İzle", tag)}</div>
-            </div>
-          `;
+        sumEl.innerHTML = quotes.slice(0, 6).map(q => {
+          const score = Math.max(
+            getAccumulationScore(q),
+            getWhaleScore(q),
+            getSqueezeScore(q),
+            getTomorrowScore(q)
+          );
+          const tag = score >= 70 ? "signal-strong" : score >= 52 ? "signal-mid" : "signal-low";
+          const label = score >= 70 ? "Güçlü" : "İzle";
+          const note = `${formatPct(q.regularMarketChangePercent)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
+          return watchHtml(q, label, tag, note);
         }).join("");
 
         document.querySelectorAll(".remove-watch-btn").forEach(btn => {
           btn.addEventListener("click", () => {
             const symbol = btn.getAttribute("data-symbol");
-            saveWatchlist(state.watchlist.filter(x => x !== symbol));
+            const next = state.watchlist.filter(s => s !== symbol);
+            saveWatchlist(next);
             refreshWatchlist().catch(console.error);
           });
         });
@@ -1550,6 +1771,7 @@
       function loadChart() {
         const symbol = (($("chartSymbol").value || "AAPL").trim().toUpperCase() || "AAPL");
         const interval = $("chartInterval").value || "D";
+
         const src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=NASDAQ%3A${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=F1F3F6&studies=%5B%22RSI%40tv-basicstudies%22%2C%22MACD%40tv-basicstudies%22%2C%22Volume%40tv-basicstudies%22%2C%22VWAP%40tv-basicstudies%22%5D&theme=dark&style=1&timezone=Europe%2FIstanbul&withdateranges=1&hideideas=1`;
         $("chartFrame").src = src;
       }
@@ -1561,13 +1783,14 @@
         const stop = Number($("riskStop").value);
         const target = Number($("riskTarget").value);
 
-        if (![account, riskPct, entry, stop, target].every(Number.isFinite) || account <= 0 || riskPct <= 0 || entry <= 0 || stop <= 0 || target <= 0) {
+        if (![account,riskPct,entry,stop,target].every(Number.isFinite) || entry <= 0 || stop <= 0 || target <= 0 || account <= 0 || riskPct <= 0) {
           $("riskNote").textContent = "Lütfen geçerli değerler girin.";
           return;
         }
 
         const maxRisk = account * (riskPct / 100);
         const stopDistance = Math.abs(entry - stop);
+
         if (stopDistance <= 0) {
           $("riskNote").textContent = "Stop loss giriş fiyatından farklı olmalı.";
           return;
@@ -1575,8 +1798,9 @@
 
         const shares = Math.floor(maxRisk / stopDistance);
         const totalCost = shares * entry;
-        const estimatedProfit = shares * Math.abs(target - entry);
-        const ratio = Math.abs(target - entry) / stopDistance;
+        const profitPerShare = Math.abs(target - entry);
+        const estimatedProfit = shares * profitPerShare;
+        const ratio = profitPerShare / stopDistance;
         const gainPct = ((target - entry) / entry) * 100;
         const lossPct = ((entry - stop) / entry) * 100;
 
@@ -1588,18 +1812,38 @@
         safeText($("rrRatio"), formatNumber(ratio, 2));
         safeText($("rrGainPct"), formatPct(gainPct));
         safeText($("rrLossPct"), formatPct(lossPct));
-        $("riskNote").textContent = shares > 0 ? "Hesaplama tamamlandı." : "Lot 0 çıktı. Risk çok küçük veya stop çok geniş.";
+        $("riskNote").textContent = shares > 0 ? "Hesaplama tamamlandı." : "Lot 0 çıktı; risk çok küçük ya da stop çok geniş.";
       }
 
-      function openPage(name) {
+      function openPage(page) {
         document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
-        $(`page-${name}`)?.classList.add("active");
-        document.querySelector(`.tab-btn[data-page="${name}"]`)?.classList.add("active");
+
+        $(`page-${page}`)?.classList.add("active");
+        document.querySelector(`.tab-btn[data-page="${page}"]`)?.classList.add("active");
+      }
+
+      function bindTabs() {
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+          btn.addEventListener("click", () => openPage(btn.getAttribute("data-page")));
+        });
+      }
+
+      function bindMarketFilters() {
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            state.marketFilter = btn.getAttribute("data-filter");
+            renderMarketList();
+          });
+        });
+
+        $("marketSearch").addEventListener("input", renderMarketList);
       }
 
       function setupLogin() {
-        const submit = () => {
+        const tryLogin = () => {
           const pass = $("passwordInput").value;
           if (pass === getSavedPassword()) {
             setLoggedIn(true);
@@ -1611,10 +1855,124 @@
           }
         };
 
-        $("loginBtn").addEventListener("click", submit);
-        $("passwordInput").addEventListener("keydown", (e) => {
-          if (e.key === "Enter") submit();
+        $("loginBtn").addEventListener("click", tryLogin);
+        $("passwordInput").addEventListener("keydown", e => {
+          if (e.key === "Enter") tryLogin();
         });
 
         if (isLoggedIn()) {
-          $("loginView").classList
+          $("loginView").classList.add("hidden");
+          $("appView").classList.remove("hidden");
+          initApp().catch(console.error);
+        }
+      }
+
+      function setupSettings() {
+        const auto = getAutoRefreshMinutes();
+        $("autoRefreshSelect").value = String(auto);
+        $("autoRefreshMsg").textContent = auto ? `Otomatik yenileme ${auto} dk` : "Otomatik yenileme kapalı";
+
+        $("changePasswordBtn").addEventListener("click", () => {
+          const val = ($("newPasswordInput").value || "").trim();
+          if (val.length < 4) {
+            $("passwordMsg").textContent = "Şifre en az 4 karakter olmalı.";
+            $("passwordMsg").className = "small red";
+            return;
+          }
+          localStorage.setItem(PASSWORD_KEY, val);
+          $("passwordMsg").textContent = "Şifre güncellendi.";
+          $("passwordMsg").className = "small green";
+          $("newPasswordInput").value = "";
+        });
+
+        $("saveAutoRefreshBtn").addEventListener("click", () => {
+          const min = Number($("autoRefreshSelect").value || "0");
+          setAutoRefreshMinutes(min);
+          applyAutoRefresh();
+          $("autoRefreshMsg").textContent = min ? `Otomatik yenileme ${min} dk olarak ayarlandı` : "Otomatik yenileme kapatıldı";
+        });
+      }
+
+      function applyAutoRefresh() {
+        if (state.autoRefreshTimer) {
+          clearInterval(state.autoRefreshTimer);
+          state.autoRefreshTimer = null;
+        }
+
+        const min = getAutoRefreshMinutes();
+        if (min > 0) {
+          state.autoRefreshTimer = setInterval(() => {
+            refreshAll().catch(console.error);
+          }, min * 60 * 1000);
+        }
+      }
+
+      async function refreshAll() {
+        buildMarketTimeBadge();
+        state.health = await fetchHealth();
+        await loadHeaderData();
+        await scanMarket();
+        setLastRefresh();
+      }
+
+      function bindActions() {
+        $("logoutBtn").addEventListener("click", () => {
+          setLoggedIn(false);
+          location.reload();
+        });
+
+        $("refreshAllBtn").addEventListener("click", () => refreshAll().catch(console.error));
+        $("scanMarketBtn").addEventListener("click", () => scanMarket().catch(console.error));
+        $("scanAccumBtn").addEventListener("click", renderAccumulation);
+        $("scanWhalesBtn").addEventListener("click", renderWhales);
+        $("scanSqueezeBtn").addEventListener("click", renderSqueeze);
+        $("scanPreAfterBtn").addEventListener("click", renderPreAfter);
+        $("scanTomorrowBtn").addEventListener("click", renderTomorrow);
+        $("scanX10Btn").addEventListener("click", renderX10);
+        $("refreshHighlightsBtn").addEventListener("click", () => {
+          renderHighlights();
+          renderAlerts();
+        });
+        $("refreshWatchSummaryBtn").addEventListener("click", () => refreshWatchlist().catch(console.error));
+        $("refreshWatchBtn").addEventListener("click", () => refreshWatchlist().catch(console.error));
+
+        $("addWatchBtn").addEventListener("click", () => {
+          const input = $("watchInput");
+          const symbol = (input.value || "").trim().toUpperCase();
+          if (!symbol) return;
+          saveWatchlist([...state.watchlist, symbol]);
+          input.value = "";
+          refreshWatchlist().catch(console.error);
+        });
+
+        $("watchInput").addEventListener("keydown", e => {
+          if (e.key === "Enter") $("addWatchBtn").click();
+        });
+
+        $("clearWatchBtn").addEventListener("click", () => {
+          saveWatchlist([]);
+          refreshWatchlist().catch(console.error);
+        });
+
+        $("loadChartBtn").addEventListener("click", loadChart);
+        $("calcRiskBtn").addEventListener("click", calcRisk);
+      }
+
+      async function initApp() {
+        bindTabs();
+        bindMarketFilters();
+        bindActions();
+        setupSettings();
+
+        state.watchlist = getWatchlist();
+        applyAutoRefresh();
+        loadChart();
+        calcRisk();
+        await refreshAll();
+      }
+
+      setupLogin();
+    })();
+  </script>
+</body>
+</html>
