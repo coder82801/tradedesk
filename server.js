@@ -10,7 +10,6 @@ app.use(cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Root klasördeki dosyaları servis et
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
@@ -50,26 +49,58 @@ function normalizeYahooQuote(q) {
 }
 
 async function fetchYahoo(symbols) {
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&lang=en-US&region=US`;
+  const urls = [
+    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&lang=en-US&region=US`,
+    `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&lang=en-US&region=US`
+  ];
 
-  const r = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0",
-      "Accept": "application/json"
+  let lastError = null;
+
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Accept": "application/json",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache"
+        }
+      });
+
+      const text = await r.text();
+
+      if (!r.ok) {
+        throw new Error(`Yahoo HTTP ${r.status} | body: ${text.slice(0, 300)}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Yahoo JSON parse error | body: ${text.slice(0, 300)}`);
+      }
+
+      const results = data?.quoteResponse?.result || [];
+      if (!results.length) {
+        throw new Error(`Yahoo empty result for symbols=${symbols} | raw=${text.slice(0, 300)}`);
+      }
+
+      return results.map(normalizeYahooQuote);
+    } catch (err) {
+      lastError = err;
+      console.error("fetchYahoo failed for url:", url);
+      console.error(err.message);
     }
-  });
-
-  if (!r.ok) {
-    throw new Error(`Yahoo HTTP ${r.status}`);
   }
 
-  const data = await r.json();
-  const results = data?.quoteResponse?.result || [];
-  return results.map(normalizeYahooQuote);
+  throw lastError || new Error("Yahoo fetch failed");
 }
 
 async function fetchAlpacaFallback(symbolsArr) {
-  if (!ALPACA_KEY || !ALPACA_SECRET || !symbolsArr.length) return [];
+  if (!ALPACA_KEY || !ALPACA_SECRET || !symbolsArr.length) {
+    throw new Error("Alpaca keys missing");
+  }
 
   const headers = {
     "APCA-API-KEY-ID": ALPACA_KEY,
@@ -83,8 +114,11 @@ async function fetchAlpacaFallback(symbolsArr) {
     fetch(`${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`, { headers })
   ]);
 
+  const quotesText = quotesRes.ok ? null : await quotesRes.text();
+  const barsText = barsRes.ok ? null : await barsRes.text();
+
   if (!quotesRes.ok && !barsRes.ok) {
-    throw new Error("Alpaca fallback failed");
+    throw new Error(`Alpaca fallback failed | quotes=${quotesRes.status} ${quotesText || ""} | bars=${barsRes.status} ${barsText || ""}`);
   }
 
   const quotesJson = quotesRes.ok ? await quotesRes.json() : {};
@@ -129,7 +163,7 @@ async function fetchAlpacaFallback(symbolsArr) {
       forwardPE: null,
       trailingPE: null
     };
-  });
+  }).filter(x => x.regularMarketPrice != null);
 }
 
 app.get("/api/quote", async (req, res) => {
@@ -156,10 +190,15 @@ app.get("/api/quote", async (req, res) => {
         const yahooData = await fetchYahoo(chunk.join(","));
         allResults.push(...yahooData);
       } catch (err) {
+        console.error("Yahoo chunk failed:", chunk.join(","));
+        console.error(err.message);
+
         try {
           const alpacaData = await fetchAlpacaFallback(chunk);
           allResults.push(...alpacaData);
-        } catch {
+        } catch (alpacaErr) {
+          console.error("Alpaca chunk failed:", chunk.join(","));
+          console.error(alpacaErr.message);
         }
       }
     }
@@ -170,7 +209,28 @@ app.get("/api/quote", async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: "quote fetch failed" });
+    console.error("/api/quote fatal error:", err.message);
+    res.status(500).json({ error: "quote fetch failed", details: err.message });
+  }
+});
+
+app.get("/api/debug-quote", async (req, res) => {
+  try {
+    const symbols = req.query.symbols || "AAPL,TSLA";
+    const data = await fetchYahoo(symbols);
+    res.json({ ok: true, source: "yahoo", count: data.length, data });
+  } catch (err) {
+    try {
+      const symbolsArr = String(req.query.symbols || "AAPL,TSLA").split(",").map(s => s.trim()).filter(Boolean);
+      const data = await fetchAlpacaFallback(symbolsArr);
+      res.json({ ok: true, source: "alpaca", count: data.length, data });
+    } catch (alpacaErr) {
+      res.status(500).json({
+        ok: false,
+        yahooError: err.message,
+        alpacaError: alpacaErr.message
+      });
+    }
   }
 });
 
@@ -184,13 +244,23 @@ app.get("/api/feargreed", async (_req, res) => {
     });
 
     if (!r.ok) {
-      throw new Error(`CNN HTTP ${r.status}`);
+      return res.json({
+        fear_and_greed: {
+          score: 0,
+          rating: "unavailable"
+        }
+      });
     }
 
     const data = await r.json();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: "fear greed fetch failed" });
+    res.json({
+      fear_and_greed: {
+        score: 0,
+        rating: "unavailable"
+      }
+    });
   }
 });
 
