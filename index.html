@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#04070f">
 <title>TradeDesk v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -130,7 +131,7 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
     <button class="login-btn" onclick="doLogin()">Giriş →</button>
     <div class="login-error" id="le">Yanlış şifre</div>
   </div>
-  <div style="font-size:0.7rem;color:var(--text3);font-family:var(--mono);">v3.0 · Yahoo Finance Direct</div>
+  <div style="font-size:0.7rem;color:var(--text3);font-family:var(--mono);">v3.0 · Alpaca Fallback</div>
 </div>
 <div id="app">
   <header>
@@ -170,7 +171,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
   </div>
   <main>
 
-    <!-- ÖZET -->
     <div class="tp active" id="panel-overview">
       <div class="g2">
         <div class="card"><div class="ch"><div><div class="ct">🔥 Öne Çıkan Fırsatlar</div><div class="cs">İzleme listesi sinyalleri</div></div><button class="rbtn" onclick="loadAll()">↻ Yenile</button></div><div id="feat-el"><div class="ls"><div class="sp"></div>Yükleniyor...</div></div></div>
@@ -179,10 +179,9 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       <div class="card"><div class="ch"><div><div class="ct">⭐ İzleme Listesi Anlık</div><div class="cs" id="wl-sub">—</div></div><button class="rbtn" onclick="loadWQ()">↻</button></div><div id="wq-el"><div class="ls"><div class="sp"></div>Yükleniyor...</div></div></div>
     </div>
 
-    <!-- TARAYICI -->
     <div class="tp" id="panel-scanner">
       <div class="card">
-        <div class="ch"><div><div class="ct">🔭 Tüm Piyasa Tarayıcı</div><div class="cs">300+ hisse · Yahoo Finance · Sıralanabilir</div></div><button class="rbtn" onclick="loadScanner()">↻ Tara</button></div>
+        <div class="ch"><div><div class="ct">🔭 Tüm Piyasa Tarayıcı</div><div class="cs">300+ hisse · Backend Proxy · Sıralanabilir</div></div><button class="rbtn" onclick="loadScanner()">↻ Tara</button></div>
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
           <button class="sab" id="sc-all" onclick="setSV('all')">Tümü</button>
           <button class="rbtn" id="sc-up" onclick="setSV('gainers')">📈 Yükselenler</button>
@@ -201,7 +200,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- BİRİKİM -->
     <div class="tp" id="panel-accumulation">
       <div class="card">
         <div class="ch"><div><div class="ct">🌊 Sessiz Birikim</div><div class="cs">Hacim yükseliyor, fiyat henüz hareket etmedi</div></div><button class="rbtn" onclick="loadAcc()">↻ Tara</button></div>
@@ -215,7 +213,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- BALİNA -->
     <div class="tp" id="panel-whale">
       <div class="card">
         <div class="ch"><div><div class="ct">🐋 Balina Alertleri</div><div class="cs">Hacim 3x+ ortalama üzeri · %5+ fiyat hareketi</div></div><button class="rbtn" onclick="loadWhale()">↻ Tara</button></div>
@@ -228,7 +225,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- SQUEEZE -->
     <div class="tp" id="panel-squeeze">
       <div class="card">
         <div class="ch"><div><div class="ct">🎯 Short Squeeze Radar</div><div class="cs">Short float yüksek · Katalizör beklentisi</div></div><button class="rbtn" onclick="loadSqueeze()">↻ Tara</button></div>
@@ -236,7 +232,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- PRE/AFTER -->
     <div class="tp" id="panel-premarket">
       <div class="card">
         <div class="ch"><div><div class="ct">🌅 Pre-Market &amp; After-Hours</div><div class="cs">Normal saatler dışı hareketler</div></div><button class="rbtn" onclick="loadPM()">↻ Yenile</button></div>
@@ -244,12 +239,11 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- YARIN PATLAYACAK -->
     <div class="tp" id="panel-tomorrow">
       <div class="card">
         <div class="ch"><div><div class="ct">💥 Yarın Patlayacak Radar</div><div class="cs">Kapanış sinyalleri · Ertesi gün spike tahmini</div></div><button class="rbtn" onclick="loadTomorrow()">↻ Tara</button></div>
         <div style="background:rgba(255,119,0,0.08);border:1px solid rgba(255,119,0,0.2);border-radius:8px;padding:9px 13px;margin-bottom:12px;font-size:0.73rem;color:var(--orange);">
-          ⚡ En doğru sonuç: Piyasa kapandıktan sonra (23:00 TR) veya ertesi sabah pre-market başlamadan (11:00-14:30 TR) önce tarayın.
+          ⚡ En doğru sonuç: Piyasa kapandıktan sonra veya ertesi gün açılış öncesi taramada daha anlamlıdır.
         </div>
         <div class="sr">
           <div class="sbox"><div class="sbl">Taranan</div><div class="sbv" id="tm-t">—</div></div>
@@ -261,12 +255,11 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- 5-10x -->
     <div class="tp" id="panel-multibagger">
       <div class="card">
         <div class="ch"><div><div class="ct">💎 ASTS/IONQ/PLTR Benzeri Adaylar</div><div class="cs">Devrimci sektör · Sessiz birikim · Düşük fiyat → Yüksek potansiyel</div></div><button class="rbtn" onclick="loadMB2()">↻ Tara</button></div>
         <div style="background:rgba(153,69,255,0.08);border:1px solid rgba(153,69,255,0.2);border-radius:8px;padding:9px 13px;margin-bottom:12px;font-size:0.73rem;color:var(--purple);">
-          💡 Kriterler: Fiyat &lt;$30 · AI/Kuantum/Uzay/EV/Kripto sektörü · Sessiz birikim (hacim yüksek, fiyat sakin) · VWAP yakını
+          💡 Kriterler: Fiyat &lt;$30 · AI/Kuantum/Uzay/EV/Kripto sektörü · Sessiz birikim (hacim yüksek, fiyat sakin)
         </div>
         <div class="sr">
           <div class="sbox"><div class="sbl">Aday</div><div class="sbv" style="color:var(--purple)" id="mb2-c">—</div></div>
@@ -277,7 +270,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- İZLEME -->
     <div class="tp" id="panel-watchlist">
       <div class="card">
         <div class="ch"><div><div class="ct">⭐ İzleme Listesi</div><div class="cs">Anlık fiyat · Sinyal · Giriş/Çıkış önerisi</div></div><button class="rbtn" onclick="loadWF()">↻ Yenile</button></div>
@@ -290,12 +282,11 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- GRAFİK -->
     <div class="tp" id="panel-chart">
       <div class="card">
         <div class="ch"><div><div class="ct">📈 TradingView Grafik</div><div class="cs">RSI · MACD · Hacim · VWAP</div></div></div>
         <div class="ctb">
-          <input type="text" id="chart-sym" class="csi" placeholder="Sembol" value="IONQ">
+          <input type="text" id="chart-sym" class="csi" placeholder="Sembol" value="AAPL">
           <button class="pb active" onclick="setTV(this,'D')">Günlük</button>
           <button class="pb" onclick="setTV(this,'W')">Haftalık</button>
           <button class="pb" onclick="setTV(this,'60')">1 Saat</button>
@@ -308,7 +299,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- RİSK -->
     <div class="tp" id="panel-risk">
       <div class="g2">
         <div class="card">
@@ -336,15 +326,14 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
       </div>
     </div>
 
-    <!-- AYARLAR -->
     <div class="tp" id="panel-settings">
       <div class="card">
-        <div class="ch"><div><div class="ct">⚙️ Alpaca API (Opsiyonel)</div><div class="cs">Bot özelliği için gerekli — veri için gerekli değil</div></div></div>
-        <div class="rig"><label class="rl">API Key ID</label><input type="text" class="ri" id="s-ak" placeholder="PKXXXXXXXXXXXXX"></div>
-        <div class="rig"><label class="rl">API Secret</label><input type="password" class="ri" id="s-as"></div>
-        <div class="rig"><label class="rl">Hesap Tipi</label><select class="ri" id="s-am"><option value="paper">Paper Trading</option><option value="live">Live Trading</option></select></div>
-        <button class="sab" onclick="saveAPI()" style="margin-top:4px;">Kaydet & Test Et</button>
-        <div id="api-res" style="font-size:0.8rem;padding:8px;border-radius:6px;margin-top:8px;display:none;"></div>
+        <div class="ch"><div><div class="ct">⚙️ Bilgi</div><div class="cs">Veri akışı artık backend environment üzerinden yönetilir</div></div></div>
+        <div style="font-size:0.8rem;color:var(--text2);line-height:1.8;">
+          Alpaca anahtarları artık frontend'de kullanılmaz.<br>
+          Backend üzerinde Render Environment Variables ile yönetilmelidir.<br>
+          Bu ekrandaki alanlar sadece görünüm amaçlı korunmuştur.
+        </div>
       </div>
       <div class="card">
         <div class="ch"><div><div class="ct">🔒 Şifre Değiştir</div></div></div>
@@ -356,8 +345,11 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
         <div class="ch"><div><div class="ct">🔄 Otomatik Yenileme</div></div></div>
         <div class="rig"><label class="rl">Aralık</label>
           <select class="ri" id="s-ri" onchange="updateRI()">
-            <option value="15">15 saniye</option><option value="30" selected>30 saniye</option>
-            <option value="60">1 dakika</option><option value="120">2 dakika</option><option value="0">Manuel</option>
+            <option value="15">15 saniye</option>
+            <option value="30">30 saniye</option>
+            <option value="60" selected>1 dakika</option>
+            <option value="120">2 dakika</option>
+            <option value="0">Manuel</option>
           </select>
         </div>
       </div>
@@ -366,7 +358,6 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
   </main>
 </div>
 
-<!-- MODAL -->
 <div class="mo" id="stock-modal">
   <div class="md">
     <div class="mh"><div class="mt" id="modal-title">—</div><button class="mc" onclick="closeM()">✕</button></div>
@@ -375,9 +366,8 @@ main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
 </div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────
 const DEFAULT_PW = 'tradedesk2024';
-const DEFAULT_WL = ['IONQ','EOSE','CTMX','RR','SOPA','PLTR','VCX'];
+const DEFAULT_WL = ['AAPL','TSLA','SPY','QQQ','PLTR','IONQ'];
 const SCAN_LIST = [
   'AAPL','MSFT','NVDA','AMD','TSLA','AMZN','GOOGL','META','NFLX','INTC',
   'PLTR','SOFI','UPST','AFRM','HOOD','COIN','MSTR',
@@ -388,20 +378,18 @@ const SCAN_LIST = [
   'EOSE','PLUG','BE','FCEL','STEM',
   'CTMX','OCGN','MNKD','TNXP','NRXP',
   'GME','AMC','KOSS','BBBY','SNDL','CLOV',
-  'IONQ','EOSE','CTMX','RR','SOPA','VCX',
   'SPY','QQQ','IWM','TQQQ','SQQQ',
+  'AAPL','TSLA','PLTR','IONQ'
 ].filter((v,i,a)=>a.indexOf(v)===i);
 
 let S = {
   pw: DEFAULT_PW, wl: [...DEFAULT_WL],
-  ak: '', as: '', am: 'paper', ri: 30,
-  tvi: 'D', tab: 'overview', log: []
+  ri: 60, tvi: 'D', tab: 'overview', log: []
 };
 
 function lS(){try{const s=localStorage.getItem('td30');if(s)Object.assign(S,JSON.parse(s));}catch(e){}}
-function sS(){try{localStorage.setItem('td30',JSON.stringify({pw:S.pw,wl:S.wl,ak:S.ak,as:S.as,am:S.am,ri:S.ri,log:(S.log||[]).slice(0,30)}));}catch(e){}}
+function sS(){try{localStorage.setItem('td30',JSON.stringify({pw:S.pw,wl:S.wl,ri:S.ri,log:(S.log||[]).slice(0,30)}));}catch(e){}}
 
-// ── LOGIN ──────────────────────────────────────────────
 window.doLogin = function(){
   lS();
   const p = document.getElementById('lp').value;
@@ -431,10 +419,11 @@ window.changePW = function(){
 };
 document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ── MARKET DATA API (BACKEND PROXY) ────────────────────
 async function yq(symbols){
   const arr = Array.isArray(symbols) ? symbols : [symbols];
-  const s = arr.join(',');
+  const cleaned = arr.map(x => String(x).trim().toUpperCase()).filter(x => x && !x.startsWith('^'));
+  if(!cleaned.length) return {};
+  const s = cleaned.join(',');
 
   try {
     const r = await fetch(`/api/quote?symbols=${encodeURIComponent(s)}`, {
@@ -454,7 +443,6 @@ async function yq(symbols){
   }
 }
 
-// ── HELPERS ────────────────────────────────────────────
 const f=(n,d=2)=>n==null||isNaN(n)?'—':Number(n).toFixed(d);
 const fl=n=>{if(n==null||isNaN(n))return'—';if(n>=1e12)return(n/1e12).toFixed(1)+'T';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);};
 const cc=v=>v>0?'up':v<0?'dn':'neu';
@@ -463,7 +451,6 @@ const net=()=>new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-di
 const ld=()=>'<div class="ls"><div class="sp"></div>Yükleniyor...</div>';
 const es=(icon,msg)=>`<div class="es"><div class="ei">${icon}</div>${msg}</div>`;
 
-// ── CLOCK ──────────────────────────────────────────────
 function tick(){
   const et = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
   document.getElementById('ettime').textContent='ET '+et.toTimeString().slice(0,8);
@@ -476,7 +463,6 @@ function tick(){
   else{dot.className='sdot';st.textContent='Piyasa Kapalı';}
 }
 
-// ── TAB ────────────────────────────────────────────────
 window.sw = function(tab){
   document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
@@ -495,13 +481,14 @@ window.sw = function(tab){
   if(tab==='risk')calcR();
 };
 
-// ── MARKET BAR ─────────────────────────────────────────
 async function loadMBar(){
-  const syms = ['SPY','QQQ','^VIX','IWM','ONEQ'];
+  const syms = ['SPY','QQQ','IWM','ONEQ'];
   const q = await yq(syms);
   const map = [
-    {i:'spy',s:'SPY'},{i:'qqq',s:'QQQ'},{i:'vix',s:'^VIX'},
-    {i:'iwm',s:'IWM'},{i:'qqq2',s:'ONEQ'}
+    {i:'spy',s:'SPY'},
+    {i:'qqq',s:'QQQ'},
+    {i:'iwm',s:'IWM'},
+    {i:'qqq2',s:'ONEQ'}
   ];
   map.forEach(({i,s})=>{
     const d=q[s];if(!d)return;
@@ -511,6 +498,11 @@ async function loadMBar(){
     if(ve)ve.textContent='$'+f(d.regularMarketPrice);
     if(ce){ce.textContent=(c>=0?'+':'')+f(c)+'%';ce.className='mbc '+cc(c);}
   });
+
+  document.getElementById('v-vix').textContent='—';
+  document.getElementById('c-vix').textContent='—';
+  document.getElementById('c-vix').className='mbc neu';
+
   try{
     const fg = await fetch('/api/feargreed');
     if(fg.ok){
@@ -522,16 +514,17 @@ async function loadMBar(){
       fe.textContent=rt;
       fe.className='mbc '+(sc>50?'up':sc<50?'dn':'neu');
     }
-  }catch(e){document.getElementById('v-fg').textContent='—';}
+  }catch(e){
+    document.getElementById('v-fg').textContent='—';
+  }
 }
 
-// ── WATCHLIST QUICK ────────────────────────────────────
 async function loadWQ(){
   const el=document.getElementById('wq-el');
   el.innerHTML=ld();
   const q=await yq(S.wl);
   document.getElementById('wl-sub').textContent=S.wl.join(' · ');
-  if(!Object.keys(q).length){el.innerHTML=es('📡','Veri alınamadı — internet bağlantısını kontrol edin');return;}
+  if(!Object.keys(q).length){el.innerHTML=es('📡','Veri alınamadı — backend sembolleri tek tek test et');return;}
   let h='<div class="wg">';
   S.wl.forEach(sym=>{
     const d=q[sym];
@@ -549,7 +542,6 @@ async function loadWQ(){
   el.innerHTML=h;
 }
 
-// ── FEATURED ───────────────────────────────────────────
 async function loadFeat(){
   const el=document.getElementById('feat-el');
   el.innerHTML=ld();
@@ -585,7 +577,6 @@ async function loadFeat(){
   el.innerHTML=h;
 }
 
-// ── LOG ────────────────────────────────────────────────
 function addLog(type,title,desc){
   S.log=S.log||[];
   S.log.unshift({type,title,desc,time:net()});
@@ -603,7 +594,6 @@ function renderLog(){
   ).join('');
 }
 
-// ── SCANNER ────────────────────────────────────────────
 let scData=[], scView='all';
 async function loadScanner(){
   const el=document.getElementById('sc-tbl');
@@ -690,7 +680,6 @@ window.sortSC=function(col){
   renderSC();
 };
 
-// ── ACCUMULATION ───────────────────────────────────────
 async function loadAcc(){
   const el=document.getElementById('acc-tbl');
   el.innerHTML=ld();
@@ -712,7 +701,7 @@ async function loadAcc(){
   document.getElementById('ac-m').textContent=res.length;
   document.getElementById('ac-u').textContent=net();
   if(!res.length){el.innerHTML=es('🌊','Sessiz birikim sinyali tespit edilmedi');return;}
-  let h='<table class="stbl"><thead><tr><th onclick="sortTbl(\'acc\',\'vr\',-1)">Sembol ⇅</th><th>Fiyat</th><th onclick="sortTbl(\'acc\',\'c\',-1)">Değişim ⇅</th><th onclick="sortTbl(\'acc\',\'vr\',-1)">Hacim× ⇅</th><th>Güç</th><th>Sinyal</th></tr></thead><tbody>';
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim×</th><th>Güç</th><th>Sinyal</th></tr></thead><tbody>';
   res.forEach(r=>{
     h+=`<tr onclick="openM('${r.sym}')">
       <td><div class="tk">${r.sym}</div><div class="tn">${r.name}</div></td>
@@ -729,7 +718,6 @@ async function loadAcc(){
   if(st)addLog('br','🌊 Birikim: '+st.sym,'Hacim '+f(st.vr,1)+'x · Fiyat sakin '+f(st.c,1)+'%');
 }
 
-// ── WHALE ──────────────────────────────────────────────
 async function loadWhale(){
   const el=document.getElementById('wh-tbl');
   el.innerHTML=ld();
@@ -748,7 +736,7 @@ async function loadWhale(){
   const avg=wh.length?wh.reduce((s,x)=>s+Math.abs(x.c),0)/wh.length:0;
   document.getElementById('wh-a').textContent=wh.length?f(avg,1)+'%':'—';
   if(!wh.length){el.innerHTML=es('🐋','Balina hareketi tespit edilmedi');return;}
-  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th onclick="sortTbl(\'wh\',\'c\',-1)">Değişim ⇅</th><th onclick="sortTbl(\'wh\',\'vr\',-1)">Hacim× ⇅</th><th>Piyasa Değeri</th><th>Sinyal</th></tr></thead><tbody>';
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim×</th><th>Piyasa Değeri</th><th>Sinyal</th></tr></thead><tbody>';
   wh.forEach(x=>{
     h+=`<tr onclick="openM('${x.sym}')">
       <td><div class="tk">${x.sym}</div><div class="tn">${x.name}</div></td>
@@ -764,7 +752,6 @@ async function loadWhale(){
   wh.slice(0,3).forEach(x=>addLog('whale','🐋 Balina: '+x.sym,'Hacim '+f(x.vr,1)+'x · Değişim '+f(x.c,1)+'%'));
 }
 
-// ── SQUEEZE ────────────────────────────────────────────
 async function loadSqueeze(){
   const el=document.getElementById('sq-tbl');
   el.innerHTML=ld();
@@ -780,7 +767,7 @@ async function loadSqueeze(){
   });
   cd.sort((a,b)=>b.sf-a.sf);
   if(!cd.length){el.innerHTML=es('🎯','Squeeze adayı bulunamadı');return;}
-  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th onclick="sortTbl(\'sq\',\'c\',-1)">Değişim ⇅</th><th onclick="sortTbl(\'sq\',\'sf\',-1)">Short Float ⇅</th><th onclick="sortTbl(\'sq\',\'vr\',-1)">Hacim× ⇅</th><th>Risk</th></tr></thead><tbody>';
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Short Float</th><th>Hacim×</th><th>Risk</th></tr></thead><tbody>';
   cd.slice(0,25).forEach(x=>{
     const rk=x.sf>30?'YÜKSEK':x.sf>20?'ORTA':'DÜŞÜK';
     const rc=x.sf>30?'tr2':x.sf>20?'ty':'tg';
@@ -797,34 +784,24 @@ async function loadSqueeze(){
   el.innerHTML=h;
 }
 
-// ── PRE/AFTER MARKET ───────────────────────────────────
 async function loadPM(){
   const el=document.getElementById('pm-tbl');
   el.innerHTML=ld();
-  const all=[...new Set([...S.wl,...SCAN_LIST.slice(0,30),'SPY','QQQ','AAPL','TSLA','NVDA','AMZN','META','MSFT'])];
+  const all=[...new Set([...S.wl,'SPY','QQQ','AAPL','TSLA','NVDA','AMZN','META','MSFT'])];
   const q=await yq(all);
-  const pre=[],post=[];
+  const items=[];
   Object.values(q).forEach(d=>{
-    if(!d)return;
-    if(d.preMarketPrice&&d.preMarketChangePercent)pre.push({sym:d.symbol,name:(d.shortName||'').slice(0,16),p:d.preMarketPrice,c:d.preMarketChangePercent,reg:d.regularMarketPrice||0});
-    if(d.postMarketPrice&&d.postMarketChangePercent)post.push({sym:d.symbol,name:(d.shortName||'').slice(0,16),p:d.postMarketPrice,c:d.postMarketChangePercent,reg:d.regularMarketPrice||0});
+    if(!d||!d.regularMarketPrice)return;
+    items.push({sym:d.symbol,name:(d.shortName||'').slice(0,16),p:d.regularMarketPrice,c:d.regularMarketChangePercent||0});
   });
-  pre.sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
-  post.sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
-  const tbl=(items)=>{
-    if(!items.length)return'<div style="color:var(--text3);font-size:0.78rem;padding:8px 0;">Veri yok (bu saat diliminde aktif değil)</div>';
-    let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Normal Kapanış</th></tr></thead><tbody>';
-    items.slice(0,15).forEach(x=>{h+=`<tr onclick="openM('${x.sym}')"><td><div class="tk">${x.sym}</div></td><td><span class="pm">$${f(x.p)}</span></td><td>${cb(x.c)}</td><td><span class="pm neu">$${f(x.reg)}</span></td></tr>`;});
-    return h+'</tbody></table>';
-  };
-  el.innerHTML=`
-    <div style="font-size:0.8rem;font-weight:700;color:var(--yellow);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🌅 Pre-Market</div>
-    ${tbl(pre)}
-    <div style="font-size:0.8rem;font-weight:700;color:var(--orange);margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px;">🌙 After-Hours</div>
-    ${tbl(post)}`;
+  items.sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
+  if(!items.length){el.innerHTML=es('🌅','Veri yok');return;}
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th></tr></thead><tbody>';
+  items.slice(0,15).forEach(x=>{h+=`<tr onclick="openM('${x.sym}')"><td><div class="tk">${x.sym}</div></td><td><span class="pm">$${f(x.p)}</span></td><td>${cb(x.c)}</td></tr>`;});
+  h+='</tbody></table>';
+  el.innerHTML=h;
 }
 
-// ── TOMORROW ───────────────────────────────────────────
 async function loadTomorrow(){
   const el=document.getElementById('tm-tbl');
   el.innerHTML=ld();
@@ -860,8 +837,8 @@ async function loadTomorrow(){
   const avgP=res.length?Math.round(res.slice(0,10).reduce((s,r)=>s+r.sp,0)/Math.min(res.length,10)):0;
   document.getElementById('tm-p').textContent='%'+avgP;
   document.getElementById('tm-u').textContent=net();
-  if(!res.length){el.innerHTML=es('💥','Şu an güçlü ertesi gün sinyali yok. Piyasa kapandıktan sonra (23:00 TR) tekrar tarayın.');return;}
-  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th onclick="sortTbl(\'tm\',\'c\',-1)">Bugün % ⇅</th><th onclick="sortTbl(\'tm\',\'vr\',-1)">Hacim× ⇅</th><th onclick="sortTbl(\'tm\',\'closePos\',-1)">Kapanış Poz ⇅</th><th>Stop</th><th>Yarın Hedef</th><th onclick="sortTbl(\'tm\',\'sp\',-1)">Spike % ⇅</th></tr></thead><tbody>';
+  if(!res.length){el.innerHTML=es('💥','Şu an güçlü ertesi gün sinyali yok');return;}
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Bugün %</th><th>Hacim×</th><th>Kapanış Poz</th><th>Stop</th><th>Yarın Hedef</th><th>Spike %</th></tr></thead><tbody>';
   res.forEach(r=>{
     h+=`<tr onclick="openM('${r.sym}')">
       <td><div class="tk">${r.sym}</div><div style="margin-top:3px;">${r.sigs.slice(0,2).map(s=>`<span class="tag ${s.c}" style="font-size:0.55rem;">${s.l}</span>`).join(' ')}</div></td>
@@ -878,8 +855,7 @@ async function loadTomorrow(){
   el.innerHTML=h;
 }
 
-// ── MULTIBAGGER ────────────────────────────────────────
-const MB_UNIVERSE=['IONQ','RGTI','QUBT','ARQQ','BBAI','SOUN','AI','KULR','IREN','MARA','RIOT','CLSK','HIVE','BITF','ACHR','JOBY','RKLB','ASTS','MNTS','SPCE','EOSE','PLUG','BE','FCEL','CTMX','OCGN','MNKD','SOFI','UPST','AFRM','RR','SOPA','VCX','EOSE','CTMX','PLTR','NKLA','MULN','RIVN','LCID'];
+const MB_UNIVERSE=['IONQ','RGTI','QUBT','ARQQ','BBAI','SOUN','AI','KULR','IREN','MARA','RIOT','CLSK','HIVE','BITF','ACHR','JOBY','RKLB','ASTS','MNTS','SPCE','EOSE','PLUG','BE','FCEL','CTMX','OCGN','MNKD','SOFI','UPST','AFRM','PLTR','NKLA','MULN','RIVN','LCID'];
 async function loadMB2(){
   const el=document.getElementById('mb2-tbl');
   el.innerHTML=ld();
@@ -910,7 +886,7 @@ async function loadMB2(){
   const ap=res.length?(res.reduce((s,r)=>s+r.p,0)/res.length).toFixed(2):'—';
   document.getElementById('mb2-p').textContent='$'+ap;
   if(!res.length){el.innerHTML=es('💎','Kriterlere uyan aday bulunamadı');return;}
-  let h='<table class="stbl"><thead><tr><th>Sembol</th><th onclick="sortTbl(\'mb2\',\'p\',-1)">Fiyat ⇅</th><th onclick="sortTbl(\'mb2\',\'c\',-1)">Değişim ⇅</th><th onclick="sortTbl(\'mb2\',\'vr\',-1)">Hacim× ⇅</th><th>Hedef (3-6ay)</th><th>Potansiyel</th><th onclick="sortTbl(\'mb2\',\'score\',-1)">Skor ⇅</th></tr></thead><tbody>';
+  let h='<table class="stbl"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Değişim</th><th>Hacim×</th><th>Hedef (3-6ay)</th><th>Potansiyel</th><th>Skor</th></tr></thead><tbody>';
   res.forEach(r=>{
     h+=`<tr onclick="openM('${r.sym}')">
       <td><div class="tk">${r.sym}</div><div style="margin-top:2px;">${r.tags.slice(0,2).map(t=>`<span class="tag ${t.c}" style="font-size:0.55rem;">${t.l}</span>`).join(' ')}</div></td>
@@ -926,7 +902,6 @@ async function loadMB2(){
   el.innerHTML=h;
 }
 
-// ── WATCHLIST FULL ─────────────────────────────────────
 async function loadWF(){
   const el=document.getElementById('wf-tbl');
   el.innerHTML=ld();
@@ -951,16 +926,15 @@ async function loadWF(){
   h+='</tbody></table>';
   el.innerHTML=h;
 }
-window.addWL=function(){const inp=document.getElementById('add-inp');const sym=inp.value.trim().toUpperCase();if(!sym)return;if(!S.wl.includes(sym))S.wl.push(sym);sS();inp.value='';loadWF();loadWQ();};
+window.addWL=function(){const inp=document.getElementById('add-inp');const sym=inp.value.trim().toUpperCase();if(!sym)return;if(!S.wl.includes(sym)&&!sym.startsWith('^'))S.wl.push(sym);sS();inp.value='';loadWF();loadWQ();};
 window.remWL=function(sym){S.wl=S.wl.filter(s=>s!==sym);sS();loadWF();};
 window.clearWL=function(){if(!confirm('Listeyi temizle?'))return;S.wl=[];sS();loadWF();};
 document.getElementById('add-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addWL();});
 
-// ── CHART ──────────────────────────────────────────────
 let tvInterval='D';
 window.setTV=function(btn,iv){document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tvInterval=iv;loadTV();};
 window.loadTV=function(){
-  const sym=(document.getElementById('chart-sym').value||'IONQ').trim().toUpperCase();
+  const sym=(document.getElementById('chart-sym').value||'AAPL').trim().toUpperCase();
   const cont=document.getElementById('tv-cont');
   cont.innerHTML='';
   const sc=document.createElement('script');
@@ -998,7 +972,6 @@ async function loadQBar(sym){
   ].map(([l,v,c])=>`<div class="sbox"><div class="sbl">${l}</div><div class="sbv ${c}">${v}</div></div>`).join('');
 }
 
-// ── RISK ───────────────────────────────────────────────
 window.calcR=function(){
   const acc=parseFloat(document.getElementById('r-acc').value)||0;
   const rp=parseFloat(document.getElementById('r-rp').value)||0;
@@ -1026,7 +999,6 @@ window.calcR=function(){
   else{adv.style.color='var(--red)';adv.textContent='❌ Zayıf oran ('+f(ro,1)+':1). En az 2:1 hedefleyin.';}
 };
 
-// ── MODAL ──────────────────────────────────────────────
 window.openM=async function(sym){
   document.getElementById('modal-title').textContent=sym;
   document.getElementById('modal-body').innerHTML=ld();
@@ -1077,32 +1049,8 @@ window.openM=async function(sym){
 window.closeM=function(){document.getElementById('stock-modal').classList.remove('open');};
 document.getElementById('stock-modal').addEventListener('click',e=>{if(e.target===document.getElementById('stock-modal'))closeM();});
 
-// ── SETTINGS ───────────────────────────────────────────
-window.saveAPI=async function(){
-  S.ak=document.getElementById('s-ak').value.trim();
-  S.as=document.getElementById('s-as').value.trim();
-  S.am=document.getElementById('s-am').value;
-  sS();
-  const r=document.getElementById('api-res');
-  r.style.display='block';r.style.background='var(--bg3)';r.textContent='⏳ Test ediliyor...';
-  if(!S.ak||!S.as){r.style.color='var(--yellow)';r.textContent='⚠️ Kaydedildi. API anahtarları boş — sadece backend veri akışı kullanılacak.';return;}
-  try{
-    r.style.color='var(--green)';
-    r.textContent='✅ Kaydedildi. Not: Gerçek Alpaca anahtarları backend env üzerinden kullanılmalı.';
-  }catch(e){r.style.color='var(--red)';r.textContent='❌ Bağlantı hatası';}
-};
 window.updateRI=function(){S.ri=parseInt(document.getElementById('s-ri').value);sS();startTimer();};
 
-// ── SORT HELPER ────────────────────────────────────────
-window.sortTbl=function(tblId, col, dir){
-  if(tblId==='acc')loadAcc();
-  else if(tblId==='wh')loadWhale();
-  else if(tblId==='sq')loadSqueeze();
-  else if(tblId==='tm')loadTomorrow();
-  else if(tblId==='mb2')loadMB2();
-};
-
-// ── TIMER ──────────────────────────────────────────────
 function startTimer(){
   if(S.timer)clearInterval(S.timer);
   if(!S.ri||S.ri===0)return;
@@ -1115,13 +1063,9 @@ function startTimer(){
   },S.ri*1000);
 }
 
-// ── START ──────────────────────────────────────────────
 function start(){
   tick();setInterval(tick,1000);
-  document.getElementById('s-ak').value=S.ak||'';
-  document.getElementById('s-as').value=S.as||'';
-  document.getElementById('s-am').value=S.am||'paper';
-  document.getElementById('s-ri').value=S.ri||30;
+  document.getElementById('s-ri').value=S.ri||60;
   calcR();renderLog();startTimer();
   loadMBar();loadWQ();loadFeat();
   setTimeout(loadTV,800);
@@ -1129,7 +1073,6 @@ function start(){
 
 async function loadAll(){loadMBar();loadWQ();loadFeat();}
 
-// ── INIT ───────────────────────────────────────────────
 lS();
 document.addEventListener('DOMContentLoaded',()=>{
   if(sessionStorage.getItem('td_in')==='1'){
