@@ -20,7 +20,9 @@ const ALPACA_DATA_BASE = process.env.ALPACA_DATA_BASE || "https://data.alpaca.ma
 
 function chunkArray(arr, size) {
   const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
   return out;
 }
 
@@ -60,7 +62,8 @@ async function fetchYahoo(symbols) {
     try {
       const r = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
           "Accept": "application/json",
           "Accept-Language": "en-US,en;q=0.9",
           "Cache-Control": "no-cache",
@@ -104,18 +107,20 @@ async function fetchAlpacaFallback(symbolsArr) {
 
   const headers = {
     "APCA-API-KEY-ID": ALPACA_KEY,
-    "APCA-API-SECRET-KEY": ALPACA_SECRET
+    "APCA-API-SECRET-KEY": ALPACA_SECRET,
+    "Accept": "application/json"
   };
 
   const symbols = symbolsArr.join(",");
 
+  // Güncel Alpaca stock latest endpoints
   const quotesRes = await fetch(
-    `${ALPACA_DATA_BASE}/v1beta1/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
+    `${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`,
     { headers }
   );
 
   const barsRes = await fetch(
-    `${ALPACA_DATA_BASE}/v1beta1/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
+    `${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`,
     { headers }
   );
 
