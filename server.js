@@ -20,9 +20,7 @@ const ALPACA_DATA_BASE = process.env.ALPACA_DATA_BASE || "https://data.alpaca.ma
 
 function chunkArray(arr, size) {
   const out = [];
-  for (let i = 0; i < arr.length; i += size) {
-    out.push(arr.slice(i, i + size));
-  }
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
 
@@ -80,7 +78,7 @@ async function fetchYahoo(symbols) {
       let data;
       try {
         data = JSON.parse(text);
-      } catch (e) {
+      } catch {
         throw new Error(`Yahoo JSON parse error | body: ${text.slice(0, 300)}`);
       }
 
@@ -113,42 +111,47 @@ async function fetchAlpacaFallback(symbolsArr) {
 
   const symbols = symbolsArr.join(",");
 
-  // Güncel Alpaca stock latest endpoints
-  const quotesRes = await fetch(
-    `${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`,
+  // Snapshots endpoint: latest trade + latest quote + minute/daily/prevDaily bars
+  const snapRes = await fetch(
+    `${ALPACA_DATA_BASE}/v2/stocks/snapshots?symbols=${encodeURIComponent(symbols)}&feed=iex`,
     { headers }
   );
 
-  const barsRes = await fetch(
-    `${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`,
-    { headers }
-  );
+  const snapText = snapRes.ok ? null : await snapRes.text();
 
-  const quotesText = quotesRes.ok ? null : await quotesRes.text();
-  const barsText = barsRes.ok ? null : await barsRes.text();
-
-  if (!quotesRes.ok && !barsRes.ok) {
-    throw new Error(
-      `Alpaca fallback failed | quotes=${quotesRes.status} ${quotesText || ""} | bars=${barsRes.status} ${barsText || ""}`
-    );
+  if (!snapRes.ok) {
+    throw new Error(`Alpaca snapshots failed | status=${snapRes.status} ${snapText || ""}`);
   }
 
-  const quotesJson = quotesRes.ok ? await quotesRes.json() : {};
-  const barsJson = barsRes.ok ? await barsRes.json() : {};
-
-  const quotes = quotesJson?.quotes || {};
-  const bars = barsJson?.bars || {};
+  const snapJson = await snapRes.json();
+  const snapshots = snapJson?.snapshots || {};
 
   return symbolsArr
     .map((sym) => {
-      const q = quotes[sym] || {};
-      const b = bars[sym] || {};
+      const s = snapshots[sym] || {};
+      const latestTrade = s.latestTrade || {};
+      const latestQuote = s.latestQuote || {};
+      const minuteBar = s.minuteBar || {};
+      const dailyBar = s.dailyBar || {};
+      const prevDailyBar = s.prevDailyBar || {};
 
-      const price = b.c ?? q.ap ?? q.bp ?? null;
-      const open = b.o ?? null;
-      const high = b.h ?? null;
-      const low = b.l ?? null;
-      const volume = b.v ?? 0;
+      const price =
+        minuteBar.c ??
+        latestTrade.p ??
+        latestQuote.ap ??
+        latestQuote.bp ??
+        null;
+
+      const open =
+        dailyBar.o ??
+        minuteBar.o ??
+        prevDailyBar.c ??
+        null;
+
+      const high = dailyBar.h ?? minuteBar.h ?? null;
+      const low = dailyBar.l ?? minuteBar.l ?? null;
+      const volume = dailyBar.v ?? minuteBar.v ?? 0;
+      const avgVolume = dailyBar.v ?? 1;
 
       let chgPct = 0;
       if (price != null && open != null && open !== 0) {
@@ -161,7 +164,7 @@ async function fetchAlpacaFallback(symbolsArr) {
         regularMarketPrice: price,
         regularMarketChangePercent: chgPct,
         regularMarketVolume: volume,
-        averageVolume: 1,
+        averageVolume: avgVolume,
         regularMarketOpen: open,
         regularMarketDayHigh: high,
         regularMarketDayLow: low,
@@ -272,7 +275,7 @@ app.get("/api/feargreed", async (_req, res) => {
 
     const data = await r.json();
     res.json(data);
-  } catch (err) {
+  } catch {
     res.json({
       fear_and_greed: {
         score: 0,
