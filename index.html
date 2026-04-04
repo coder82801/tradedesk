@@ -1219,15 +1219,15 @@ async function getSnapshots(symbols) {
 }
 
 async function fillMissingWithBars(symbols, result) {
-  // Son 5 işlem günü bars çek — kapanış verisini al
+  // Önce Alpaca bars dene, olmadıysa Yahoo Finance proxy
   const now = new Date();
   const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const fmt = d => d.toISOString().split('T')[0];
 
-  // Batch olarak çek (max 20'lik gruplar)
-  for (let i = 0; i < symbols.length; i += 10) {
-    const batch = symbols.slice(i, i + 10);
-    await Promise.allSettled(batch.map(async sym => {
+  await Promise.allSettled(symbols.map(async sym => {
+    try {
+      // 1. Alpaca bars dene
+      let filled = false;
       try {
         const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex&adjustment=raw`;
         const data = await alpacaFetch(url, true);
@@ -1235,25 +1235,54 @@ async function fillMissingWithBars(symbols, result) {
         if (bars.length > 0) {
           const last = bars[bars.length - 1];
           const prev = bars.length > 1 ? bars[bars.length - 2] : null;
-          // Snapshot formatına dönüştür
           result[sym] = {
             latestTrade: { p: last.c },
-            dailyBar: {
-              o: last.o,
-              h: last.h,
-              l: last.l,
-              c: last.c,
-              v: last.v,
-              vw: last.vw || last.c,
-            },
+            dailyBar: { o: last.o, h: last.h, l: last.l, c: last.c, v: last.v, vw: last.vw || last.c },
             prevDailyBar: prev ? { c: prev.c } : null,
-            _fromBars: true, // işaretliyoruz
+            _fromBars: true,
             _barDate: last.t,
           };
+          filled = true;
         }
-      } catch(e) { /* sessizce geç */ }
-    }));
-  }
+      } catch(e) {}
+
+      // 2. Alpaca olmadıysa Yahoo Finance allorigins proxy
+      if (!filled) {
+        try {
+          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
+          const res = await fetch(proxyUrl);
+          const json = await res.json();
+          const parsed = JSON.parse(json.contents);
+          const quotes = parsed?.chart?.result?.[0];
+          if (quotes) {
+            const timestamps = quotes.timestamp || [];
+            const ohlcv = quotes.indicators?.quote?.[0] || {};
+            const adjClose = quotes.indicators?.adjclose?.[0]?.adjclose || [];
+            const len = timestamps.length;
+            if (len > 0) {
+              const i = len - 1;
+              const pi = len - 2;
+              result[sym] = {
+                latestTrade: { p: ohlcv.close?.[i] || 0 },
+                dailyBar: {
+                  o: ohlcv.open?.[i] || 0,
+                  h: ohlcv.high?.[i] || 0,
+                  l: ohlcv.low?.[i] || 0,
+                  c: ohlcv.close?.[i] || 0,
+                  v: ohlcv.volume?.[i] || 0,
+                  vw: ohlcv.close?.[i] || 0,
+                },
+                prevDailyBar: pi >= 0 ? { c: ohlcv.close?.[pi] || 0 } : null,
+                _fromBars: true,
+                _fromYahoo: true,
+              };
+            }
+          }
+        } catch(e2) { /* sessizce geç */ }
+      }
+    } catch(e) {}
+  }));
 }
 
 async function getBars(symbol, timeframe, start, end) {
