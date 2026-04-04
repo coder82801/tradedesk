@@ -111,38 +111,60 @@ async function fetchAlpacaFallback(symbolsArr) {
 
   const symbols = symbolsArr.join(",");
 
-  const url = `${ALPACA_DATA_BASE}/v2/stocks/bars?symbols=${encodeURIComponent(
-    symbols
-  )}&timeframe=1Min&limit=1`;
+  const [barsRes, quotesRes] = await Promise.all([
+    fetch(
+      `${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
+      { headers }
+    ),
+    fetch(
+      `${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
+      { headers }
+    )
+  ]);
 
-  const res = await fetch(url, { headers });
-  const text = await res.text();
+  const barsText = await barsRes.text();
+  const quotesText = await quotesRes.text();
 
-  if (!res.ok) {
-    throw new Error(`Alpaca bars failed | ${res.status} | ${text}`);
+  if (!barsRes.ok && !quotesRes.ok) {
+    throw new Error(
+      `Alpaca latest failed | bars=${barsRes.status} ${barsText.slice(0, 300)} | quotes=${quotesRes.status} ${quotesText.slice(0, 300)}`
+    );
   }
 
-  let json;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Alpaca JSON parse error | body=${text.slice(0, 500)}`);
+  let barsJson = {};
+  let quotesJson = {};
+
+  if (barsRes.ok) {
+    try {
+      barsJson = JSON.parse(barsText);
+    } catch {
+      throw new Error(`Alpaca latest bars JSON parse error | body=${barsText.slice(0, 300)}`);
+    }
   }
 
-  const bars = json?.bars || {};
+  if (quotesRes.ok) {
+    try {
+      quotesJson = JSON.parse(quotesText);
+    } catch {
+      throw new Error(`Alpaca latest quotes JSON parse error | body=${quotesText.slice(0, 300)}`);
+    }
+  }
+
+  const bars = barsJson?.bars || {};
+  const quotes = quotesJson?.quotes || {};
 
   return symbolsArr
     .map((sym) => {
-      const bArr = bars[sym];
-      const b = Array.isArray(bArr) && bArr.length ? bArr[0] : null;
+      const b = bars[sym] || null;
+      const q = quotes[sym] || null;
 
-      if (!b) return null;
+      const price = b?.c ?? q?.ap ?? q?.bp ?? null;
+      const open = b?.o ?? null;
+      const high = b?.h ?? null;
+      const low = b?.l ?? null;
+      const volume = b?.v ?? 0;
 
-      const price = b.c ?? null;
-      const open = b.o ?? null;
-      const high = b.h ?? null;
-      const low = b.l ?? null;
-      const volume = b.v ?? 0;
+      if (price == null) return null;
 
       let chgPct = 0;
       if (price != null && open != null && open !== 0) {
@@ -170,8 +192,9 @@ async function fetchAlpacaFallback(symbolsArr) {
         forwardPE: null,
         trailingPE: null,
         _debug: {
-          source: "alpaca-bars",
-          hasBar: true
+          source: "alpaca-latest",
+          hasBar: !!b,
+          hasQuote: !!q
         }
       };
     })
