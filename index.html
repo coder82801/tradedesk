@@ -2439,134 +2439,78 @@ function clearWatchlist() {
 async function loadChart() {
   const sym = document.getElementById('chart-symbol').value.trim().toUpperCase();
   if (!sym) return;
-  if (!state.apiKey) { document.getElementById('chart-container').innerHTML = noApiHtml(); return; }
 
-  document.getElementById('chart-container').innerHTML = '<div style="height:400px;display:flex;align-items:center;justify-content:center;"><div class="spinner"></div></div>';
-
-  try {
-    // Calculate date range based on period
-    const now = new Date();
-    let start, timeframe;
-    if (state.chartPeriod === '1D') {
-      start = new Date(now.getTime() - 24*60*60*1000);
-      timeframe = '5Min';
-    } else if (state.chartPeriod === '5D') {
-      start = new Date(now.getTime() - 5*24*60*60*1000);
-      timeframe = '15Min';
-    } else if (state.chartPeriod === '1M') {
-      start = new Date(now.getTime() - 30*24*60*60*1000);
-      timeframe = '1Hour';
-    } else {
-      start = new Date(now.getTime() - 90*24*60*60*1000);
-      timeframe = '1Day';
-    }
-
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = now.toISOString().split('T')[0];
-    const bars = await getBars(sym, timeframe, startStr, endStr);
-
-    renderChart(sym, bars);
-    renderChartStats(sym, bars);
-  } catch(e) {
-    document.getElementById('chart-container').innerHTML = errorHtml(e.message);
-  }
-}
-
-function renderChart(sym, bars) {
   const container = document.getElementById('chart-container');
+  container.style.height = '500px';
+
+  // Periyoda göre TradingView interval
+  const intervalMap = { '1D': '15', '5D': '60', '1M': 'D', '3M': 'W' };
+  const interval = intervalMap[state.chartPeriod] || '15';
+
   container.innerHTML = '';
 
-  if (!bars.length) {
-    container.innerHTML = '<div class="empty-state">Grafik verisi yok</div>';
+  // TradingView script yükle (eğer yüklü değilse)
+  const tvId = 'tv_main_' + sym + '_' + Date.now();
+  container.innerHTML = `<div id="${tvId}" style="height:500px;width:100%;"></div>`;
+
+  loadTVScript(() => {
+    if (!window.TradingView) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📈</div>TradingView yüklenemedi. İnternet bağlantısını kontrol edin.</div>';
+      return;
+    }
+    new window.TradingView.widget({
+      autosize: true,
+      symbol: sym,
+      interval: interval,
+      timezone: 'America/New_York',
+      theme: 'dark',
+      style: '1',
+      locale: 'tr',
+      toolbar_bg: '#0f1726',
+      enable_publishing: false,
+      withdateranges: true,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      container_id: tvId,
+      studies: [
+        'VWAP@tv-basicstudies',
+        'Volume@tv-basicstudies',
+        'RSI@tv-basicstudies',
+        'MACD@tv-basicstudies',
+      ],
+      backgroundColor: '#0f1726',
+      gridColor: '#1e2d4a',
+      overrides: {
+        'mainSeriesProperties.candleStyle.upColor': '#00ff88',
+        'mainSeriesProperties.candleStyle.downColor': '#ff3366',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#00ff88',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#ff3366',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#00cc6a',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#cc2952',
+      },
+    });
+  });
+
+  document.getElementById('chart-stats').innerHTML = '';
+}
+
+function loadTVScript(callback) {
+  if (window.TradingView) { callback(); return; }
+  const existing = document.getElementById('tv-script');
+  if (existing) {
+    existing.addEventListener('load', callback);
     return;
   }
-
-  const chart = LightweightCharts.createChart(container, {
-    width: container.clientWidth,
-    height: 400,
-    layout: {
-      background: { color: 'transparent' },
-      textColor: '#8899bb',
-    },
-    grid: {
-      vertLines: { color: '#1e2d4a' },
-      horzLines: { color: '#1e2d4a' },
-    },
-    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-    rightPriceScale: { borderColor: '#1e2d4a' },
-    timeScale: { borderColor: '#1e2d4a', timeVisible: true },
-  });
-
-  state.chart = chart;
-
-  const candleSeries = chart.addCandlestickSeries({
-    upColor: '#00ff88',
-    downColor: '#ff3366',
-    borderUpColor: '#00ff88',
-    borderDownColor: '#ff3366',
-    wickUpColor: '#00cc6a',
-    wickDownColor: '#cc2952',
-  });
-
-  const candleData = bars.map(b => ({
-    time: Math.floor(new Date(b.t).getTime() / 1000),
-    open: b.o, high: b.h, low: b.l, close: b.c
-  }));
-
-  candleSeries.setData(candleData);
-
-  // Volume
-  if (state.indicators.vol) {
-    const volSeries = chart.addHistogramSeries({
-      priceFormat: { type: 'volume' },
-      priceScaleId: 'vol',
-      color: '#243654',
-    });
-    chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
-    volSeries.setData(bars.map(b => ({
-      time: Math.floor(new Date(b.t).getTime() / 1000),
-      value: b.v,
-      color: b.c >= b.o ? 'rgba(0,255,136,0.3)' : 'rgba(255,51,102,0.3)',
-    })));
-  }
-
-  // VWAP
-  if (state.indicators.vwap && bars.some(b => b.vw)) {
-    const vwapSeries = chart.addLineSeries({
-      color: '#9945ff',
-      lineWidth: 1,
-      lineStyle: 2, // dashed
-      title: 'VWAP',
-    });
-    vwapSeries.setData(bars.filter(b => b.vw).map(b => ({
-      time: Math.floor(new Date(b.t).getTime() / 1000),
-      value: b.vw,
-    })));
-  }
-
-  chart.timeScale().fitContent();
-
-  // Resize
-  window.addEventListener('resize', () => {
-    if (state.chart) state.chart.applyOptions({ width: container.clientWidth });
-  });
+  const script = document.createElement('script');
+  script.id = 'tv-script';
+  script.src = 'https://s3.tradingview.com/tv.js';
+  script.onload = callback;
+  script.onerror = () => console.error('TradingView script yüklenemedi');
+  document.head.appendChild(script);
 }
 
-function renderChartStats(sym, bars) {
-  if (!bars.length) return;
-  const last = bars[bars.length - 1];
-  const first = bars[0];
-  const chgPct = first.o ? ((last.c - first.o) / first.o * 100) : 0;
-  const cls = chgPct >= 0 ? 'up' : 'dn';
-  document.getElementById('chart-stats').innerHTML = `
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-box-label">Son Fiyat</div><div class="stat-box-val">$${last.c.toFixed(2)}</div></div>
-      <div class="stat-box"><div class="stat-box-label">Açılış</div><div class="stat-box-val">$${first.o.toFixed(2)}</div></div>
-      <div class="stat-box"><div class="stat-box-label">Değişim</div><div class="stat-box-val ${cls}">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</div></div>
-      <div class="stat-box"><div class="stat-box-label">Hacim</div><div class="stat-box-val">${(bars.reduce((s,b) => s+b.v, 0)/1000000).toFixed(2)}M</div></div>
-      <div class="stat-box"><div class="stat-box-label">VWAP</div><div class="stat-box-val" style="color:var(--purple)">$${(last.vw||last.c).toFixed(2)}</div></div>
-    </div>`;
-}
+function renderChart(sym, bars) {} // Artık kullanılmıyor, TradingView var
+function renderChartStats(sym, bars) {} // Artık kullanılmıyor
 
 function setChartPeriod(btn, period) {
   document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -2577,7 +2521,7 @@ function setChartPeriod(btn, period) {
 
 function toggleIndicator(name) {
   state.indicators[name] = !state.indicators[name];
-  document.getElementById('ind-' + name).classList.toggle('active', state.indicators[name]);
+  document.getElementById('ind-' + name)?.classList.toggle('active', state.indicators[name]);
   loadChart();
 }
 
@@ -2705,75 +2649,45 @@ async function loadModalChart(sym) {
   const container = document.getElementById('modal-chart');
   if (!container) return;
 
-  try {
-    const now = new Date();
-    // Bugünden 7 gün öncesi (hafta sonu ve tatil için buffer)
-    const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fmt = d => d.toISOString().split('T')[0];
+  container.style.height = '320px';
+  const tvId = 'tv_modal_' + sym.replace(/[^a-zA-Z0-9]/g,'_');
+  container.innerHTML = `<div id="${tvId}" style="height:320px;width:100%;"></div>`;
 
-    // Önce 15 dakikalık bar dene, olmadıysa günlük dene
-    let bars = await getBars(sym, '15Min', fmt(start), fmt(now));
-
-    if (!bars || bars.length === 0) {
-      // Fallback: 1 aylık günlük bar
-      const start30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      bars = await getBars(sym, '1Day', fmt(start30), fmt(now));
-    }
-
-    if (!bars || bars.length === 0) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.8rem;font-family:var(--font-mono);">Grafik verisi bulunamadı</div>';
+  loadTVScript(() => {
+    if (!window.TradingView) {
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.8rem;">TradingView yüklenemedi</div>';
       return;
     }
-
-    // Container boyutunu al
-    const w = container.offsetWidth || 520;
-
-    const chart = LightweightCharts.createChart(container, {
-      width: w,
-      height: 200,
-      layout: { background: { color: '#0d1424' }, textColor: '#8899bb' },
-      grid: { vertLines: { color: '#1e2d4a' }, horzLines: { color: '#1e2d4a' } },
-      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-      rightPriceScale: { borderColor: '#1e2d4a', scaleMargins: { top: 0.1, bottom: 0.1 } },
-      timeScale: { borderColor: '#1e2d4a', timeVisible: true, secondsVisible: false },
-      handleScroll: true,
-      handleScale: false,
+    new window.TradingView.widget({
+      autosize: true,
+      symbol: sym,
+      interval: '15',
+      timezone: 'America/New_York',
+      theme: 'dark',
+      style: '1',
+      locale: 'tr',
+      toolbar_bg: '#0f1726',
+      enable_publishing: false,
+      hide_top_toolbar: false,
+      hide_legend: false,
+      withdateranges: false,
+      hide_side_toolbar: true,
+      allow_symbol_change: false,
+      save_image: false,
+      container_id: tvId,
+      studies: ['VWAP@tv-basicstudies', 'Volume@tv-basicstudies'],
+      backgroundColor: '#0f1726',
+      gridColor: '#1e2d4a',
+      overrides: {
+        'mainSeriesProperties.candleStyle.upColor': '#00ff88',
+        'mainSeriesProperties.candleStyle.downColor': '#ff3366',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#00ff88',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#ff3366',
+      },
     });
-
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#00ff88', downColor: '#ff3366',
-      borderUpColor: '#00ff88', borderDownColor: '#ff3366',
-      wickUpColor: '#00cc6a', wickDownColor: '#cc2952',
-    });
-
-    const candleData = bars.map(b => ({
-      time: Math.floor(new Date(b.t).getTime() / 1000),
-      open: b.o, high: b.h, low: b.l, close: b.c
-    })).filter(b => b.time > 0);
-
-    if (candleData.length > 0) {
-      candleSeries.setData(candleData);
-    }
-
-    // VWAP çizgisi
-    const vwapBars = bars.filter(b => b.vw && b.vw > 0);
-    if (vwapBars.length > 0) {
-      const vwapSeries = chart.addLineSeries({
-        color: '#9945ff', lineWidth: 1, lineStyle: 2, title: 'VWAP',
-      });
-      vwapSeries.setData(vwapBars.map(b => ({
-        time: Math.floor(new Date(b.t).getTime() / 1000),
-        value: b.vw
-      })));
-    }
-
-    chart.timeScale().fitContent();
-
-  } catch(e) {
-    console.error('Modal chart error:', e);
-    if (container) container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:0.75rem;font-family:var(--font-mono);">Grafik: ${e.message}</div>`;
-  }
+  });
 }
+
 
 function addTickerToWatchlist(sym) {
   if (!state.watchlist.includes(sym)) {
