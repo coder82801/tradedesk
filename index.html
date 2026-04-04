@@ -431,32 +431,26 @@ window.changePW = function(){
 };
 document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ── YAHOO FINANCE API (direkt — proxy yok) ─────────────
+// ── MARKET DATA API (BACKEND PROXY) ────────────────────
 async function yq(symbols){
   const arr = Array.isArray(symbols) ? symbols : [symbols];
   const s = arr.join(',');
-  const fields = 'symbol,shortName,regularMarketPrice,regularMarketChangePercent,regularMarketVolume,averageVolume,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow,fiftyTwoWeekHigh,fiftyTwoWeekLow,marketCap,preMarketPrice,preMarketChangePercent,postMarketPrice,postMarketChangePercent,shortPercentOfFloat,forwardPE,trailingPE';
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(s)}&fields=${fields}&lang=en-US&region=US`;
+
   try {
-    const r = await fetch(url, {headers:{'Accept':'application/json'}});
+    const r = await fetch(`/api/quote?symbols=${encodeURIComponent(s)}`, {
+      headers:{'Accept':'application/json'}
+    });
     if(!r.ok) throw new Error('HTTP '+r.status);
+
     const data = await r.json();
     const results = data?.quoteResponse?.result || [];
     const m = {};
-    results.forEach(x => m[x.symbol] = x);
+    results.forEach(x => {
+      if (x && x.symbol) m[x.symbol] = x;
+    });
     return m;
   } catch(e) {
-    // Fallback: query2
-    try {
-      const url2 = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(s)}&fields=${fields}`;
-      const r2 = await fetch(url2, {headers:{'Accept':'application/json'}});
-      if(!r2.ok) throw new Error('fail');
-      const data2 = await r2.json();
-      const results2 = data2?.quoteResponse?.result || [];
-      const m2 = {};
-      results2.forEach(x => m2[x.symbol] = x);
-      return m2;
-    } catch(e2){ return {}; }
+    return {};
   }
 }
 
@@ -517,9 +511,8 @@ async function loadMBar(){
     if(ve)ve.textContent='$'+f(d.regularMarketPrice);
     if(ce){ce.textContent=(c>=0?'+':'')+f(c)+'%';ce.className='mbc '+cc(c);}
   });
-  // Fear & Greed — CNN API direkt
   try{
-    const fg = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
+    const fg = await fetch('/api/feargreed');
     if(fg.ok){
       const fgd = await fg.json();
       const sc = Math.round(fgd?.fear_and_greed?.score||0);
@@ -615,7 +608,6 @@ let scData=[], scView='all';
 async function loadScanner(){
   const el=document.getElementById('sc-tbl');
   el.innerHTML=ld();
-  // Batch olarak çek
   const results=[];
   const batchSize=20;
   for(let i=0;i<SCAN_LIST.length;i+=batchSize){
@@ -1093,20 +1085,16 @@ window.saveAPI=async function(){
   sS();
   const r=document.getElementById('api-res');
   r.style.display='block';r.style.background='var(--bg3)';r.textContent='⏳ Test ediliyor...';
-  if(!S.ak||!S.as){r.style.color='var(--yellow)';r.textContent='⚠️ Kaydedildi. API anahtarları boş — sadece Yahoo Finance kullanılacak.';return;}
+  if(!S.ak||!S.as){r.style.color='var(--yellow)';r.textContent='⚠️ Kaydedildi. API anahtarları boş — sadece backend veri akışı kullanılacak.';return;}
   try{
-    const base=S.am==='live'?'https://api.alpaca.markets':'https://paper-api.alpaca.markets';
-    const res=await fetch(base+'/v2/account',{headers:{'APCA-API-KEY-ID':S.ak,'APCA-API-SECRET-KEY':S.as}});
-    if(res.ok){const d=await res.json();r.style.color='var(--green)';r.textContent='✅ Alpaca bağlandı! Bakiye: $'+f(parseFloat(d.portfolio_value));}
-    else{r.style.color='var(--red)';r.textContent='❌ HTTP '+res.status;}
+    r.style.color='var(--green)';
+    r.textContent='✅ Kaydedildi. Not: Gerçek Alpaca anahtarları backend env üzerinden kullanılmalı.';
   }catch(e){r.style.color='var(--red)';r.textContent='❌ Bağlantı hatası';}
 };
 window.updateRI=function(){S.ri=parseInt(document.getElementById('s-ri').value);sS();startTimer();};
 
 // ── SORT HELPER ────────────────────────────────────────
-// Generic sort for rendered tables — re-queries data
 window.sortTbl=function(tblId, col, dir){
-  // Reload is simplest for now
   if(tblId==='acc')loadAcc();
   else if(tblId==='wh')loadWhale();
   else if(tblId==='sq')loadSqueeze();
@@ -1144,7 +1132,6 @@ async function loadAll(){loadMBar();loadWQ();loadFeat();}
 // ── INIT ───────────────────────────────────────────────
 lS();
 document.addEventListener('DOMContentLoaded',()=>{
-  // Oturum devam ediyorsa otomatik giriş
   if(sessionStorage.getItem('td_in')==='1'){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
