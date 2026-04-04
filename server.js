@@ -110,8 +110,15 @@ async function fetchAlpacaFallback(symbolsArr) {
   const symbols = symbolsArr.join(",");
 
   const [quotesRes, barsRes] = await Promise.all([
-    fetch(`${ALPACA_DATA_BASE}/v2/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`, { headers }),
-    fetch(`${ALPACA_DATA_BASE}/v2/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}&feed=iex`, { headers })
+    const quotesRes = await fetch(
+  `${ALPACA_DATA_BASE}/v1beta1/stocks/quotes/latest?symbols=${encodeURIComponent(symbols)}`,
+  { headers }
+);
+
+const barsRes = await fetch(
+  `${ALPACA_DATA_BASE}/v1beta1/stocks/bars/latest?symbols=${encodeURIComponent(symbols)}`,
+  { headers }
+);
   ]);
 
   const quotesText = quotesRes.ok ? null : await quotesRes.text();
