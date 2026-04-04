@@ -7,12 +7,6 @@
   "background_color": "#04070f",
   "theme_color": "#00d4ff",
   "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%2304070f' rx='24'/><text y='120' x='20' font-size='120' font-family='monospace'>📈</text></svg>",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    }
-  ],
+  "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%2304070f' rx='24'/><text y='120' x='20' font-size='120' font-family='monospace'>📈</text></svg>","sizes": "192x192","type": "image/svg+xml"}],
   "categories": ["finance", "productivity"]
 }
