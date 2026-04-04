@@ -1203,10 +1203,56 @@ async function getSnapshots(symbols) {
   const syms = symbols.join(',');
   try {
     const data = await alpacaFetch(`/v2/stocks/snapshots?symbols=${syms}&feed=iex`, true);
-    return data || {};
+    // Hafta sonu/kapalı saatlerde snapshot boş gelir — bars ile doldur
+    const result = data || {};
+    const missing = symbols.filter(s => !result[s] || !result[s].dailyBar);
+    if (missing.length > 0) {
+      await fillMissingWithBars(missing, result);
+    }
+    return result;
   } catch(e) {
-    console.error('Snapshot error:', e);
-    return {};
+    // Tamamen başarısız olursa bars'tan çek
+    const result = {};
+    await fillMissingWithBars(symbols, result);
+    return result;
+  }
+}
+
+async function fillMissingWithBars(symbols, result) {
+  // Son 5 işlem günü bars çek — kapanış verisini al
+  const now = new Date();
+  const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  // Batch olarak çek (max 20'lik gruplar)
+  for (let i = 0; i < symbols.length; i += 10) {
+    const batch = symbols.slice(i, i + 10);
+    await Promise.allSettled(batch.map(async sym => {
+      try {
+        const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex&adjustment=raw`;
+        const data = await alpacaFetch(url, true);
+        const bars = data.bars || [];
+        if (bars.length > 0) {
+          const last = bars[bars.length - 1];
+          const prev = bars.length > 1 ? bars[bars.length - 2] : null;
+          // Snapshot formatına dönüştür
+          result[sym] = {
+            latestTrade: { p: last.c },
+            dailyBar: {
+              o: last.o,
+              h: last.h,
+              l: last.l,
+              c: last.c,
+              v: last.v,
+              vw: last.vw || last.c,
+            },
+            prevDailyBar: prev ? { c: prev.c } : null,
+            _fromBars: true, // işaretliyoruz
+            _barDate: last.t,
+          };
+        }
+      } catch(e) { /* sessizce geç */ }
+    }));
   }
 }
 
@@ -1891,22 +1937,13 @@ async function loadAllData() {
 // ═══════════════════════════════════════════════════════
 async function loadMarketBar() {
   try {
-    const syms = ['SPY','QQQ','IWM','UUP'];
+    const syms = ['SPY','QQQ','IWM','UUP','VIXY'];
     const snaps = await getSnapshots(syms);
     updateBarItem('spy', snaps['SPY']);
     updateBarItem('qqq', snaps['QQQ']);
     updateBarItem('iwm', snaps['IWM']);
-    updateBarItem('dxy', snaps['UUP']); // UUP = USD index ETF proxy
-
-    // VIX - try snapshot
-    try {
-      const vixSnap = await getSnapshots(['VIXY']);
-      updateBarItem('vix', vixSnap['VIXY']);
-    } catch(e) {
-      document.getElementById('mb-vix').textContent = '—';
-    }
-
-    // Fear & Greed (CNN API proxy or static calculation)
+    updateBarItem('dxy', snaps['UUP']);
+    updateBarItem('vix', snaps['VIXY']);
     loadFearGreed();
   } catch(e) {
     console.error('Market bar error:', e);
@@ -1917,13 +1954,24 @@ function updateBarItem(id, snap) {
   if (!snap) return;
   const price = snap.latestTrade?.p || snap.dailyBar?.c || 0;
   const open = snap.dailyBar?.o || price;
-  const chgPct = open ? ((price - open) / open * 100) : 0;
+  // Hafta sonu: değişimi önceki kapanışa göre hesapla
+  const prevClose = snap.prevDailyBar?.c || open;
+  const chgPct = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
   const cls = chgPct > 0 ? 'up' : chgPct < 0 ? 'dn' : 'neutral';
 
-  document.getElementById(`mb-${id}`).textContent = price < 10 ? price.toFixed(2) : price.toFixed(2);
-  document.getElementById(`mb-${id}`).className = `mbar-val ${cls}`;
+  const valEl = document.getElementById(`mb-${id}`);
   const chgEl = document.getElementById(`mb-${id}-c`);
-  chgEl.textContent = `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%`;
+  if (!valEl || !chgEl) return;
+
+  valEl.textContent = price.toFixed(2);
+  valEl.className = `mbar-val ${cls}`;
+
+  // Hafta sonu ise tarih göster
+  const etDay = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();
+  const isWeekend = etDay === 0 || etDay === 6;
+  const suffix = isWeekend && snap._fromBars ? ' ★' : '';
+
+  chgEl.textContent = `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%${suffix}`;
   chgEl.className = `mbar-chg ${cls}`;
 }
 
