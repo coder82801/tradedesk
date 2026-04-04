@@ -1206,70 +1206,45 @@ async function getQuotes(symbols) {
 async function getSnapshots(symbols) {
   if (!symbols || symbols.length === 0) return {};
   const result = {};
-
-  // Her zaman çalışan yöntem: Alpaca latest bars (SIP feed hafta sonu da çalışır)
   await fillMissingWithBars(symbols, result);
-
-  // Piyasa açıksa snapshot ile üzerine yaz (daha güncel)
-  try {
-    const syms = symbols.join(',');
-    const data = await alpacaFetch(`/v2/stocks/snapshots?symbols=${syms}&feed=sip`, true);
-    if (data) {
-      for (const [sym, snap] of Object.entries(data)) {
-        if (snap && snap.dailyBar && snap.dailyBar.c > 0) {
-          result[sym] = snap;
-        }
-      }
-    }
-  } catch(e) {
-    // Snapshot olmadı, bars verisi yeterli
-  }
-
   return result;
 }
 
 async function fillMissingWithBars(symbols, result) {
   if (!symbols || symbols.length === 0) return;
-
   const now = new Date();
   const start = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
   const fmt = d => d.toISOString().split('T')[0];
+  const feed = 'iex'; // paper hesapta sadece iex çalışır
 
-  // Batch olarak 20'şerli gruplar halinde çek
-  const batchSize = 20;
-  for (let i = 0; i < symbols.length; i += batchSize) {
-    const batch = symbols.slice(i, i + batchSize);
+  // 20'şerli batch
+  for (let i = 0; i < symbols.length; i += 20) {
+    const batch = symbols.slice(i, i + 20);
     const symsParam = batch.join(',');
-
-    // Toplu bars endpoint — çok daha hızlı
     try {
-      const url = `/v2/stocks/bars?symbols=${symsParam}&timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=sip&adjustment=raw`;
-      const data = await alpacaFetch(url, true);
-      const bars = data.bars || {};
-
-      for (const sym of batch) {
-        const symBars = bars[sym] || [];
-        if (symBars.length > 0) {
-          const last = symBars[symBars.length - 1];
-          const prev = symBars.length > 1 ? symBars[symBars.length - 2] : null;
-          result[sym] = {
-            latestTrade: { p: last.c },
-            dailyBar: {
-              o: last.o, h: last.h, l: last.l, c: last.c,
-              v: last.v, vw: last.vw || last.c,
-            },
-            prevDailyBar: prev ? { c: prev.c } : { c: last.o },
-            _fromBars: true,
-          };
+      // Önce snapshot dene (piyasa açıkken anlık veri)
+      const snapData = await alpacaFetch(`/v2/stocks/snapshots?symbols=${symsParam}&feed=${feed}`, true);
+      if (snapData) {
+        for (const sym of batch) {
+          if (snapData[sym]?.dailyBar?.c > 0) {
+            result[sym] = snapData[sym];
+          }
         }
       }
-    } catch(e) {
-      // Toplu olmadı, tek tek dene
-      await Promise.allSettled(batch.map(async sym => {
-        try {
-          const url = `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=iex`;
-          const data = await alpacaFetch(url, true);
-          const symBars = data.bars || [];
+    } catch(e) {}
+
+    // Snapshot'ta veri gelmeyen hisseler için bars çek
+    const stillMissing = batch.filter(s => !result[s] || !result[s].dailyBar?.c);
+    if (stillMissing.length > 0) {
+      try {
+        const syms2 = stillMissing.join(',');
+        const barsData = await alpacaFetch(
+          `/v2/stocks/bars?symbols=${syms2}&timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=${feed}&adjustment=raw`,
+          true
+        );
+        const bars = barsData.bars || {};
+        for (const sym of stillMissing) {
+          const symBars = bars[sym] || [];
           if (symBars.length > 0) {
             const last = symBars[symBars.length - 1];
             const prev = symBars.length > 1 ? symBars[symBars.length - 2] : null;
@@ -1280,9 +1255,32 @@ async function fillMissingWithBars(symbols, result) {
               _fromBars: true,
             };
           }
-        } catch(e2) {}
-      }));
+        }
+      } catch(e) {
+        // Son çare: tek tek
+        for (const sym of stillMissing) {
+          try {
+            const d = await alpacaFetch(
+              `/v2/stocks/${encodeURIComponent(sym)}/bars?timeframe=1Day&start=${fmt(start)}&end=${fmt(now)}&limit=5&feed=${feed}`,
+              true
+            );
+            const symBars = d.bars || [];
+            if (symBars.length > 0) {
+              const last = symBars[symBars.length - 1];
+              const prev = symBars.length > 1 ? symBars[symBars.length - 2] : null;
+              result[sym] = {
+                latestTrade: { p: last.c },
+                dailyBar: { o: last.o, h: last.h, l: last.l, c: last.c, v: last.v, vw: last.vw || last.c },
+                prevDailyBar: prev ? { c: prev.c } : { c: last.o },
+                _fromBars: true,
+              };
+            }
+          } catch(e2) {}
+        }
+      }
     }
+    // Rate limit için kısa bekleme
+    if (i + 20 < symbols.length) await new Promise(r => setTimeout(r, 300));
   }
 }
 
