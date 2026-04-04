@@ -10,19 +10,15 @@ app.use(cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Root'taki index.html ve manifest.json'u sun
+// Root klasördeki dosyaları servis et
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
 
-// Alpaca env değişkenleri (Render dashboard'dan ekleyebilirsin)
 const ALPACA_KEY = process.env.ALPACA_KEY || "";
 const ALPACA_SECRET = process.env.ALPACA_SECRET || "";
 const ALPACA_DATA_BASE = process.env.ALPACA_DATA_BASE || "https://data.alpaca.markets";
 
-// ─────────────────────────────────────────────
-// Yardımcılar
-// ─────────────────────────────────────────────
 function chunkArray(arr, size) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -53,9 +49,6 @@ function normalizeYahooQuote(q) {
   };
 }
 
-// ─────────────────────────────────────────────
-// Yahoo quote
-// ─────────────────────────────────────────────
 async function fetchYahoo(symbols) {
   const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&lang=en-US&region=US`;
 
@@ -75,11 +68,6 @@ async function fetchYahoo(symbols) {
   return results.map(normalizeYahooQuote);
 }
 
-// ─────────────────────────────────────────────
-// Alpaca latest quotes + bars
-// Yahoo tamamen boş dönerse fallback
-// Not: Alpaca Yahoo kadar zengin alan vermez
-// ─────────────────────────────────────────────
 async function fetchAlpacaFallback(symbolsArr) {
   if (!ALPACA_KEY || !ALPACA_SECRET || !symbolsArr.length) return [];
 
@@ -109,12 +97,7 @@ async function fetchAlpacaFallback(symbolsArr) {
     const q = quotes[sym] || {};
     const b = bars[sym] || {};
 
-    const price =
-      b.c ??
-      q.ap ??
-      q.bp ??
-      null;
-
+    const price = b.c ?? q.ap ?? q.bp ?? null;
     const open = b.o ?? null;
     const high = b.h ?? null;
     const low = b.l ?? null;
@@ -149,9 +132,6 @@ async function fetchAlpacaFallback(symbolsArr) {
   });
 }
 
-// ─────────────────────────────────────────────
-// API: quote
-// ─────────────────────────────────────────────
 app.get("/api/quote", async (req, res) => {
   try {
     const rawSymbols = req.query.symbols;
@@ -169,8 +149,6 @@ app.get("/api/quote", async (req, res) => {
     }
 
     let allResults = [];
-
-    // Yahoo bazen uzun query'lerde sorun çıkarır; parçalı çalıştır
     const chunks = chunkArray(symbolsArr, 25);
 
     for (const chunk of chunks) {
@@ -178,12 +156,10 @@ app.get("/api/quote", async (req, res) => {
         const yahooData = await fetchYahoo(chunk.join(","));
         allResults.push(...yahooData);
       } catch (err) {
-        // Bu chunk için Yahoo başarısızsa Alpaca fallback
         try {
           const alpacaData = await fetchAlpacaFallback(chunk);
           allResults.push(...alpacaData);
         } catch {
-          // sessiz geç
         }
       }
     }
@@ -198,9 +174,6 @@ app.get("/api/quote", async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// API: Fear & Greed proxy
-// ─────────────────────────────────────────────
 app.get("/api/feargreed", async (_req, res) => {
   try {
     const r = await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", {
@@ -221,7 +194,6 @@ app.get("/api/feargreed", async (_req, res) => {
   }
 });
 
-// Ana sayfa
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
