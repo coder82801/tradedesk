@@ -546,6 +546,9 @@
     <button class="tab-btn" onclick="switchTab('risk')" id="tab-risk">
       <span class="tab-icon">⚖️</span> Risk
     </button>
+    <button class="tab-btn" onclick="switchTab('autobot')" id="tab-autobot">
+      <span class="tab-icon">🤖</span> AI Bot
+    </button>
     <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">
       <span class="tab-icon">⚙️</span> Ayarlar
     </button>
@@ -863,6 +866,96 @@
           <div class="stat-box"><div class="stat-box-label">Güncelleme</div><div class="stat-box-val" id="mb-updated" style="font-size:0.7rem;color:var(--text3)">—</div></div>
         </div>
         <div id="multibagger-table"><div class="loading-spinner"><div class="spinner"></div>Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- AI BOT TAB -->
+    <div class="tab-panel" id="panel-autobot">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🤖 AI Otomatik Trading Bot</div>
+            <div class="card-subtitle">Paper Trading · Dengeli strateji · Long + Short · Tam otomatik</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="bot-status-badge" style="padding:5px 12px;border-radius:6px;font-size:0.75rem;font-family:var(--font-mono);background:rgba(74,94,128,0.3);color:var(--text3);border:1px solid var(--border);">⏹ DURDURULDU</div>
+            <button id="bot-toggle-btn" class="save-api-btn" onclick="toggleBot()" style="padding:8px 20px;">▶ Botu Başlat</button>
+          </div>
+        </div>
+
+        <!-- Uyarı -->
+        <div style="background:rgba(255,204,0,0.08);border:1px solid rgba(255,204,0,0.25);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.78rem;color:var(--yellow);line-height:1.7;">
+          ⚠️ <strong>Sadece Paper Trading hesabında çalışır.</strong> Gerçek para riski yoktur. Bot, belirlenen sinyaller gerçekleştiğinde Alpaca Paper API üzerinden otomatik emir gönderir. İstediğiniz zaman durdurabilirsiniz.
+        </div>
+
+        <!-- Bot İstatistikleri -->
+        <div class="stats-row" style="margin-bottom:16px;">
+          <div class="stat-box"><div class="stat-box-label">Toplam İşlem</div><div class="stat-box-val" id="bot-total-trades">0</div></div>
+          <div class="stat-box"><div class="stat-box-label">Açık Pozisyon</div><div class="stat-box-val" style="color:var(--accent)" id="bot-open-pos">0</div></div>
+          <div class="stat-box"><div class="stat-box-label">Karlı İşlem</div><div class="stat-box-val up" id="bot-wins">0</div></div>
+          <div class="stat-box"><div class="stat-box-label">Zararlı İşlem</div><div class="stat-box-val dn" id="bot-losses">0</div></div>
+          <div class="stat-box"><div class="stat-box-label">Toplam P&L</div><div class="stat-box-val" id="bot-pnl">$0.00</div></div>
+          <div class="stat-box"><div class="stat-box-label">Sonraki Tarama</div><div class="stat-box-val" id="bot-next-scan" style="font-size:0.7rem;color:var(--text3)">—</div></div>
+        </div>
+
+        <!-- Bot Ayarları -->
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title" style="margin-bottom:12px;">⚙️ Strateji Ayarları</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="risk-input-group">
+                <label class="risk-label">İşlem Başına Max Risk (%)</label>
+                <input type="number" class="risk-input" id="bot-risk-pct" value="1.5" min="0.5" max="5" step="0.5">
+              </div>
+              <div class="risk-input-group">
+                <label class="risk-label">Günlük Max İşlem Sayısı</label>
+                <input type="number" class="risk-input" id="bot-max-trades" value="5" min="1" max="20">
+              </div>
+              <div class="risk-input-group">
+                <label class="risk-label">Min Sinyal Skoru (1-10)</label>
+                <input type="number" class="risk-input" id="bot-min-score" value="6" min="3" max="10">
+              </div>
+              <div class="risk-input-group">
+                <label class="risk-label">Stop Loss (%)</label>
+                <input type="number" class="risk-input" id="bot-stop-pct" value="3" min="1" max="10" step="0.5">
+              </div>
+              <div class="risk-input-group">
+                <label class="risk-label">Take Profit (%)</label>
+                <input type="number" class="risk-input" id="bot-tp-pct" value="6" min="2" max="20" step="0.5">
+              </div>
+              <div class="risk-input-group">
+                <label class="risk-label">Tarama Aralığı (dakika)</label>
+                <select class="risk-input" id="bot-scan-interval">
+                  <option value="5">5 dakika</option>
+                  <option value="10" selected>10 dakika</option>
+                  <option value="15">15 dakika</option>
+                  <option value="30">30 dakika</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title" style="margin-bottom:12px;">📊 Hesap Durumu</div>
+            <div id="bot-account-info" style="display:flex;flex-direction:column;gap:8px;">
+              <div class="loading-spinner"><div class="spinner"></div></div>
+            </div>
+            <div style="margin-top:14px;">
+              <div class="card-title" style="margin-bottom:10px;font-size:0.75rem;">📋 Açık Pozisyonlar</div>
+              <div id="bot-positions-list"><div style="color:var(--text3);font-size:0.8rem;">Henüz açık pozisyon yok</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- İşlem Geçmişi -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <div class="card-title">📜 Bot İşlem Geçmişi</div>
+            <button class="refresh-btn" onclick="clearBotLog()">Geçmişi Temizle</button>
+          </div>
+          <div id="bot-log" style="max-height:300px;overflow-y:auto;">
+            <div style="color:var(--text3);font-size:0.8rem;padding:12px;">Bot henüz başlatılmadı.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1429,6 +1522,7 @@ function switchTab(name) {
   else if (name === 'watchlist') loadWatchlistFull();
   else if (name === 'chart') loadChart();
   else if (name === 'risk') calcRisk();
+  else if (name === 'autobot') initBotTab();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2135,6 +2229,419 @@ async function loadWhale() {
         </tr>`).join('')}
       </tbody></table>`;
   } catch(e) { el.innerHTML = errorHtml(e.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// AI OTOMATİK TRADING BOT
+// ═══════════════════════════════════════════════════════
+const botState = {
+  running: false,
+  timer: null,
+  trades: [],       // { sym, side, qty, entryPrice, stopPrice, tpPrice, orderId, time, status }
+  stats: { total: 0, wins: 0, losses: 0, pnl: 0 },
+  dailyTradeCount: 0,
+  lastTradeDay: null,
+};
+
+function initBotTab() {
+  loadBotAccountInfo();
+  loadBotPositions();
+  renderBotLog();
+  updateBotStats();
+}
+
+// Hesap bilgilerini çek
+async function loadBotAccountInfo() {
+  const el = document.getElementById('bot-account-info');
+  if (!state.apiKey) { el.innerHTML = noApiHtml(); return; }
+  try {
+    const acct = await alpacaFetch('/v2/account');
+    const equity = parseFloat(acct.equity).toFixed(2);
+    const cash = parseFloat(acct.cash).toFixed(2);
+    const buyingPower = parseFloat(acct.buying_power).toFixed(2);
+    const dayPnl = parseFloat(acct.equity) - parseFloat(acct.last_equity);
+    const dayPnlPct = (dayPnl / parseFloat(acct.last_equity) * 100).toFixed(2);
+    el.innerHTML = `
+      <div class="zone-row"><span class="zone-label">Portföy Değeri</span><span class="zone-val" style="color:var(--accent);">$${equity}</span></div>
+      <div class="zone-row"><span class="zone-label">Nakit</span><span class="zone-val">$${cash}</span></div>
+      <div class="zone-row"><span class="zone-label">Alım Gücü</span><span class="zone-val">$${buyingPower}</span></div>
+      <div class="zone-row"><span class="zone-label">Bugün P&L</span><span class="zone-val ${dayPnl>=0?'up':'dn'}">${dayPnl>=0?'+':''}$${dayPnl.toFixed(2)} (${dayPnlPct}%)</span></div>
+      <div class="zone-row"><span class="zone-label">Hesap Tipi</span><span class="zone-val" style="color:var(--yellow);">${state.apiMode === 'paper' ? '📝 PAPER' : '🔴 LIVE'}</span></div>`;
+  } catch(e) {
+    el.innerHTML = errorHtml(e.message);
+  }
+}
+
+// Açık pozisyonları çek
+async function loadBotPositions() {
+  const el = document.getElementById('bot-positions-list');
+  if (!state.apiKey) return;
+  try {
+    const positions = await alpacaFetch('/v2/positions');
+    if (!positions || positions.length === 0) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:0.78rem;">Açık pozisyon yok</div>';
+      document.getElementById('bot-open-pos').textContent = '0';
+      return;
+    }
+    document.getElementById('bot-open-pos').textContent = positions.length;
+    el.innerHTML = positions.map(p => {
+      const pnl = parseFloat(p.unrealized_pl);
+      const pnlPct = parseFloat(p.unrealized_plpc) * 100;
+      const cls = pnl >= 0 ? 'up' : 'dn';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <span class="ticker" style="font-size:0.85rem;">${p.symbol}</span>
+          <span style="font-size:0.7rem;color:var(--text3);margin-left:6px;">${p.side === 'long' ? '↑ LONG' : '↓ SHORT'} × ${Math.abs(p.qty)}</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--font-mono);font-size:0.8rem;">$${parseFloat(p.current_price).toFixed(2)}</div>
+          <div class="${cls}" style="font-family:var(--font-mono);font-size:0.72rem;">${pnl>=0?'+':''}$${pnl.toFixed(2)} (${pnlPct.toFixed(1)}%)</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--text3);font-size:0.75rem;">${e.message}</div>`;
+  }
+}
+
+// Bot başlat/durdur
+function toggleBot() {
+  if (botState.running) {
+    stopBot();
+  } else {
+    startBot();
+  }
+}
+
+function startBot() {
+  if (!state.apiKey) { alert('Önce Alpaca API anahtarlarını girin!'); return; }
+  if (state.apiMode !== 'paper') {
+    if (!confirm('⚠️ CANLI hesap tespit edildi! Bot sadece Paper Trading için tasarlanmıştır. Devam etmek istiyor musunuz?')) return;
+  }
+
+  botState.running = true;
+  updateBotUI(true);
+  addBotLog('🟢 Bot başlatıldı — Dengeli strateji, Long+Short, Tam otomatik', 'info');
+
+  // İlk taramayı hemen yap
+  runBotCycle();
+
+  // Periyodik tarama
+  const intervalMin = parseInt(document.getElementById('bot-scan-interval').value) || 10;
+  botState.timer = setInterval(runBotCycle, intervalMin * 60 * 1000);
+  updateNextScanTime(intervalMin);
+}
+
+function stopBot() {
+  botState.running = false;
+  if (botState.timer) { clearInterval(botState.timer); botState.timer = null; }
+  updateBotUI(false);
+  addBotLog('⏹ Bot durduruldu', 'warning');
+  document.getElementById('bot-next-scan').textContent = '—';
+}
+
+function updateBotUI(running) {
+  const badge = document.getElementById('bot-status-badge');
+  const btn = document.getElementById('bot-toggle-btn');
+  if (running) {
+    badge.style.background = 'rgba(0,255,136,0.12)';
+    badge.style.color = 'var(--green)';
+    badge.style.borderColor = 'rgba(0,255,136,0.3)';
+    badge.textContent = '▶ ÇALIŞIYOR';
+    btn.textContent = '⏹ Botu Durdur';
+    btn.style.background = 'var(--red)';
+  } else {
+    badge.style.background = 'rgba(74,94,128,0.3)';
+    badge.style.color = 'var(--text3)';
+    badge.style.borderColor = 'var(--border)';
+    badge.textContent = '⏹ DURDURULDU';
+    btn.textContent = '▶ Botu Başlat';
+    btn.style.background = 'var(--accent)';
+  }
+}
+
+function updateNextScanTime(intervalMin) {
+  const next = new Date(Date.now() + intervalMin * 60 * 1000);
+  document.getElementById('bot-next-scan').textContent =
+    next.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Ana bot döngüsü
+async function runBotCycle() {
+  if (!botState.running) return;
+
+  addBotLog('🔍 Tarama başlıyor...', 'info');
+
+  try {
+    // Piyasa açık mı kontrol et
+    const clock = await alpacaFetch('/v2/clock');
+    if (!clock.is_open) {
+      addBotLog(`⏰ Piyasa kapalı — sonraki açılış: ${new Date(clock.next_open).toLocaleString('tr-TR')}`, 'warning');
+      return;
+    }
+
+    // Günlük işlem limitini kontrol et
+    const today = new Date().toDateString();
+    if (botState.lastTradeDay !== today) {
+      botState.dailyTradeCount = 0;
+      botState.lastTradeDay = today;
+    }
+    const maxTrades = parseInt(document.getElementById('bot-max-trades').value) || 5;
+    if (botState.dailyTradeCount >= maxTrades) {
+      addBotLog(`🚫 Günlük limit doldu (${botState.dailyTradeCount}/${maxTrades})`, 'warning');
+      return;
+    }
+
+    // Mevcut pozisyonları kontrol et — stop/tp tetiklenmiş mi?
+    await checkExistingPositions();
+
+    // Yeni sinyal tara
+    await scanForSignals();
+
+    // Hesap bilgilerini güncelle
+    await loadBotAccountInfo();
+    await loadBotPositions();
+
+    const intervalMin = parseInt(document.getElementById('bot-scan-interval').value) || 10;
+    updateNextScanTime(intervalMin);
+
+  } catch(e) {
+    addBotLog(`❌ Döngü hatası: ${e.message}`, 'error');
+  }
+}
+
+// Mevcut pozisyonları stop/tp için kontrol et
+async function checkExistingPositions() {
+  try {
+    const positions = await alpacaFetch('/v2/positions');
+    if (!positions || positions.length === 0) return;
+
+    const stopPct = parseFloat(document.getElementById('bot-stop-pct').value) / 100 || 0.03;
+    const tpPct = parseFloat(document.getElementById('bot-tp-pct').value) / 100 || 0.06;
+
+    for (const pos of positions) {
+      const sym = pos.symbol;
+      const entryPrice = parseFloat(pos.avg_entry_price);
+      const currentPrice = parseFloat(pos.current_price);
+      const pnlPct = parseFloat(pos.unrealized_plpc);
+      const side = pos.side;
+      const qty = Math.abs(parseInt(pos.qty));
+
+      let shouldClose = false;
+      let reason = '';
+
+      if (side === 'long') {
+        if (pnlPct <= -stopPct) { shouldClose = true; reason = `🛑 Stop Loss tetiklendi (${(pnlPct*100).toFixed(2)}%)`; }
+        else if (pnlPct >= tpPct) { shouldClose = true; reason = `✅ Take Profit tetiklendi (+${(pnlPct*100).toFixed(2)}%)`; }
+      } else {
+        if (pnlPct <= -stopPct) { shouldClose = true; reason = `🛑 Stop Loss tetiklendi (${(pnlPct*100).toFixed(2)}%)`; }
+        else if (pnlPct >= tpPct) { shouldClose = true; reason = `✅ Take Profit tetiklendi (+${(pnlPct*100).toFixed(2)}%)`; }
+      }
+
+      if (shouldClose) {
+        await closePosition(sym, side, qty, currentPrice, entryPrice, reason);
+      }
+    }
+  } catch(e) {
+    addBotLog(`⚠️ Pozisyon kontrolü hatası: ${e.message}`, 'error');
+  }
+}
+
+// Pozisyon kapat
+async function closePosition(sym, side, qty, currentPrice, entryPrice, reason) {
+  try {
+    const closeSide = side === 'long' ? 'sell' : 'buy';
+    await alpacaFetch('/v2/orders', false, 'POST', {
+      symbol: sym,
+      qty: qty,
+      side: closeSide,
+      type: 'market',
+      time_in_force: 'day',
+    });
+
+    const pnl = side === 'long'
+      ? (currentPrice - entryPrice) * qty
+      : (entryPrice - currentPrice) * qty;
+
+    botState.stats.total++;
+    if (pnl > 0) botState.stats.wins++;
+    else botState.stats.losses++;
+    botState.stats.pnl += pnl;
+
+    const cls = pnl >= 0 ? 'success' : 'error';
+    addBotLog(`${reason} | ${sym} ${side.toUpperCase()} kapatıldı | P&L: ${pnl>=0?'+':''}$${pnl.toFixed(2)}`, cls);
+    updateBotStats();
+  } catch(e) {
+    addBotLog(`❌ Pozisyon kapatma hatası (${sym}): ${e.message}`, 'error');
+  }
+}
+
+// Yeni sinyal tara ve işlem aç
+async function scanForSignals() {
+  try {
+    const maxTrades = parseInt(document.getElementById('bot-max-trades').value) || 5;
+    if (botState.dailyTradeCount >= maxTrades) return;
+
+    const minScore = parseInt(document.getElementById('bot-min-score').value) || 6;
+    const allData = await scanAllSnapshots();
+    const signals = [];
+
+    for (const d of allData) {
+      if (d.price < 0.5 || d.price > 500) continue;
+
+      // LONG sinyali
+      const whaleScore = calcWhaleScore(d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+      const accScore = calcAccumulationScore(d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+      const shortScore = calcShortTermScore(d.price, d.open, d.high, d.low, d.vol, d.vwap, d.chgPct);
+
+      const range = d.high - d.low;
+      const closePos = range > 0 ? (d.price - d.low) / range : 0.5;
+      const vwapAbove = d.price > d.vwap;
+
+      // LONG: yüksek skor + VWAP üstü + güçlü kapanış
+      const longScore = whaleScore + shortScore + (vwapAbove ? 1 : 0) + (closePos > 0.7 ? 1 : 0);
+      if (longScore >= minScore && d.chgPct > 0) {
+        signals.push({ ...d, side: 'buy', score: longScore });
+      }
+
+      // SHORT: fiyat VWAP altında + düşüş momentumu + yüksek hacim
+      const shortSignalScore = whaleScore + (d.chgPct < -3 ? 2 : 0) + (!vwapAbove ? 1 : 0) + (closePos < 0.3 ? 2 : 0);
+      if (shortSignalScore >= minScore && d.chgPct < -2) {
+        signals.push({ ...d, side: 'sell', score: shortSignalScore });
+      }
+    }
+
+    // En güçlü sinyallere göre sırala
+    signals.sort((a,b) => b.score - a.score);
+
+    // Mevcut pozisyonları çek (aynı hissede çift işlem yapmamak için)
+    const positions = await alpacaFetch('/v2/positions');
+    const openSymbols = new Set((positions || []).map(p => p.symbol));
+
+    // En iyi sinyale gir
+    for (const sig of signals.slice(0, 3)) {
+      if (botState.dailyTradeCount >= maxTrades) break;
+      if (openSymbols.has(sig.sym)) continue; // Zaten açık pozisyon var
+
+      await openPosition(sig);
+      await new Promise(r => setTimeout(r, 500)); // API rate limit için bekle
+    }
+
+    if (signals.length === 0) {
+      addBotLog(`🔍 Tarama tamamlandı — yeterli sinyal bulunamadı (min skor: ${minScore})`, 'info');
+    }
+  } catch(e) {
+    addBotLog(`❌ Sinyal tarama hatası: ${e.message}`, 'error');
+  }
+}
+
+// Yeni pozisyon aç
+async function openPosition(sig) {
+  try {
+    const acct = await alpacaFetch('/v2/account');
+    const equity = parseFloat(acct.equity);
+    const riskPct = parseFloat(document.getElementById('bot-risk-pct').value) / 100 || 0.015;
+    const maxRisk = equity * riskPct;
+    const stopPct = parseFloat(document.getElementById('bot-stop-pct').value) / 100 || 0.03;
+    const stopDist = sig.price * stopPct;
+    const qty = Math.max(1, Math.floor(maxRisk / stopDist));
+    const totalCost = qty * sig.price;
+
+    // Max %10 hesaptan fazla tek işleme girme
+    if (totalCost > equity * 0.10) {
+      addBotLog(`⚠️ ${sig.sym} — pozisyon çok büyük ($${totalCost.toFixed(0)}), atlanıyor`, 'warning');
+      return;
+    }
+
+    const order = await alpacaFetch('/v2/orders', false, 'POST', {
+      symbol: sig.sym,
+      qty: qty,
+      side: sig.side,
+      type: 'market',
+      time_in_force: 'day',
+    });
+
+    botState.dailyTradeCount++;
+    const sideLabel = sig.side === 'buy' ? '📈 LONG' : '📉 SHORT';
+    addBotLog(
+      `${sideLabel} ${sig.sym} | ${qty} hisse @ $${sig.price.toFixed(2)} | Risk: $${maxRisk.toFixed(0)} | Skor: ${sig.score}`,
+      'success'
+    );
+    botState.stats.total++;
+    updateBotStats();
+  } catch(e) {
+    addBotLog(`❌ Emir hatası (${sig.sym}): ${e.message}`, 'error');
+  }
+}
+
+// alpacaFetch'e POST desteği ekle (mevcut fonksiyonu güncelle)
+const _origAlpacaFetch = alpacaFetch;
+window.alpacaFetch = async function(endpoint, isData = false, method = 'GET', body = null) {
+  if (!state.apiKey || !state.apiSecret) throw new Error('API anahtarları eksik');
+  const base = isData ? DATA_BASE : getApiBase();
+  const opts = {
+    method,
+    headers: {
+      'APCA-API-KEY-ID': state.apiKey,
+      'APCA-API-SECRET-KEY': state.apiSecret,
+      'Content-Type': 'application/json',
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(base + endpoint, opts);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status}: ${txt}`);
+  }
+  return res.json();
+};
+
+// Bot log
+function addBotLog(message, type = 'info') {
+  const el = document.getElementById('bot-log');
+  if (!el) return;
+
+  const colors = {
+    info: 'var(--text2)',
+    success: 'var(--green)',
+    error: 'var(--red)',
+    warning: 'var(--yellow)',
+  };
+
+  const time = new Date().toLocaleTimeString('tr-TR');
+  const entry = document.createElement('div');
+  entry.style.cssText = `padding:6px 10px;border-bottom:1px solid var(--border);font-size:0.78rem;font-family:var(--font-mono);color:${colors[type]};display:flex;gap:10px;`;
+  entry.innerHTML = `<span style="color:var(--text3);min-width:55px;">${time}</span><span>${message}</span>`;
+
+  // En üste ekle
+  if (el.firstChild && el.firstChild.style) {
+    el.insertBefore(entry, el.firstChild);
+  } else {
+    el.innerHTML = '';
+    el.appendChild(entry);
+  }
+
+  // Max 100 satır tut
+  while (el.children.length > 100) el.removeChild(el.lastChild);
+}
+
+function clearBotLog() {
+  const el = document.getElementById('bot-log');
+  if (el) el.innerHTML = '<div style="color:var(--text3);font-size:0.8rem;padding:12px;">Geçmiş temizlendi.</div>';
+}
+
+function updateBotStats() {
+  const s = botState.stats;
+  document.getElementById('bot-total-trades').textContent = s.total;
+  document.getElementById('bot-wins').textContent = s.wins;
+  document.getElementById('bot-losses').textContent = s.losses;
+  const pnlEl = document.getElementById('bot-pnl');
+  pnlEl.textContent = `${s.pnl >= 0 ? '+' : ''}$${s.pnl.toFixed(2)}`;
+  pnlEl.className = 'stat-box-val ' + (s.pnl >= 0 ? 'up' : 'dn');
+}
+
+function renderBotLog() {
+  if (!botState.trades.length) return;
 }
 
 // ═══════════════════════════════════════════════════════
