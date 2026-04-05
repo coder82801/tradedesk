@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDesk v3 Pro</title>
+  <title>TradeDesk v3 Pro Signal Engine</title>
   <style>
     :root{
       --bg:#07101f;
@@ -370,7 +370,7 @@
       display:flex;
       justify-content:space-between;
       gap:12px;
-      align-items:center;
+      align-items:flex-start;
       background:#0d1735;
       border:1px solid rgba(255,255,255,.06);
       border-radius:14px;
@@ -390,6 +390,14 @@
       text-overflow:ellipsis;
     }
 
+    .note-lines{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      margin-top:4px;
+      white-space:normal;
+    }
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -401,12 +409,17 @@
       font-weight:800;
       border:1px solid rgba(255,255,255,.08);
       background:#152144;
+      white-space:nowrap;
     }
 
     .signal-strong{background:rgba(34,197,94,.15);color:#86efac}
     .signal-mid{background:rgba(245,158,11,.15);color:#fcd34d}
     .signal-low{background:rgba(59,130,246,.15);color:#93c5fd}
     .signal-risk{background:rgba(239,68,68,.15);color:#fca5a5}
+    .signal-buy{background:rgba(34,197,94,.20);color:#bbf7d0}
+    .signal-watch{background:rgba(245,158,11,.18);color:#fde68a}
+    .signal-sell{background:rgba(59,130,246,.16);color:#bfdbfe}
+    .signal-avoid{background:rgba(239,68,68,.18);color:#fecaca}
 
     .green{color:#86efac}
     .red{color:#fca5a5}
@@ -468,6 +481,32 @@
       line-height:1.55;
     }
 
+    .levels{
+      margin-top:8px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .level-box{
+      background:#0a1430;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px;
+      padding:8px;
+    }
+
+    .level-box .lk{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+
+    .level-box .lv{
+      font-size:13px;
+      font-weight:800;
+      word-break:break-word;
+    }
+
     hr.sep{
       border:none;
       border-top:1px solid rgba(255,255,255,.08);
@@ -479,6 +518,7 @@
       .grid-2{grid-template-columns:1fr}
       .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))}
       .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .levels{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media (max-width:780px){
@@ -493,6 +533,7 @@
       .ticker-grid{grid-template-columns:1fr}
       .stats-row{grid-template-columns:1fr}
       .result-grid{grid-template-columns:1fr}
+      .levels{grid-template-columns:1fr}
       .tabs{gap:6px}
       .tab-btn{padding:10px 14px}
     }
@@ -505,7 +546,7 @@
         <div class="brand-badge">📈</div>
         <div>
           <h1 class="title">TradeDesk v3</h1>
-          <p class="subtitle">Backend proxy + frontend analiz modülleri</p>
+          <p class="subtitle">Backend proxy + signal engine + trade levels</p>
         </div>
       </div>
 
@@ -529,8 +570,8 @@
         <div class="brand">
           <div class="brand-badge">📊</div>
           <div>
-            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3.0</h1>
-            <div class="version">Veri akışı backend environment üzerinden yönetilir</div>
+            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3.1 Signal Engine</h1>
+            <div class="version">Trade levels + AL / İZLE / KAR AL / UZAK DUR sinyali</div>
           </div>
         </div>
         <div class="flex" style="margin-top:8px">
@@ -579,7 +620,7 @@
           <div class="card-head">
             <div>
               <h2 class="card-title">🔥 Öne Çıkan Fırsatlar</h2>
-              <div class="card-sub">Balina / birikim / squeeze / breakout arasında en güçlü adaylar</div>
+              <div class="card-sub">En yüksek güven skoruna sahip setup’lar</div>
             </div>
             <div class="actions">
               <button class="btn secondary" id="refreshHighlightsBtn">↻ Yenile</button>
@@ -607,7 +648,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">⭐ İzleme Listesi Anlık</h2>
-            <div class="card-sub">Kendi eklediğin hisselerde hızlı görünüm</div>
+            <div class="card-sub">İzleme listendeki hisseler için trade seviyeleri</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="refreshWatchSummaryBtn">↻</button>
@@ -624,7 +665,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">🔭 Tüm Piyasa Tarayıcı</h2>
-            <div class="card-sub">Client-side analiz · tek endpoint üzerinden hesaplanır</div>
+            <div class="card-sub">Signal engine ile al / izle / kar al / uzak dur üretir</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanMarketBtn">↻ Tara</button>
@@ -657,7 +698,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">🌊 Sessiz Birikim</h2>
-            <div class="card-sub">Hacim yükseliyor, fiyat sakin kalıyor</div>
+            <div class="card-sub">Daha sakin girişli setup’lar</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanAccumBtn">↻ Tara</button>
@@ -682,7 +723,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">🐋 Balina Alertleri</h2>
-            <div class="card-sub">Aşırı hacim + anlamlı fiyat hareketi</div>
+            <div class="card-sub">Momentum trade odaklı seviyeler</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanWhalesBtn">↻ Tara</button>
@@ -707,13 +748,12 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">🎯 Short Squeeze Radar</h2>
-            <div class="card-sub">Volatilite sıkışması + hacim baskısı + momentum</div>
+            <div class="card-sub">Sıkışma sonrası atak potansiyeli</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanSqueezeBtn">↻ Tara</button>
           </div>
         </div>
-
         <div class="list" id="squeezeList">
           <div class="empty">Yükleniyor...</div>
         </div>
@@ -725,7 +765,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">🌅 Pre-Market &amp; After-Hours</h2>
-            <div class="card-sub">Gerçek veri yoksa fallback momentum listesi gösterilir</div>
+            <div class="card-sub">Gerçek pre/after varsa onu, yoksa fallback momentum listesi gösterir</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanPreAfterBtn">↻ Yenile</button>
@@ -742,7 +782,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">💥 Yarın Patlayacak Radar</h2>
-            <div class="card-sub">Momentum + hacim + gün içi konum birleşik skoru</div>
+            <div class="card-sub">Kapanış gücü yüksek hisseler</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanTomorrowBtn">↻ Tara</button>
@@ -750,7 +790,7 @@
         </div>
 
         <div class="footer-note" style="margin-bottom:12px">
-          Kapanışa yakın ya da seans sonrası kullanımda daha anlamlı sonuç verir.
+          Bu modülde giriş seviyeleri breakout teyidi esaslı hesaplanır.
         </div>
 
         <div class="stats-row">
@@ -771,7 +811,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">💎 5-10x Adayları</h2>
-            <div class="card-sub">Tematik sektör + makul fiyat + birikim eğilimi</div>
+            <div class="card-sub">Tematik büyüme + teknik birikim</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="scanX10Btn">↻ Tara</button>
@@ -796,7 +836,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">⭐ İzleme Listesi</h2>
-            <div class="card-sub">Kendi seçtiğin sembollerde hızlı analiz</div>
+            <div class="card-sub">Kendi seçtiğin hisselerde tam trade planı</div>
           </div>
           <div class="actions">
             <button class="btn secondary" id="refreshWatchBtn">↻ Yenile</button>
@@ -925,7 +965,6 @@
         <div class="small" id="autoRefreshMsg">—</div>
       </div>
     </section>
-  </div>
 
   <script>
     (() => {
@@ -995,6 +1034,8 @@
         STEM: "Enerji",
         BE: "Enerji"
       };
+
+      const SQUEEZE_MEMES = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
 
       const state = {
         quotes: [],
@@ -1148,8 +1189,7 @@
           exchange: q?.exchange || ""
         };
       }
-
-      function validPrice(v) {
+            function validPrice(v) {
         return Number.isFinite(Number(v));
       }
 
@@ -1225,7 +1265,9 @@
         if (volx >= 1.1 && volx <= 2.8) score += 18;
         if (getCloseNearHigh(q) && Number(q.regularMarketChangePercent || 0) >= 0) score += 20;
         if (price > 1 && price < 40) score += 10;
-        if (q.shortPercentOfFloat && q.shortPercentOfFloat >= 8) score += Math.min(18, q.shortPercentOfFloat);
+        if (q.shortPercentOfFloat && q.shortPercentOfFloat >= 8) {
+          score += Math.min(18, q.shortPercentOfFloat);
+        }
 
         return Math.round(score);
       }
@@ -1268,43 +1310,214 @@
         if (price > 0.5 && price < 30) score += 25;
         if (accum >= 50) score += 22;
         if (getVolumeRatio(q) >= 1.1) score += 10;
-        if (getRangePosition(q) != null && getRangePosition(q) < 60) score += 10;
+        const rp = getRangePosition(q);
+        if (rp != null && rp < 60) score += 10;
 
         return Math.round(score);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function calculateTradePlan(q, mode = "standard") {
+        const price = Number(q.regularMarketPrice || 0);
+        const high = Number(q.regularMarketDayHigh || price);
+        const low = Number(q.regularMarketDayLow || price);
+        const prevClose = Number(q.regularMarketPreviousClose || price);
+        const dayRange = validPrice(high) && validPrice(low) && high > low ? (high - low) : Math.max(price * 0.02, 0.02);
+        const volx = getVolumeRatio(q);
+        const change = Number(q.regularMarketChangePercent || 0);
+        const accumScore = getAccumulationScore(q);
+        const whaleScore = getWhaleScore(q);
+        const squeezeScore = getSqueezeScore(q);
+        const tomorrowScore = getTomorrowScore(q);
+        const x10Score = getX10Score(q);
+        const nearHigh = getCloseNearHigh(q);
+
+        let entryFactor = 0.10;
+        let stopFactor = 0.32;
+        let tp1Factor = 0.55;
+        let tp2Factor = 1.20;
+        let tradeType = "Momentum";
+
+        if (mode === "accum") {
+          entryFactor = 0.05;
+          stopFactor = 0.24;
+          tp1Factor = 0.45;
+          tp2Factor = 0.95;
+          tradeType = "Birikim";
+        } else if (mode === "squeeze") {
+          entryFactor = 0.08;
+          stopFactor = 0.26;
+          tp1Factor = 0.60;
+          tp2Factor = 1.35;
+          tradeType = "Squeeze";
+        } else if (mode === "whale") {
+          entryFactor = 0.14;
+          stopFactor = 0.30;
+          tp1Factor = 0.70;
+          tp2Factor = 1.60;
+          tradeType = "Balina";
+        } else if (mode === "tomorrow") {
+          entryFactor = 0.15;
+          stopFactor = 0.28;
+          tp1Factor = 0.65;
+          tp2Factor = 1.50;
+          tradeType = "Breakout";
+        } else if (mode === "x10") {
+          entryFactor = 0.06;
+          stopFactor = 0.22;
+          tp1Factor = 0.55;
+          tp2Factor = 1.40;
+          tradeType = "Swing";
+        } else if (mode === "preafter") {
+          entryFactor = 0.12;
+          stopFactor = 0.26;
+          tp1Factor = 0.55;
+          tp2Factor = 1.10;
+          tradeType = "Gap/Momentum";
+        }
+
+        if (volx >= 3) {
+          tp2Factor *= 1.25;
+          stopFactor *= 0.88;
+        }
+
+        if (Math.abs(change) >= 8) {
+          stopFactor *= 1.06;
+        }
+
+        let entry = price + (dayRange * entryFactor);
+        let stop = price - (dayRange * stopFactor);
+        let tp1 = price + (dayRange * tp1Factor);
+        let tp2 = price + (dayRange * tp2Factor);
+
+        if (mode === "accum" || mode === "x10") {
+          entry = Math.max(price, price + (dayRange * entryFactor));
+        }
+
+        if (mode === "tomorrow" || mode === "whale") {
+          entry = Math.max(entry, high * 1.002);
+        }
+
+        if (!nearHigh && (mode === "tomorrow" || mode === "whale")) {
+          entry += dayRange * 0.06;
+        }
+
+        if (stop >= entry) {
+          stop = entry - Math.max(dayRange * 0.2, price * 0.01);
+        }
+
+        if (tp1 <= entry) tp1 = entry + Math.max(dayRange * 0.35, price * 0.01);
+        if (tp2 <= tp1) tp2 = tp1 + Math.max(dayRange * 0.55, price * 0.015);
+
+        const risk = entry - stop;
+        const reward1 = tp1 - entry;
+        const reward2 = tp2 - entry;
+        const rr1 = risk > 0 ? reward1 / risk : 0;
+        const rr2 = risk > 0 ? reward2 / risk : 0;
+
+        let confidence =
+          (accumScore * 0.18) +
+          (whaleScore * 0.22) +
+          (squeezeScore * 0.18) +
+          (tomorrowScore * 0.22) +
+          (x10Score * 0.08);
+
+        confidence += clamp(volx * 6, 0, 18);
+        if (nearHigh) confidence += 8;
+        if (change > 0) confidence += clamp(change * 1.3, 0, 12);
+        if (change < -4) confidence -= 10;
+        if (rr2 >= 2) confidence += 6;
+        if (rr2 < 1.2) confidence -= 10;
+
+        confidence = Math.round(clamp(confidence, 1, 99));
+
+        let signal = "İZLE";
+        let signalClass = "signal-watch";
+
+        if (confidence >= 74 && rr2 >= 1.8 && change > -2) {
+          signal = "AL";
+          signalClass = "signal-buy";
+        } else if (confidence >= 56 && rr2 >= 1.35) {
+          signal = "İZLE";
+          signalClass = "signal-watch";
+        } else if (change >= 9 || (rr1 >= 0.9 && change >= 6 && volx < 1.5)) {
+          signal = "KAR AL";
+          signalClass = "signal-sell";
+        } else if (confidence < 45 || rr2 < 1.1 || change < -6) {
+          signal = "UZAK DUR";
+          signalClass = "signal-avoid";
+        }
+
+        return {
+          mode,
+          tradeType,
+          entry,
+          stop,
+          tp1,
+          tp2,
+          rr1,
+          rr2,
+          confidence,
+          signal,
+          signalClass,
+          riskPct: entry > 0 ? ((entry - stop) / entry) * 100 : 0,
+          gainPct1: entry > 0 ? ((tp1 - entry) / entry) * 100 : 0,
+          gainPct2: entry > 0 ? ((tp2 - entry) / entry) * 100 : 0
+        };
       }
 
       function signalPill(label, klass) {
         return `<span class="pill ${klass}">${label}</span>`;
       }
 
-      function rowHtml(item, extra = "") {
-        const chg = Number(item.regularMarketChangePercent || 0);
-        const cls = chg >= 0 ? "green" : "red";
+      function buildTradePlanHtml(plan) {
         return `
-          <div class="row">
-            <div class="symbol">${item.symbol}</div>
-            <div>
-              <div>${item.shortName || item.symbol}</div>
-              <div class="name">${extra}</div>
+          <div class="levels">
+            <div class="level-box">
+              <div class="lk">ENTRY</div>
+              <div class="lv">${formatPrice(plan.entry)}</div>
             </div>
-            <div class="strong">${formatPrice(item.regularMarketPrice)}</div>
-            <div class="${cls} strong">${formatPct(chg)}</div>
-            <div class="muted">Vol× ${formatNumber(getVolumeRatio(item), 2)}</div>
-            <div class="muted">${formatCompact(item.regularMarketVolume || 0)}</div>
+            <div class="level-box">
+              <div class="lk">STOP</div>
+              <div class="lv red">${formatPrice(plan.stop)}</div>
+            </div>
+            <div class="level-box">
+              <div class="lk">TP1</div>
+              <div class="lv green">${formatPrice(plan.tp1)}</div>
+            </div>
+            <div class="level-box">
+              <div class="lk">TP2</div>
+              <div class="lv green">${formatPrice(plan.tp2)}</div>
+            </div>
           </div>
         `;
       }
 
-      function watchHtml(q, pillLabel, pillClass, note, removeButton = false) {
+      function buildPlanNote(q, plan, extra) {
+        return `
+          <div class="note-lines">
+            <div><strong>Tip:</strong> ${plan.tradeType} · <strong>Sinyal:</strong> ${plan.signal} · <strong>Güven:</strong> ${plan.confidence}/99</div>
+            <div><strong>RR1:</strong> ${formatNumber(plan.rr1,2)} · <strong>RR2:</strong> ${formatNumber(plan.rr2,2)} · <strong>Risk %:</strong> ${formatNumber(plan.riskPct,2)}%</div>
+            <div><strong>TP1 %:</strong> ${formatNumber(plan.gainPct1,2)} · <strong>TP2 %:</strong> ${formatNumber(plan.gainPct2,2)} · <strong>Vol×:</strong> ${formatNumber(getVolumeRatio(q),2)}</div>
+            <div>${extra}</div>
+          </div>
+          ${buildTradePlanHtml(plan)}
+        `;
+      }
+
+      function buildStockCard(q, plan, extra, removable = false) {
         return `
           <div class="watchlist-item">
-            <div>
+            <div style="flex:1">
               <div class="strong">${q.symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?'green':'red'}">${formatPct(q.regularMarketChangePercent)}</span></div>
-              <div class="name">${note}</div>
+              ${buildPlanNote(q, plan, extra)}
             </div>
             <div class="flex">
-              ${signalPill(pillLabel, pillClass)}
-              ${removeButton ? `<button class="btn ghost remove-watch-btn" data-symbol="${q.symbol}" style="width:auto;padding:8px 12px">Sil</button>` : ""}
+              ${signalPill(plan.signal, plan.signalClass)}
+              ${removable ? `<button class="btn ghost remove-watch-btn" data-symbol="${q.symbol}" style="width:auto;padding:8px 12px">Sil</button>` : ""}
             </div>
           </div>
         `;
@@ -1389,590 +1602,311 @@
         renderAlerts();
         await refreshWatchlist();
       }
+            function renderMarketList() {
+        const list = $("marketList");
+        if (!list) return;
 
-      function getFilteredMarketQuotes() {
-        let list = [...state.quotes];
-        const search = ($("marketSearch").value || "").trim().toUpperCase();
-
-        if (search) {
-          list = list.filter(q =>
-            q.symbol.includes(search) ||
-            String(q.shortName || "").toUpperCase().includes(search)
-          );
-        }
-
-        if (state.marketFilter === "gainers") {
-          list = list
-            .filter(q => Number(q.regularMarketChangePercent || 0) > 0)
-            .sort((a,b) => b.regularMarketChangePercent - a.regularMarketChangePercent);
-        } else if (state.marketFilter === "losers") {
-          list = list
-            .filter(q => Number(q.regularMarketChangePercent || 0) < 0)
-            .sort((a,b) => a.regularMarketChangePercent - b.regularMarketChangePercent);
-        } else if (state.marketFilter === "volume") {
-          list = list.sort((a,b) => getVolumeRatio(b) - getVolumeRatio(a));
-        } else {
-          list = list.sort((a,b) => getMomentumScore(b) - getMomentumScore(a));
-        }
-
-        return list.slice(0, 100);
-      }
-
-      function renderMarketList() {
-        const list = getFilteredMarketQuotes();
-        const el = $("marketList");
-
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Veri yok</div>';
+        if (!state.quotes.length) {
+          list.innerHTML = '<div class="empty">Veri yok</div>';
           return;
         }
 
-        el.innerHTML = `
-          <div class="row header">
-            <div>Sembol</div><div>Ad</div><div>Fiyat</div><div>Değişim</div><div>Hacim</div><div>Volüm</div>
-          </div>
-          ${list.map(q => rowHtml(q, `Hacim ${formatCompact(q.regularMarketVolume || 0)} · Ortalama ${formatCompact(q.averageVolume || 0)}`)).join("")}
-        `;
+        const sorted = [...state.quotes]
+          .sort((a, b) => Number(b.regularMarketChangePercent || 0) - Number(a.regularMarketChangePercent || 0))
+          .slice(0, 40);
+
+        list.innerHTML = sorted.map(q => {
+          const plan = calculateTradePlan(q, "standard");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Momentum:</strong> ${formatNumber(getMomentumScore(q),1)}`
+          );
+        }).join("");
       }
 
       function renderAccumulation() {
-        const list = state.quotes
-          .map(q => ({ ...q, _score: getAccumulationScore(q) }))
-          .filter(q =>
-            getVolumeRatio(q) >= 1.1 &&
-            Math.abs(Number(q.regularMarketChangePercent || 0)) <= 4.5 &&
-            getDayRangePercent(q) <= 5.5
-          )
-          .sort((a,b) => b._score - a._score)
-          .slice(0, 30);
+        const list = $("accumulationList");
+        if (!list) return;
 
-        safeText($("accumScanned"), String(state.quotes.length));
-        safeText($("accumStrong"), String(list.filter(x => x._score >= 68).length));
-        safeText($("accumCount"), String(list.length));
-        safeText($("accumUpdate"), nowText());
+        const data = state.quotes
+          .map(q => ({ q, score: getAccumulationScore(q) }))
+          .filter(x => x.score >= 48)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
 
-        const el = $("accumList");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Birikim sinyali yok</div>';
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">Uygun hisse yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const tag = q._score >= 70 ? "signal-strong" : q._score >= 58 ? "signal-mid" : "signal-low";
-          const label = q._score >= 70 ? "Güçlü" : q._score >= 58 ? "Orta" : "İzle";
-          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Gün içi aralık ${formatNumber(getDayRangePercent(q),2)}% · Birikim skoru ${q._score}`;
-          return watchHtml(q, label, tag, note);
+        list.innerHTML = data.map(({ q, score }) => {
+          const plan = calculateTradePlan(q, "accum");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Birikim Skoru:</strong> ${score}`
+          );
         }).join("");
       }
 
       function renderWhales() {
-        const list = state.quotes
-          .map(q => ({ ...q, _score: getWhaleScore(q) }))
-          .filter(q =>
-            getVolumeRatio(q) >= 1.8 ||
-            Math.abs(Number(q.regularMarketChangePercent || 0)) >= 4
-          )
-          .sort((a,b) => b._score - a._score)
-          .slice(0, 25);
+        const list = $("whaleList");
+        if (!list) return;
 
-        safeText($("whaleActive"), String(list.length));
-        safeText($("whaleMaxVol"), list.length ? formatNumber(Math.max(...list.map(q => getVolumeRatio(q))), 2) : "—");
-        safeText($("whaleAvgMove"), list.length ? formatPct(list.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / list.length) : "—");
-        safeText($("whaleUpdate"), nowText());
+        const data = state.quotes
+          .map(q => ({ q, score: getWhaleScore(q) }))
+          .filter(x => x.score >= 55)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
 
-        const el = $("whalesList");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Balina sinyali yok</div>';
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">Balina sinyali yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const tag = q._score >= 78 ? "signal-strong" : "signal-mid";
-          const label = q._score >= 78 ? "Balina" : "Aktif";
-          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Gün içi aralık ${formatNumber(getDayRangePercent(q),2)}% · Skor ${q._score}`;
-          return watchHtml(q, label, tag, note);
+        list.innerHTML = data.map(({ q, score }) => {
+          const plan = calculateTradePlan(q, "whale");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Balina Skoru:</strong> ${score}`
+          );
         }).join("");
       }
 
       function renderSqueeze() {
-        const squeezeMemes = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
-        const list = state.quotes
-          .map(q => {
-            let score = getSqueezeScore(q);
-            if (squeezeMemes.includes(q.symbol)) score += 10;
-            return { ...q, _score: score };
-          })
-          .filter(q => q._score >= 45)
-          .sort((a,b) => b._score - a._score)
-          .slice(0, 25);
+        const list = $("squeezeList");
+        if (!list) return;
 
-        const el = $("squeezeList");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Squeeze adayı yok</div>';
+        const data = state.quotes
+          .map(q => ({ q, score: getSqueezeScore(q) }))
+          .filter(x => x.score >= 45)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">Squeeze yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const label = q._score >= 65 ? "Squeeze" : "İzle";
-          const tag = q._score >= 65 ? "signal-strong" : "signal-mid";
-          const note = `${q.shortName} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Dar range ${formatNumber(getDayRangePercent(q),2)}% · Skor ${q._score}`;
-          return watchHtml(q, label, tag, note);
+        list.innerHTML = data.map(({ q, score }) => {
+          const plan = calculateTradePlan(q, "squeeze");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Squeeze Skoru:</strong> ${score}`
+          );
         }).join("");
       }
 
       function renderPreAfter() {
-        const list = state.quotes
-          .map(q => {
-            let move = getPreAfterMove(q);
-            let source = "fallback";
-            if (q.preMarketChangePercent != null) source = "pre";
-            else if (q.postMarketChangePercent != null) source = "after";
-            return { ...q, _paMove: move, _paSource: source };
-          })
-          .filter(q => q._paMove != null && !Number.isNaN(Number(q._paMove)))
-          .sort((a,b) => Math.abs(b._paMove) - Math.abs(a._paMove))
-          .slice(0, 25);
+        const list = $("preAfterList");
+        if (!list) return;
 
-        const el = $("preafterList");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Pre/After veri yok</div>';
+        const data = state.quotes
+          .map(q => {
+            const move = getPreAfterMove(q);
+            return { q, move };
+          })
+          .filter(x => x.move != null && Math.abs(x.move) >= 2)
+          .sort((a, b) => Math.abs(b.move) - Math.abs(a.move))
+          .slice(0, 20);
+
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">Pre/After veri yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const sourceLabel = q._paSource === "pre" ? "Pre" : q._paSource === "after" ? "After" : "Fallback";
-          const tag = Math.abs(Number(q._paMove || 0)) >= 5 ? "signal-strong" : Math.abs(Number(q._paMove || 0)) >= 2.5 ? "signal-mid" : "signal-low";
-          const note = `${q.shortName} · ${sourceLabel} move ${formatPct(q._paMove)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
-          return watchHtml(q, sourceLabel, tag, note);
+        list.innerHTML = data.map(({ q, move }) => {
+          const plan = calculateTradePlan(q, "preafter");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Pre/After:</strong> ${formatPct(move)}`
+          );
         }).join("");
       }
 
       function renderTomorrow() {
-        const list = state.quotes
-          .map(q => ({ ...q, _score: getTomorrowScore(q) }))
-          .filter(q => q._score >= 38)
-          .sort((a,b) => b._score - a._score)
-          .slice(0, 25);
+        const list = $("tomorrowList");
+        if (!list) return;
 
-        safeText($("tomorrowScanned"), String(state.quotes.length));
-        safeText($("tomorrowStrong"), String(list.filter(x => x._score >= 62).length));
-        safeText($("tomorrowAvgSpike"), list.length ? formatPct(list.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / list.length) : "—");
-        safeText($("tomorrowUpdate"), nowText());
+        const data = state.quotes
+          .map(q => ({ q, score: getTomorrowScore(q) }))
+          .filter(x => x.score >= 45)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
 
-        const el = $("tomorrowList");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">Yarın patlayacak adayı yok</div>';
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">Yarın patlayacak aday yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const estimated = Math.max(3, Math.min(18, q._score / 5));
-          const tag = q._score >= 62 ? "signal-strong" : "signal-mid";
-          const label = q._score >= 62 ? "Güçlü" : "İzle";
-          const note = `${q.shortName} · Tahmini spike ${formatPct(estimated)} · Close near high: ${getCloseNearHigh(q) ? "Evet" : "Hayır"} · Skor ${q._score}`;
-          return watchHtml(q, label, tag, note);
+        list.innerHTML = data.map(({ q, score }) => {
+          const plan = calculateTradePlan(q, "tomorrow");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Yarın Skoru:</strong> ${score}`
+          );
         }).join("");
       }
 
       function renderX10() {
-        const list = state.quotes
-          .map(q => ({ ...q, _score: getX10Score(q), _sector: SECTOR_HINTS[q.symbol] || "Yüksek Beta" }))
-          .filter(q => q._score >= 42)
-          .sort((a,b) => b._score - a._score)
+        const list = $("x10List");
+        if (!list) return;
+
+        const data = state.quotes
+          .map(q => ({ q, score: getX10Score(q) }))
+          .filter(x => x.score >= 55)
+          .sort((a, b) => b.score - a.score)
           .slice(0, 20);
 
-        safeText($("x10Count"), String(list.length));
-        safeText($("x10HighPotential"), String(list.filter(x => x._score >= 68).length));
-        safeText($("x10AvgPrice"), list.length ? formatPrice(list.reduce((a,b) => a + Number(b.regularMarketPrice || 0), 0) / list.length) : "—");
-        safeText($("x10Update"), nowText());
-
-        const el = $("x10List");
-        if (!list.length) {
-          el.innerHTML = '<div class="empty">5-10x adayı yok</div>';
+        if (!data.length) {
+          list.innerHTML = '<div class="empty">5-10x aday yok</div>';
           return;
         }
 
-        el.innerHTML = list.map(q => {
-          const tag = q._score >= 68 ? "signal-strong" : "signal-mid";
-          const label = q._score >= 68 ? "Yüksek" : "Aday";
-          const note = `${q.shortName} · ${q._sector} · Birikim ${getAccumulationScore(q)} · Vol× ${formatNumber(getVolumeRatio(q),2)} · Potansiyel ${q._score}`;
-          return watchHtml(q, label, tag, note);
+        list.innerHTML = data.map(({ q, score }) => {
+          const plan = calculateTradePlan(q, "x10");
+
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>5-10x Skoru:</strong> ${score}`
+          );
         }).join("");
       }
 
       function renderHighlights() {
-        const pool = [];
+        const list = $("highlightList");
+        if (!list) return;
 
-        state.quotes.forEach(q => {
-          pool.push({ type: "Balina", score: getWhaleScore(q), q });
-          pool.push({ type: "Birikim", score: getAccumulationScore(q), q });
-          pool.push({ type: "Squeeze", score: getSqueezeScore(q), q });
-          pool.push({ type: "Yarın", score: getTomorrowScore(q), q });
-        });
+        const data = state.quotes
+          .map(q => ({
+            q,
+            score: getMomentumScore(q) + getWhaleScore(q) * 0.4
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 12);
 
-        pool.sort((a,b) => b.score - a.score);
+        list.innerHTML = data.map(({ q }) => {
+          const plan = calculateTradePlan(q, "standard");
 
-        const unique = [];
-        const seen = new Set();
-
-        for (const item of pool) {
-          if (!item.q || seen.has(item.q.symbol) || item.score < 45) continue;
-          seen.add(item.q.symbol);
-          unique.push(item);
-          if (unique.length >= 10) break;
-        }
-
-        const el = $("highlightsList");
-        if (!unique.length) {
-          el.innerHTML = '<div class="empty">Öne çıkan fırsat yok</div>';
-          return;
-        }
-
-        el.innerHTML = unique.map(item => {
-          const tag = item.score >= 75 ? "signal-strong" : "signal-mid";
-          return `
-            <div class="watchlist-item">
-              <div>
-                <div class="strong">${item.q.symbol} · ${item.type} · ${formatPrice(item.q.regularMarketPrice)}</div>
-                <div class="name">${item.q.shortName} · ${formatPct(item.q.regularMarketChangePercent)} · Vol× ${formatNumber(getVolumeRatio(item.q),2)} · Skor ${item.score}</div>
-              </div>
-              <div>${signalPill(item.type, tag)}</div>
-            </div>
-          `;
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Öne çıkan</strong>`
+          );
         }).join("");
       }
 
       function renderAlerts() {
-        const alerts = [];
+        const list = $("alertList");
+        if (!list) return;
 
-        const whale = [...state.quotes].sort((a,b) => getWhaleScore(b) - getWhaleScore(a))[0];
-        if (whale && getWhaleScore(whale) >= 55) {
-          alerts.push(`
-            <div class="watchlist-item">
-              <div>
-                <div class="strong">${whale.symbol} balina hareketi</div>
-                <div class="name">Vol× ${formatNumber(getVolumeRatio(whale),2)} · ${formatPct(whale.regularMarketChangePercent)}</div>
-              </div>
-              <div>${signalPill("Balina", "signal-strong")}</div>
-            </div>
-          `);
+        const alerts = state.quotes
+          .map(q => {
+            const plan = calculateTradePlan(q, "standard");
+            return { q, plan };
+          })
+          .filter(x => x.plan.signal === "AL" || x.plan.signal === "KAR AL")
+          .slice(0, 20);
+
+        if (!alerts.length) {
+          list.innerHTML = '<div class="empty">Alarm yok</div>';
+          return;
         }
 
-        const squeeze = [...state.quotes].sort((a,b) => getSqueezeScore(b) - getSqueezeScore(a))[0];
-        if (squeeze && getSqueezeScore(squeeze) >= 50) {
-          alerts.push(`
-            <div class="watchlist-item">
-              <div>
-                <div class="strong">${squeeze.symbol} squeeze radarında</div>
-                <div class="name">Skor ${getSqueezeScore(squeeze)} · Gün içi aralık ${formatNumber(getDayRangePercent(squeeze),2)}%</div>
-              </div>
-              <div>${signalPill("Squeeze", "signal-mid")}</div>
-            </div>
-          `);
+        list.innerHTML = alerts.map(({ q, plan }) => {
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Alarm:</strong> ${plan.signal}`
+          );
+        }).join("");
+      }
+
+      function addToWatchlist(symbol) {
+        if (!symbol) return;
+        const upper = symbol.toUpperCase();
+        if (!state.watchlist.includes(upper)) {
+          state.watchlist.push(upper);
+          localStorage.setItem("td_watchlist", JSON.stringify(state.watchlist));
+          refreshWatchlist();
         }
+      }
 
-        const pa = [...state.quotes]
-          .map(q => ({ q, m: getPreAfterMove(q) }))
-          .filter(x => x.m != null)
-          .sort((a,b) => Math.abs(b.m) - Math.abs(a.m))[0];
-
-        if (pa && Math.abs(pa.m) >= 3) {
-          alerts.push(`
-            <div class="watchlist-item">
-              <div>
-                <div class="strong">${pa.q.symbol} seans dışı hareket</div>
-                <div class="name">Hareket ${formatPct(pa.m)}</div>
-              </div>
-              <div>${signalPill("Pre/After", "signal-mid")}</div>
-            </div>
-          `);
-        }
-
-        const tomorrow = [...state.quotes].sort((a,b) => getTomorrowScore(b) - getTomorrowScore(a))[0];
-        if (tomorrow && getTomorrowScore(tomorrow) >= 55) {
-          alerts.push(`
-            <div class="watchlist-item">
-              <div>
-                <div class="strong">${tomorrow.symbol} yarın için güçlü aday</div>
-                <div class="name">Skor ${getTomorrowScore(tomorrow)} · Close near high ${getCloseNearHigh(tomorrow) ? "evet" : "hayır"}</div>
-              </div>
-              <div>${signalPill("Yarın", "signal-strong")}</div>
-            </div>
-          `);
-        }
-
-        $("alertsList").innerHTML = alerts.length ? alerts.join("") : '<div class="empty">Alert yok</div>';
+      function removeFromWatchlist(symbol) {
+        state.watchlist = state.watchlist.filter(s => s !== symbol);
+        localStorage.setItem("td_watchlist", JSON.stringify(state.watchlist));
+        refreshWatchlist();
       }
 
       async function refreshWatchlist() {
-        const list = state.watchlist.length ? state.watchlist : getWatchlist();
-        saveWatchlist(list);
+        const list = $("watchlistContainer");
+        if (!list) return;
 
-        const watchEl = $("watchList");
-        const sumEl = $("watchSummaryList");
-
-        if (!list.length) {
-          watchEl.innerHTML = '<div class="empty">İzleme listesi boş</div>';
-          sumEl.innerHTML = '<div class="empty">İzleme listesi boş</div>';
+        if (!state.watchlist.length) {
+          list.innerHTML = '<div class="empty">Watchlist boş</div>';
           return;
         }
 
-        watchEl.innerHTML = '<div class="empty">Yükleniyor...</div>';
-        sumEl.innerHTML = '<div class="empty">Yükleniyor...</div>';
+        const raw = await fetchQuotes(state.watchlist);
+        const quotes = raw.map(normalizeQuote);
 
-        const quotes = (await fetchQuotes(list))
-          .map(normalizeQuote)
-          .filter(q => q.symbol && validPrice(q.regularMarketPrice));
+        list.innerHTML = quotes.map(q => {
+          const plan = calculateTradePlan(q, "standard");
 
-        if (!quotes.length) {
-          watchEl.innerHTML = '<div class="empty">İzleme listesi verisi alınamadı</div>';
-          sumEl.innerHTML = '<div class="empty">İzleme listesi verisi alınamadı</div>';
-          return;
-        }
-
-        watchEl.innerHTML = quotes.map(q => {
-          const score = Math.max(
-            getAccumulationScore(q),
-            getWhaleScore(q),
-            getSqueezeScore(q),
-            getTomorrowScore(q)
+          return buildStockCard(
+            q,
+            plan,
+            `<strong>Watchlist</strong>`,
+            true
           );
-          const tag = score >= 70 ? "signal-strong" : score >= 52 ? "signal-mid" : "signal-low";
-          const label = score >= 70 ? "Güçlü" : score >= 52 ? "İzle" : "Zayıf";
-          const entry = validPrice(q.regularMarketPrice) ? q.regularMarketPrice * 0.97 : null;
-          const exit = validPrice(q.regularMarketPrice) ? q.regularMarketPrice * 1.08 : null;
-          const note = `${q.shortName} · Giriş ${formatPrice(entry)} · Çıkış ${formatPrice(exit)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
-          return watchHtml(q, label, tag, note, true);
-        }).join("");
-
-        sumEl.innerHTML = quotes.slice(0, 6).map(q => {
-          const score = Math.max(
-            getAccumulationScore(q),
-            getWhaleScore(q),
-            getSqueezeScore(q),
-            getTomorrowScore(q)
-          );
-          const tag = score >= 70 ? "signal-strong" : score >= 52 ? "signal-mid" : "signal-low";
-          const label = score >= 70 ? "Güçlü" : "İzle";
-          const note = `${formatPct(q.regularMarketChangePercent)} · Vol× ${formatNumber(getVolumeRatio(q),2)}`;
-          return watchHtml(q, label, tag, note);
         }).join("");
 
         document.querySelectorAll(".remove-watch-btn").forEach(btn => {
-          btn.addEventListener("click", () => {
-            const symbol = btn.getAttribute("data-symbol");
-            const next = state.watchlist.filter(s => s !== symbol);
-            saveWatchlist(next);
-            refreshWatchlist().catch(console.error);
-          });
+          btn.onclick = () => removeFromWatchlist(btn.dataset.symbol);
         });
       }
 
-      function loadChart() {
-        const symbol = (($("chartSymbol").value || "AAPL").trim().toUpperCase() || "AAPL");
-        const interval = $("chartInterval").value || "D";
+      function bindEvents() {
+        const scanBtn = $("scanBtn");
+        if (scanBtn) scanBtn.onclick = scanMarket;
 
-        const src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=NASDAQ%3A${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=F1F3F6&studies=%5B%22RSI%40tv-basicstudies%22%2C%22MACD%40tv-basicstudies%22%2C%22Volume%40tv-basicstudies%22%2C%22VWAP%40tv-basicstudies%22%5D&theme=dark&style=1&timezone=Europe%2FIstanbul&withdateranges=1&hideideas=1`;
-        $("chartFrame").src = src;
-      }
+        const refreshBtn = $("refreshBtn");
+        if (refreshBtn) refreshBtn.onclick = scanMarket;
 
-      function calcRisk() {
-        const account = Number($("riskAccount").value);
-        const riskPct = Number($("riskPercent").value);
-        const entry = Number($("riskEntry").value);
-        const stop = Number($("riskStop").value);
-        const target = Number($("riskTarget").value);
-
-        if (![account,riskPct,entry,stop,target].every(Number.isFinite) || entry <= 0 || stop <= 0 || target <= 0 || account <= 0 || riskPct <= 0) {
-          $("riskNote").textContent = "Lütfen geçerli değerler girin.";
-          return;
-        }
-
-        const maxRisk = account * (riskPct / 100);
-        const stopDistance = Math.abs(entry - stop);
-
-        if (stopDistance <= 0) {
-          $("riskNote").textContent = "Stop loss giriş fiyatından farklı olmalı.";
-          return;
-        }
-
-        const shares = Math.floor(maxRisk / stopDistance);
-        const totalCost = shares * entry;
-        const profitPerShare = Math.abs(target - entry);
-        const estimatedProfit = shares * profitPerShare;
-        const ratio = profitPerShare / stopDistance;
-        const gainPct = ((target - entry) / entry) * 100;
-        const lossPct = ((entry - stop) / entry) * 100;
-
-        safeText($("rrMaxRisk"), "$" + formatNumber(maxRisk, 2));
-        safeText($("rrShares"), formatCompact(shares));
-        safeText($("rrCost"), "$" + formatNumber(totalCost, 2));
-        safeText($("rrStopDistance"), formatNumber(stopDistance, 4));
-        safeText($("rrProfit"), "$" + formatNumber(estimatedProfit, 2));
-        safeText($("rrRatio"), formatNumber(ratio, 2));
-        safeText($("rrGainPct"), formatPct(gainPct));
-        safeText($("rrLossPct"), formatPct(lossPct));
-        $("riskNote").textContent = shares > 0 ? "Hesaplama tamamlandı." : "Lot 0 çıktı; risk çok küçük ya da stop çok geniş.";
-      }
-
-      function openPage(page) {
-        document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
-        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
-
-        $(`page-${page}`)?.classList.add("active");
-        document.querySelector(`.tab-btn[data-page="${page}"]`)?.classList.add("active");
-      }
-
-      function bindTabs() {
-        document.querySelectorAll(".tab-btn").forEach(btn => {
-          btn.addEventListener("click", () => openPage(btn.getAttribute("data-page")));
-        });
-      }
-
-      function bindMarketFilters() {
-        document.querySelectorAll(".filter-btn").forEach(btn => {
-          btn.addEventListener("click", () => {
-            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            state.marketFilter = btn.getAttribute("data-filter");
-            renderMarketList();
-          });
-        });
-
-        $("marketSearch").addEventListener("input", renderMarketList);
-      }
-
-      function setupLogin() {
-        const tryLogin = () => {
-          const pass = $("passwordInput").value;
-          if (pass === getSavedPassword()) {
-            setLoggedIn(true);
-            $("loginView").classList.add("hidden");
-            $("appView").classList.remove("hidden");
-            initApp().catch(console.error);
-          } else {
-            $("loginError").classList.remove("hidden");
-          }
-        };
-
-        $("loginBtn").addEventListener("click", tryLogin);
-        $("passwordInput").addEventListener("keydown", e => {
-          if (e.key === "Enter") tryLogin();
-        });
-
-        if (isLoggedIn()) {
-          $("loginView").classList.add("hidden");
-          $("appView").classList.remove("hidden");
-          initApp().catch(console.error);
+        const addBtn = $("addWatchBtn");
+        if (addBtn) {
+          addBtn.onclick = () => {
+            const input = $("watchInput");
+            if (!input) return;
+            addToWatchlist(input.value.trim());
+            input.value = "";
+          };
         }
       }
 
-      function setupSettings() {
-        const auto = getAutoRefreshMinutes();
-        $("autoRefreshSelect").value = String(auto);
-        $("autoRefreshMsg").textContent = auto ? `Otomatik yenileme ${auto} dk` : "Otomatik yenileme kapalı";
-
-        $("changePasswordBtn").addEventListener("click", () => {
-          const val = ($("newPasswordInput").value || "").trim();
-          if (val.length < 4) {
-            $("passwordMsg").textContent = "Şifre en az 4 karakter olmalı.";
-            $("passwordMsg").className = "small red";
-            return;
-          }
-          localStorage.setItem(PASSWORD_KEY, val);
-          $("passwordMsg").textContent = "Şifre güncellendi.";
-          $("passwordMsg").className = "small green";
-          $("newPasswordInput").value = "";
-        });
-
-        $("saveAutoRefreshBtn").addEventListener("click", () => {
-          const min = Number($("autoRefreshSelect").value || "0");
-          setAutoRefreshMinutes(min);
-          applyAutoRefresh();
-          $("autoRefreshMsg").textContent = min ? `Otomatik yenileme ${min} dk olarak ayarlandı` : "Otomatik yenileme kapatıldı";
-        });
-      }
-
-      function applyAutoRefresh() {
-        if (state.autoRefreshTimer) {
-          clearInterval(state.autoRefreshTimer);
-          state.autoRefreshTimer = null;
-        }
-
-        const min = getAutoRefreshMinutes();
-        if (min > 0) {
-          state.autoRefreshTimer = setInterval(() => {
-            refreshAll().catch(console.error);
-          }, min * 60 * 1000);
-        }
-      }
-
-      async function refreshAll() {
+      async function init() {
+        bindEvents();
         buildMarketTimeBadge();
-        state.health = await fetchHealth();
         await loadHeaderData();
         await scanMarket();
-        setLastRefresh();
+
+        setInterval(loadHeaderData, 60000);
+        setInterval(scanMarket, 120000);
       }
 
-      function bindActions() {
-        $("logoutBtn").addEventListener("click", () => {
-          setLoggedIn(false);
-          location.reload();
-        });
-
-        $("refreshAllBtn").addEventListener("click", () => refreshAll().catch(console.error));
-        $("scanMarketBtn").addEventListener("click", () => scanMarket().catch(console.error));
-        $("scanAccumBtn").addEventListener("click", renderAccumulation);
-        $("scanWhalesBtn").addEventListener("click", renderWhales);
-        $("scanSqueezeBtn").addEventListener("click", renderSqueeze);
-        $("scanPreAfterBtn").addEventListener("click", renderPreAfter);
-        $("scanTomorrowBtn").addEventListener("click", renderTomorrow);
-        $("scanX10Btn").addEventListener("click", renderX10);
-        $("refreshHighlightsBtn").addEventListener("click", () => {
-          renderHighlights();
-          renderAlerts();
-        });
-        $("refreshWatchSummaryBtn").addEventListener("click", () => refreshWatchlist().catch(console.error));
-        $("refreshWatchBtn").addEventListener("click", () => refreshWatchlist().catch(console.error));
-
-        $("addWatchBtn").addEventListener("click", () => {
-          const input = $("watchInput");
-          const symbol = (input.value || "").trim().toUpperCase();
-          if (!symbol) return;
-          saveWatchlist([...state.watchlist, symbol]);
-          input.value = "";
-          refreshWatchlist().catch(console.error);
-        });
-
-        $("watchInput").addEventListener("keydown", e => {
-          if (e.key === "Enter") $("addWatchBtn").click();
-        });
-
-        $("clearWatchBtn").addEventListener("click", () => {
-          saveWatchlist([]);
-          refreshWatchlist().catch(console.error);
-        });
-
-        $("loadChartBtn").addEventListener("click", loadChart);
-        $("calcRiskBtn").addEventListener("click", calcRisk);
-      }
-
-      async function initApp() {
-        bindTabs();
-        bindMarketFilters();
-        bindActions();
-        setupSettings();
-
-        state.watchlist = getWatchlist();
-        applyAutoRefresh();
-        loadChart();
-        calcRisk();
-        await refreshAll();
-      }
-
-      setupLogin();
-    })();
-  </script>
-</body>
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
 </html>
