@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDesk v3 Stable</title>
+  <title>TradeDesk v3 Final</title>
   <style>
     :root{
       --bg:#07101f;
@@ -20,7 +20,9 @@
       --radius:18px;
       --shadow:0 14px 40px rgba(0,0,0,.28);
     }
-    *{box-sizing:border-box}
+
+    * { box-sizing:border-box; }
+
     html,body{
       margin:0;
       padding:0;
@@ -30,8 +32,10 @@
       color:var(--text);
       font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
-    .hidden{display:none !important}
+
     button,input,select{font:inherit}
+    .hidden{display:none !important}
+
     .login-wrap{
       min-height:100vh;
       display:flex;
@@ -39,6 +43,7 @@
       justify-content:center;
       padding:24px;
     }
+
     .login-card{
       width:100%;
       max-width:430px;
@@ -48,11 +53,13 @@
       box-shadow:var(--shadow);
       padding:28px;
     }
+
     .brand{
       display:flex;
       gap:14px;
       align-items:center;
     }
+
     .brand-badge{
       width:48px;
       height:48px;
@@ -63,24 +70,29 @@
       font-size:24px;
       font-weight:800;
     }
+
     .title{
       margin:0;
       font-size:28px;
       font-weight:800;
     }
+
     .subtitle{
       margin:6px 0 0 0;
       color:var(--muted);
       font-size:14px;
       line-height:1.45;
     }
+
     .field{margin-top:16px}
+
     .field label{
       display:block;
       margin-bottom:8px;
       color:var(--muted);
       font-size:13px;
     }
+
     .input,.select,.btn{
       width:100%;
       border-radius:14px;
@@ -90,6 +102,7 @@
       color:var(--text);
       outline:none;
     }
+
     .btn{
       cursor:pointer;
       font-weight:800;
@@ -97,20 +110,25 @@
       transition:.18s ease;
       background:linear-gradient(135deg,#2563eb,#7c3aed);
     }
+
     .btn.secondary{
       background:#162448;
       border:1px solid rgba(255,255,255,.08);
     }
+
     .btn.ghost{
       background:transparent;
       border:1px solid rgba(255,255,255,.09);
     }
+
     .btn.green{
       background:linear-gradient(135deg,#15803d,#22c55e);
     }
+
     .btn.red{
       background:linear-gradient(135deg,#b91c1c,#ef4444);
     }
+
     .error{
       margin-top:12px;
       padding:10px 12px;
@@ -120,8 +138,14 @@
       border:1px solid rgba(239,68,68,.24);
       font-size:13px;
     }
+
     .small{font-size:12px;color:var(--muted)}
-    .app-shell{min-height:100vh;padding:18px}
+
+    .app-shell{
+      min-height:100vh;
+      padding:18px;
+    }
+
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -130,14 +154,27 @@
       align-items:flex-start;
       margin-bottom:16px;
     }
+
     .topbar-right{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
     }
-    .version{color:var(--muted);font-size:13px;margin-top:4px}
-    .flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .version{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
+
+    .flex{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
     .badge{
       display:inline-flex;
       align-items:center;
@@ -149,18 +186,21 @@
       color:var(--muted);
       font-size:12px;
     }
+
     .ticker-grid{
       display:grid;
-      grid-template-columns: repeat(6,minmax(0,1fr));
+      grid-template-columns:repeat(6,minmax(0,1fr));
       gap:12px;
       margin-bottom:16px;
     }
+
     .mini-card,.card{
       background:linear-gradient(180deg, rgba(24,36,75,.98), rgba(14,22,46,.98));
       border:var(--border);
       box-shadow:var(--shadow);
       border-radius:var(--radius);
     }
+
     .mini-card{
       padding:18px;
       min-height:118px;
@@ -168,11 +208,35 @@
       flex-direction:column;
       justify-content:center;
     }
-    .mini-label{color:var(--muted);font-size:13px;margin-bottom:8px}
-    .mini-value{font-size:26px;font-weight:800;line-height:1.05;word-break:break-word}
-    .mini-change{margin-top:8px;font-size:13px;font-weight:700;color:var(--muted)}
+
+    .mini-label{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .mini-value{
+      font-size:26px;
+      font-weight:800;
+      line-height:1.05;
+      word-break:break-word;
+    }
+
+    .mini-change{
+      margin-top:8px;
+      font-size:13px;
+      font-weight:700;
+      color:var(--muted);
+    }
+
     .tabs-wrap{margin-bottom:16px}
-    .tabs{display:flex;flex-wrap:wrap;gap:8px}
+
+    .tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
     .tab-btn{
       border:none;
       border-radius:999px;
@@ -183,15 +247,22 @@
       font-weight:800;
       border:1px solid rgba(255,255,255,.08);
     }
-    .tab-btn.active{background:linear-gradient(135deg,#4f46e5,#8b5cf6)}
+
+    .tab-btn.active{
+      background:linear-gradient(135deg,#4f46e5,#8b5cf6);
+    }
+
     .page{display:none}
     .page.active{display:block}
+
     .grid-2{
       display:grid;
       grid-template-columns:1.2fr .8fr;
       gap:16px;
     }
+
     .card{padding:16px}
+
     .card-head{
       display:flex;
       justify-content:space-between;
@@ -200,23 +271,54 @@
       flex-wrap:wrap;
       margin-bottom:14px;
     }
-    .card-title{margin:0;font-size:18px;font-weight:800}
-    .card-sub{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.45}
-    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+    .card-title{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .card-sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+      line-height:1.45;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
     .stats-row{
       display:grid;
-      grid-template-columns: repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
       gap:10px;
       margin-bottom:12px;
     }
+
     .stat{
       background:#0e1836;
       border:1px solid rgba(255,255,255,.07);
       border-radius:14px;
       padding:12px;
     }
-    .stat .k{color:var(--muted);font-size:12px;margin-bottom:8px}
-    .stat .v{font-size:20px;font-weight:800;line-height:1.1;word-break:break-word}
+
+    .stat .k{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+    }
+
+    .stat .v{
+      font-size:20px;
+      font-weight:800;
+      line-height:1.1;
+      word-break:break-word;
+    }
+
     .toolbar{
       display:flex;
       gap:8px;
@@ -224,12 +326,18 @@
       align-items:center;
       margin-bottom:12px;
     }
+
     .toolbar .input,.toolbar .select{
       flex:1 1 180px;
       width:auto;
       min-width:140px;
     }
-    .list{display:grid;gap:10px}
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+
     .watchlist-item{
       display:flex;
       justify-content:space-between;
@@ -240,12 +348,14 @@
       border-radius:14px;
       padding:12px;
     }
+
     .note-lines{
       color:var(--muted);
       font-size:13px;
       line-height:1.55;
       margin-top:4px;
     }
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -259,13 +369,16 @@
       background:#152144;
       white-space:nowrap;
     }
+
     .signal-buy{background:rgba(34,197,94,.20);color:#bbf7d0}
     .signal-watch{background:rgba(245,158,11,.18);color:#fde68a}
     .signal-sell{background:rgba(59,130,246,.16);color:#bfdbfe}
     .signal-avoid{background:rgba(239,68,68,.18);color:#fecaca}
+
     .green{color:#86efac}
     .red{color:#fca5a5}
     .yellow{color:#fcd34d}
+
     .empty{
       padding:18px;
       border-radius:14px;
@@ -274,13 +387,16 @@
       color:var(--muted);
       text-align:center;
     }
+
     .watch-add{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
       margin-bottom:12px;
     }
+
     .watch-add .input{flex:1 1 180px}
+
     .iframe-wrap{
       height:560px;
       border-radius:16px;
@@ -288,38 +404,64 @@
       background:#071228;
       border:1px solid rgba(255,255,255,.08);
     }
-    iframe{width:100%;height:100%;border:none}
+
+    iframe{
+      width:100%;
+      height:100%;
+      border:none;
+    }
+
     .risk-grid{
       display:grid;
-      grid-template-columns: repeat(2,minmax(0,1fr));
+      grid-template-columns:repeat(2,minmax(0,1fr));
       gap:10px;
     }
+
     .result-grid{
       display:grid;
-      grid-template-columns: repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
       gap:10px;
       margin-top:14px;
     }
-    .footer-note{color:var(--muted);font-size:13px;line-height:1.55}
+
+    .footer-note{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+
     .levels{
       margin-top:8px;
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
       gap:8px;
     }
+
     .level-box{
       background:#0a1430;
       border:1px solid rgba(255,255,255,.06);
       border-radius:12px;
       padding:8px;
     }
-    .level-box .lk{font-size:11px;color:var(--muted);margin-bottom:4px}
-    .level-box .lv{font-size:13px;font-weight:800;word-break:break-word}
+
+    .level-box .lk{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+
+    .level-box .lv{
+      font-size:13px;
+      font-weight:800;
+      word-break:break-word;
+    }
+
     hr.sep{
       border:none;
       border-top:1px solid rgba(255,255,255,.08);
       margin:18px 0;
     }
+
     @media (max-width:1200px){
       .ticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
       .grid-2{grid-template-columns:1fr}
@@ -327,11 +469,13 @@
       .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .levels{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
+
     @media (max-width:780px){
       .app-shell{padding:12px}
       .ticker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .risk-grid{grid-template-columns:1fr}
     }
+
     @media (max-width:560px){
       .ticker-grid{grid-template-columns:1fr}
       .stats-row{grid-template-columns:1fr}
@@ -347,7 +491,7 @@
         <div class="brand-badge">📈</div>
         <div>
           <h1 class="title">TradeDesk v3</h1>
-          <p class="subtitle">Stabil sürüm · önce çalışan yapı, sonra signal upgrade</p>
+          <p class="subtitle">Final sürüm · stabil giriş · curated 5-10x motoru</p>
         </div>
       </div>
 
@@ -371,8 +515,8 @@
         <div class="brand">
           <div class="brand-badge">📊</div>
           <div>
-            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3 Stable</h1>
-            <div class="version">Stabil giriş + çalışan modüller + trade seviyeleri</div>
+            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3 Final</h1>
+            <div class="version">Çalışan modüller + trade planı + curated long-term motor</div>
           </div>
         </div>
         <div class="flex" style="margin-top:8px">
@@ -407,7 +551,7 @@
         <button class="tab-btn" data-page="squeeze">🎯 Squeeze</button>
         <button class="tab-btn" data-page="preafter">🌅 Pre/After</button>
         <button class="tab-btn" data-page="tomorrow">💥 Yarın Patlayacak</button>
-        <button class="tab-btn" data-page="x10">💎 5-10x Adayı</button>
+        <button class="tab-btn" data-page="x10">💎 Long-Term 5-10x</button>
         <button class="tab-btn" data-page="watch">⭐ İzleme</button>
         <button class="tab-btn" data-page="chart">📈 Grafik</button>
         <button class="tab-btn" data-page="risk">⚖️ Risk</button>
@@ -473,7 +617,7 @@
 
     <section id="page-tomorrow" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">💥 Yarın Patlayacak</h2><div class="card-sub">Breakout planı</div></div><div class="actions"><button class="btn secondary" id="scanTomorrowBtn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Taranan</div><div class="v" id="tomorrowScanned">—</div></div><div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="tomorrowStrong">—</div></div><div class="stat"><div class="k">Ort. Spike %</div><div class="v yellow" id="tomorrowAvgSpike">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="tomorrowUpdate">—</div></div></div><div class="list" id="tomorrowList"><div class="empty">Yükleniyor...</div></div></div></section>
 
-    <section id="page-x10" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">💎 5-10x Adayı</h2><div class="card-sub">Tematik büyüme hisseleri</div></div><div class="actions"><button class="btn secondary" id="scanX10Btn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Aday</div><div class="v" id="x10Count">—</div></div><div class="stat"><div class="k">Yüksek Potansiyel</div><div class="v" id="x10HighPotential">—</div></div><div class="stat"><div class="k">Ort. Fiyat</div><div class="v" id="x10AvgPrice">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="x10Update">—</div></div></div><div class="list" id="x10List"><div class="empty">Yükleniyor...</div></div></div></section>
+    <section id="page-x10" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">💎 Long-Term 5-10x</h2><div class="card-sub">Curated multi-bagger adayları · 6-24 ay perspektifi</div></div><div class="actions"><button class="btn secondary" id="scanX10Btn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Aday</div><div class="v" id="x10Count">—</div></div><div class="stat"><div class="k">Yüksek Potansiyel</div><div class="v" id="x10HighPotential">—</div></div><div class="stat"><div class="k">Ort. Fiyat</div><div class="v" id="x10AvgPrice">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="x10Update">—</div></div></div><div class="list" id="x10List"><div class="empty">Yükleniyor...</div></div></div></section>
 
     <section id="page-watch" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">⭐ İzleme</h2><div class="card-sub">Watchlist için tam plan</div></div><div class="actions"><button class="btn secondary" id="refreshWatchBtn">↻ Yenile</button></div></div><div class="watch-add"><input id="watchInput" class="input" placeholder="Sembol ekle (AAPL)" /><button class="btn green" id="addWatchBtn">+ Ekle</button><button class="btn red" id="clearWatchBtn">Temizle</button></div><div class="list" id="watchlistContainer"><div class="empty">Yükleniyor...</div></div></div></section>
 
@@ -492,17 +636,70 @@
       const PASSWORD_KEY = "tradedesk_password";
       const WATCHLIST_KEY = "td_watchlist";
       const AUTO_REFRESH_KEY = "td_auto_refresh";
+
       const HEADER_SYMBOLS = ["SPY", "QQQ", "VIX", "IWM", "NASDAQ"];
       const MARKET_SYMBOLS = ["AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","AMD","PLTR","SMCI","AVGO","NFLX","COIN","MSTR","RIVN","SOFI","INTC","MU","BABA","PDD","UBER","SHOP","SNOW","CRM","ORCL","ADBE","PANW","CRWD","NET","ARM","QCOM","MRVL","TSM","F","GM","NIO","LI","XPEV","LCID","IONQ","QBTS","RGTI","QUBT","SOUN","BBAI","AI","ASTS","RKLB","LUNR","PL","JOBY","ACHR","RIOT","MARA","CLSK","HUT","AFRM","UPST","HOOD","PYPL","SQ","DKNG","ROKU","OPEN","CVNA","DAL","UAL","AAL","CCL","BA","XOM","CVX","JNJ","PFE","MRNA","LLY","NVO","ABBV","WMT","COST","TGT","NKE","DIS","SBUX","XBI","ARKK","SPWR","SEDG","ENPH","RUN","FSLR","BE","CHPT","QS","NKLA","ENVX","EOSE","MVST","STEM","DNA","RXRX","TEM","HIMS","CELH","DJT","GME","AMC","BB","SIRI","TLRY","CGC","APLD","DDOG","MDB","PATH","U","RBLX","TTD","APP","DUOL","ETSY","TNA","SOXL","LABU","FNGU","NVDL","TQQQ","SQQQ","UVXY","BOIL","KOLD"];
-      const SECTOR_HINTS = {ASTS:"Uzay",RKLB:"Uzay",LUNR:"Uzay",PL:"Uzay",IONQ:"Kuantum",QBTS:"Kuantum",RGTI:"Kuantum",QUBT:"Kuantum",SOUN:"AI",BBAI:"AI",AI:"AI",PLTR:"AI",TEM:"AI/Sağlık",RXRX:"AI/Biyotek",DNA:"Biyotek",TSLA:"EV/AI",RIVN:"EV",LCID:"EV",NIO:"EV",LI:"EV",XPEV:"EV",CLSK:"Kripto",RIOT:"Kripto",MARA:"Kripto",HUT:"Kripto",JOBY:"eVTOL",ACHR:"eVTOL",ENVX:"Batarya",QS:"Batarya",STEM:"Enerji",BE:"Enerji"};
+
+      const SECTOR_HINTS = {
+        ASTS:"Uzay", RKLB:"Uzay", LUNR:"Uzay", PL:"Uzay",
+        IONQ:"Kuantum", QBTS:"Kuantum", RGTI:"Kuantum", QUBT:"Kuantum",
+        SOUN:"AI", BBAI:"AI", AI:"AI", PLTR:"AI",
+        TEM:"AI/Sağlık", RXRX:"AI/Biyotek", DNA:"Biyotek",
+        TSLA:"EV/AI", RIVN:"EV", LCID:"EV", NIO:"EV", LI:"EV", XPEV:"EV",
+        CLSK:"Kripto", RIOT:"Kripto", MARA:"Kripto", HUT:"Kripto",
+        JOBY:"eVTOL", ACHR:"eVTOL", ENVX:"Batarya", QS:"Batarya",
+        STEM:"Enerji", BE:"Enerji", EOSE:"Enerji"
+      };
+
       const SQUEEZE_MEMES = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
 
-      const state = { quotes: [], quoteMap: {}, watchlist: [], autoRefreshTimer: null };
+      const CURATED_MULTI_BAGGERS = [
+        "IONQ","PLTR","RGTI","QBTS","QUBT","LUNR","RKLB","EOSE","ENVX","QS",
+        "SOUN","BBAI","RXRX","DNA","ACHR","JOBY","ASTS","PL","CTMX","SOPA",
+        "MARA","RIOT","CLSK","HUT","IREN","BITF","CIFR"
+      ];
+
+      const MULTI_BAGGER_THEMES = {
+        IONQ:"Quantum",
+        PLTR:"AI",
+        RGTI:"Quantum",
+        QBTS:"Quantum",
+        QUBT:"Quantum",
+        LUNR:"Space",
+        RKLB:"Space",
+        ASTS:"Space",
+        PL:"Space",
+        EOSE:"Energy Storage",
+        ENVX:"Battery",
+        QS:"Battery",
+        SOUN:"AI",
+        BBAI:"AI",
+        RXRX:"AI/Biotech",
+        DNA:"Biotech",
+        ACHR:"eVTOL",
+        JOBY:"eVTOL",
+        CTMX:"Biotech",
+        SOPA:"Speculative Growth",
+        MARA:"Crypto Infra",
+        RIOT:"Crypto Infra",
+        CLSK:"Crypto Infra",
+        HUT:"Crypto Infra",
+        IREN:"Crypto Infra",
+        BITF:"Crypto Infra",
+        CIFR:"Crypto Infra"
+      };
+
+      const state = {
+        quotes: [],
+        quoteMap: {},
+        watchlist: [],
+        autoRefreshTimer: null
+      };
 
       const $ = (id) => document.getElementById(id);
 
       function safeText(el, value) { if (el) el.textContent = value; }
-      function formatNumber(v, d = 2) { if (v == null || Number.isNaN(Number(v))) return "—"; return Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+      function formatNumber(v, d = 2) { if (v == null || Number.isNaN(Number(v))) return "—"; return Number(v).toLocaleString("en-US", { minimumFractionDigits:d, maximumFractionDigits:d }); }
       function formatPrice(v) { if (v == null || Number.isNaN(Number(v))) return "—"; const n = Number(v); const d = n < 1 ? 4 : n < 10 ? 3 : 2; return "$" + formatNumber(n, d); }
       function formatPct(v) { if (v == null || Number.isNaN(Number(v))) return "—"; const n = Number(v); return `${n > 0 ? "+" : ""}${formatNumber(n, 2)}%`; }
       function nowText() { return new Date().toLocaleString("tr-TR"); }
@@ -533,7 +730,7 @@
       function setAutoRefreshMinutes(v) { localStorage.setItem(AUTO_REFRESH_KEY, String(v)); }
 
       async function fetchJSON(url) {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(url, { cache:"no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       }
@@ -549,9 +746,9 @@
         try {
           const data = await fetchJSON("/api/feargreed");
           const fg = data?.fear_and_greed || {};
-          return { score: Number(fg.score ?? 50), rating: String(fg.rating || "neutral") };
+          return { score:Number(fg.score ?? 50), rating:String(fg.rating || "neutral") };
         } catch {
-          return { score: 50, rating: "neutral" };
+          return { score:50, rating:"neutral" };
         }
       }
 
@@ -569,6 +766,7 @@
           regularMarketPreviousClose: Number(q?.regularMarketPreviousClose ?? NaN),
           fiftyTwoWeekHigh: Number(q?.fiftyTwoWeekHigh ?? NaN),
           fiftyTwoWeekLow: Number(q?.fiftyTwoWeekLow ?? NaN),
+          marketCap: q?.marketCap ?? null,
           preMarketChangePercent: q?.preMarketChangePercent == null ? null : Number(q.preMarketChangePercent),
           postMarketChangePercent: q?.postMarketChangePercent == null ? null : Number(q.postMarketChangePercent),
           shortPercentOfFloat: q?.shortPercentOfFloat == null ? null : Number(q.shortPercentOfFloat)
@@ -614,16 +812,22 @@
         const dayRange = getDayRangePercent(q);
         const rangePos = getRangePosition(q);
         let score = 0;
+
         if (volx >= 1.15 && volx <= 3.8) score += 30;
         if (absChg <= 3.5) score += 25;
         if (dayRange <= 4.5) score += 18;
         if (rangePos != null && rangePos < 58) score += 15;
         if (validPrice(q.regularMarketPrice) && q.regularMarketPrice > 0.7) score += 8;
+
         return Math.round(score + (volx * 5));
       }
 
       function getWhaleScore(q) {
-        return Math.round((getVolumeRatio(q) * 20) + (Math.abs(Number(q.regularMarketChangePercent || 0)) * 7) + (getDayRangePercent(q) * 1.2));
+        return Math.round(
+          (getVolumeRatio(q) * 20) +
+          (Math.abs(Number(q.regularMarketChangePercent || 0)) * 7) +
+          (getDayRangePercent(q) * 1.2)
+        );
       }
 
       function getSqueezeScore(q) {
@@ -632,6 +836,7 @@
         const dayRange = getDayRangePercent(q);
         const price = Number(q.regularMarketPrice || 0);
         let score = 0;
+
         if (dayRange > 0 && dayRange <= 4.2) score += 24;
         if (absChg <= 3.2) score += 18;
         if (volx >= 1.1 && volx <= 2.8) score += 18;
@@ -639,12 +844,14 @@
         if (price > 1 && price < 40) score += 10;
         if (q.shortPercentOfFloat && q.shortPercentOfFloat >= 8) score += Math.min(18, q.shortPercentOfFloat);
         if (SQUEEZE_MEMES.includes(q.symbol)) score += 10;
+
         return Math.round(score);
       }
 
       function getPreAfterMove(q) {
         if (q.preMarketChangePercent != null) return Number(q.preMarketChangePercent);
         if (q.postMarketChangePercent != null) return Number(q.postMarketChangePercent);
+
         const live = Number(q.regularMarketChangePercent || 0);
         const volx = getVolumeRatio(q);
         if (Math.abs(live) >= 2.5 || volx >= 1.6) return live;
@@ -657,6 +864,7 @@
         const dayRange = getDayRangePercent(q);
         const price = Number(q.regularMarketPrice || 0);
         let score = 0;
+
         if (chg > 2) score += 20;
         if (chg > 4) score += 12;
         if (volx > 1.6) score += 22;
@@ -664,50 +872,182 @@
         if (getCloseNearHigh(q)) score += 18;
         if (dayRange > 2.5) score += 10;
         if (price > 0.8 && price < 25) score += 10;
+
         return Math.round(score);
       }
 
       function getX10Score(q) {
-        const sector = SECTOR_HINTS[q.symbol];
+        const symbol = q.symbol;
         const price = Number(q.regularMarketPrice || 0);
+        const volx = getVolumeRatio(q);
         const accum = getAccumulationScore(q);
+        const whale = getWhaleScore(q);
+        const squeeze = getSqueezeScore(q);
+        const tomorrow = getTomorrowScore(q);
+        const rangePos = getRangePosition(q);
+        const marketCap = Number(q.marketCap || 0);
+        const change = Number(q.regularMarketChangePercent || 0);
+
         let score = 0;
-        if (sector) score += 28;
-        if (price > 0.5 && price < 30) score += 25;
-        if (accum >= 50) score += 22;
-        if (getVolumeRatio(q) >= 1.1) score += 10;
-        const rp = getRangePosition(q);
-        if (rp != null && rp < 60) score += 10;
-        return Math.round(score);
+
+        if (CURATED_MULTI_BAGGERS.includes(symbol)) score += 38;
+        if (MULTI_BAGGER_THEMES[symbol]) score += 18;
+
+        if (price > 1 && price <= 25) score += 14;
+        else if (price > 25 && price <= 60) score += 7;
+        else if (price <= 1) score -= 8;
+
+        if (marketCap > 0) {
+          if (marketCap < 2e9) score += 18;
+          else if (marketCap < 5e9) score += 14;
+          else if (marketCap < 15e9) score += 8;
+          else if (marketCap > 80e9) score -= 10;
+        }
+
+        if (accum >= 55) score += 14;
+        else if (accum >= 45) score += 8;
+
+        if (volx >= 1.1 && volx <= 3.5) score += 10;
+        else if (volx > 3.5) score += 4;
+        else if (volx < 0.5) score -= 8;
+
+        if (rangePos != null) {
+          if (rangePos < 45) score += 12;
+          else if (rangePos < 65) score += 7;
+          else if (rangePos > 85) score -= 10;
+        }
+
+        if (change > 18) score -= 10;
+        else if (change > 10) score -= 5;
+
+        if (squeeze >= 50) score += 6;
+        if (whale >= 70) score += 4;
+        if (tomorrow >= 60) score += 3;
+
+        return Math.round(Math.max(0, Math.min(100, score)));
+      }
+
+      function getX10Stage(q) {
+        const rangePos = getRangePosition(q);
+        const price = Number(q.regularMarketPrice || 0);
+
+        if (rangePos == null) {
+          if (price < 5) return "Early";
+          if (price < 20) return "Mid";
+          return "Late";
+        }
+
+        if (rangePos < 35) return "Early";
+        if (rangePos < 65) return "Mid";
+        return "Late";
+      }
+
+      function getX10Risk(q) {
+        const price = Number(q.regularMarketPrice || 0);
+        const volx = getVolumeRatio(q);
+        const dayRange = getDayRangePercent(q);
+        const marketCap = Number(q.marketCap || 0);
+
+        let risk = 0;
+
+        if (price < 2) risk += 3;
+        else if (price < 5) risk += 2;
+        else if (price < 15) risk += 1;
+
+        if (dayRange > 10) risk += 3;
+        else if (dayRange > 6) risk += 2;
+        else if (dayRange > 3.5) risk += 1;
+
+        if (volx < 0.6) risk += 1;
+        if (marketCap > 0 && marketCap < 1e9) risk += 2;
+
+        if (risk >= 6) return "High";
+        if (risk >= 3) return "Medium";
+        return "Controlled";
+      }
+
+      function getX10Action(q) {
+        const score = getX10Score(q);
+        const stage = getX10Stage(q);
+        const risk = getX10Risk(q);
+
+        if (score >= 82 && stage !== "Late" && risk !== "High") return "Güçlü Aday";
+        if (score >= 68) return "Kademeli Topla";
+        if (score >= 55) return "İzle";
+        return "Uzak Dur";
+      }
+
+      function getX10SignalClass(action) {
+        if (action === "Güçlü Aday") return "signal-buy";
+        if (action === "Kademeli Topla") return "signal-watch";
+        if (action === "İzle") return "signal-sell";
+        return "signal-avoid";
       }
 
       function calculateTradePlan(q, mode = "standard") {
         const price = Number(q.regularMarketPrice || 0);
         const high = Number(q.regularMarketDayHigh || price);
         const low = Number(q.regularMarketDayLow || price);
-        const dayRange = validPrice(high) && validPrice(low) && high > low ? (high - low) : Math.max(price * 0.02, 0.02);
+        const dayRange = validPrice(high) && validPrice(low) && high > low
+          ? (high - low)
+          : Math.max(price * 0.02, 0.02);
+
         const volx = getVolumeRatio(q);
         const change = Number(q.regularMarketChangePercent || 0);
         const nearHigh = getCloseNearHigh(q);
 
-        let entryFactor = 0.10, stopFactor = 0.32, tp1Factor = 0.55, tp2Factor = 1.20, tradeType = "Momentum";
+        let entryFactor = 0.10;
+        let stopFactor = 0.32;
+        let tp1Factor = 0.55;
+        let tp2Factor = 1.20;
+        let tradeType = "Momentum";
 
         if (mode === "accum") {
-          entryFactor = 0.05; stopFactor = 0.24; tp1Factor = 0.45; tp2Factor = 0.95; tradeType = "Birikim";
+          entryFactor = 0.05;
+          stopFactor = 0.24;
+          tp1Factor = 0.45;
+          tp2Factor = 0.95;
+          tradeType = "Birikim";
         } else if (mode === "squeeze") {
-          entryFactor = 0.08; stopFactor = 0.26; tp1Factor = 0.60; tp2Factor = 1.35; tradeType = "Squeeze";
+          entryFactor = 0.08;
+          stopFactor = 0.26;
+          tp1Factor = 0.60;
+          tp2Factor = 1.35;
+          tradeType = "Squeeze";
         } else if (mode === "whale") {
-          entryFactor = 0.14; stopFactor = 0.30; tp1Factor = 0.70; tp2Factor = 1.60; tradeType = "Balina";
+          entryFactor = 0.14;
+          stopFactor = 0.30;
+          tp1Factor = 0.70;
+          tp2Factor = 1.60;
+          tradeType = "Balina";
         } else if (mode === "tomorrow") {
-          entryFactor = 0.15; stopFactor = 0.28; tp1Factor = 0.65; tp2Factor = 1.50; tradeType = "Breakout";
+          entryFactor = 0.15;
+          stopFactor = 0.28;
+          tp1Factor = 0.65;
+          tp2Factor = 1.50;
+          tradeType = "Breakout";
         } else if (mode === "x10") {
-          entryFactor = 0.06; stopFactor = 0.22; tp1Factor = 0.55; tp2Factor = 1.40; tradeType = "Swing";
+          entryFactor = 0.06;
+          stopFactor = 0.22;
+          tp1Factor = 0.55;
+          tp2Factor = 1.40;
+          tradeType = "Swing";
         } else if (mode === "preafter") {
-          entryFactor = 0.12; stopFactor = 0.26; tp1Factor = 0.55; tp2Factor = 1.10; tradeType = "Gap/Momentum";
+          entryFactor = 0.12;
+          stopFactor = 0.26;
+          tp1Factor = 0.55;
+          tp2Factor = 1.10;
+          tradeType = "Gap/Momentum";
         }
 
-        if (volx >= 3) { tp2Factor *= 1.25; stopFactor *= 0.88; }
-        if (Math.abs(change) >= 8) stopFactor *= 1.06;
+        if (volx >= 3) {
+          tp2Factor *= 1.25;
+          stopFactor *= 0.88;
+        }
+
+        if (Math.abs(change) >= 8) {
+          stopFactor *= 1.06;
+        }
 
         let entry = price + (dayRange * entryFactor);
         let stop = price - (dayRange * stopFactor);
@@ -748,15 +1088,28 @@
         let signalClass = "signal-watch";
 
         if (confidence >= 74 && rr2 >= 1.8 && change > -2) {
-          signal = "AL"; signalClass = "signal-buy";
+          signal = "AL";
+          signalClass = "signal-buy";
         } else if (change >= 9 || (rr1 >= 0.9 && change >= 6 && volx < 1.5)) {
-          signal = "KAR AL"; signalClass = "signal-sell";
+          signal = "KAR AL";
+          signalClass = "signal-sell";
         } else if (confidence < 45 || rr2 < 1.1 || change < -6) {
-          signal = "UZAK DUR"; signalClass = "signal-avoid";
+          signal = "UZAK DUR";
+          signalClass = "signal-avoid";
         }
 
         return {
-          mode, tradeType, entry, stop, tp1, tp2, rr1, rr2, confidence, signal, signalClass,
+          mode,
+          tradeType,
+          entry,
+          stop,
+          tp1,
+          tp2,
+          rr1,
+          rr2,
+          confidence,
+          signal,
+          signalClass,
           riskPct: entry > 0 ? ((entry - stop) / entry) * 100 : 0,
           gainPct1: entry > 0 ? ((tp1 - entry) / entry) * 100 : 0,
           gainPct2: entry > 0 ? ((tp2 - entry) / entry) * 100 : 0
@@ -806,16 +1159,18 @@
       }
 
       function buildMarketTimeBadge() {
-        const nyString = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+        const nyString = new Date().toLocaleString("en-US", { timeZone:"America/New_York" });
         const ny = new Date(nyString);
         const day = ny.getDay();
         const minutes = ny.getHours() * 60 + ny.getMinutes();
+
         let text = "Kapalı";
         if (day >= 1 && day <= 5) {
           if (minutes >= 240 && minutes < 570) text = "Pre-Market";
           else if (minutes >= 570 && minutes < 960) text = "Piyasa Açık";
           else if (minutes >= 960 && minutes < 1200) text = "After-Hours";
         }
+
         safeText($("marketTimeBadge"), `ABD Piyasa: ${text}`);
       }
 
@@ -825,6 +1180,7 @@
           safeText($(`${prefix}Change`), "—");
           return;
         }
+
         safeText($(`${prefix}Price`), formatPrice(q.regularMarketPrice));
         const chgEl = $(`${prefix}Change`);
         if (chgEl) {
@@ -836,11 +1192,13 @@
       async function loadHeaderData() {
         const quotes = (await fetchQuotes(HEADER_SYMBOLS)).map(normalizeQuote);
         const map = Object.fromEntries(quotes.map(q => [q.symbol, q]));
+
         updateMiniTicker("spy", map.SPY);
         updateMiniTicker("qqq", map.QQQ);
         updateMiniTicker("vix", map.VIX);
         updateMiniTicker("iwm", map.IWM);
         updateMiniTicker("nasdaq", map.NASDAQ);
+
         const fg = await fetchFearGreed();
         safeText($("fgValue"), formatNumber(fg.score, 2));
         safeText($("fgText"), fg.rating || "neutral");
@@ -872,84 +1230,241 @@
         renderAlerts();
         await refreshWatchlist();
       }
-
-      function renderMarketList() {
+            function renderMarketList() {
         const el = $("marketList");
         if (!el) return;
-        const sorted = [...state.quotes].sort((a,b) => Number(b.regularMarketChangePercent || 0) - Number(a.regularMarketChangePercent || 0)).slice(0, 40);
-        el.innerHTML = sorted.length ? sorted.map(q => buildStockCard(q, calculateTradePlan(q, "standard"), `<strong>Momentum:</strong> ${formatNumber(getMomentumScore(q),1)}`)).join("") : '<div class="empty">Veri yok</div>';
+
+        const sorted = [...state.quotes]
+          .sort((a, b) => Number(b.regularMarketChangePercent || 0) - Number(a.regularMarketChangePercent || 0))
+          .slice(0, 40);
+
+        el.innerHTML = sorted.length
+          ? sorted.map(q =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "standard"),
+                `<strong>Momentum:</strong> ${formatNumber(getMomentumScore(q),1)}`
+              )
+            ).join("")
+          : '<div class="empty">Veri yok</div>';
       }
 
       function renderAccumulation() {
         const el = $("accumulationList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getAccumulationScore(q) })).filter(x => x.score >= 48).sort((a,b) => b.score - a.score).slice(0, 20);
+
+        const data = state.quotes
+          .map(q => ({ q, score: getAccumulationScore(q) }))
+          .filter(x => x.score >= 48)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
         safeText($("accumScanned"), String(state.quotes.length));
         safeText($("accumStrong"), String(data.filter(x => x.score >= 65).length));
         safeText($("accumCount"), String(data.length));
         safeText($("accumUpdate"), nowText());
-        el.innerHTML = data.length ? data.map(({ q, score }) => buildStockCard(q, calculateTradePlan(q, "accum"), `<strong>Birikim Skoru:</strong> ${score}`)).join("") : '<div class="empty">Uygun hisse yok</div>';
+
+        el.innerHTML = data.length
+          ? data.map(({ q, score }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "accum"),
+                `<strong>Birikim Skoru:</strong> ${score}`
+              )
+            ).join("")
+          : '<div class="empty">Uygun hisse yok</div>';
       }
 
       function renderWhales() {
         const el = $("whaleList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getWhaleScore(q) })).filter(x => x.score >= 55).sort((a,b) => b.score - a.score).slice(0, 20);
+
+        const data = state.quotes
+          .map(q => ({ q, score: getWhaleScore(q) }))
+          .filter(x => x.score >= 55)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
         safeText($("whaleActive"), String(data.length));
         safeText($("whaleMaxVol"), data.length ? formatNumber(Math.max(...data.map(x => getVolumeRatio(x.q))), 2) : "—");
-        safeText($("whaleAvgMove"), data.length ? formatPct(data.reduce((a,b) => a + Number(b.q.regularMarketChangePercent || 0), 0) / data.length) : "—");
+        safeText($("whaleAvgMove"), data.length ? formatPct(data.reduce((a, b) => a + Number(b.q.regularMarketChangePercent || 0), 0) / data.length) : "—");
         safeText($("whaleUpdate"), nowText());
-        el.innerHTML = data.length ? data.map(({ q, score }) => buildStockCard(q, calculateTradePlan(q, "whale"), `<strong>Balina Skoru:</strong> ${score}`)).join("") : '<div class="empty">Balina sinyali yok</div>';
+
+        el.innerHTML = data.length
+          ? data.map(({ q, score }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "whale"),
+                `<strong>Balina Skoru:</strong> ${score}`
+              )
+            ).join("")
+          : '<div class="empty">Balina sinyali yok</div>';
       }
 
       function renderSqueeze() {
         const el = $("squeezeList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getSqueezeScore(q) })).filter(x => x.score >= 45).sort((a,b) => b.score - a.score).slice(0, 20);
-        el.innerHTML = data.length ? data.map(({ q, score }) => buildStockCard(q, calculateTradePlan(q, "squeeze"), `<strong>Squeeze Skoru:</strong> ${score}`)).join("") : '<div class="empty">Squeeze yok</div>';
+
+        const data = state.quotes
+          .map(q => ({ q, score: getSqueezeScore(q) }))
+          .filter(x => x.score >= 45)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
+        el.innerHTML = data.length
+          ? data.map(({ q, score }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "squeeze"),
+                `<strong>Squeeze Skoru:</strong> ${score}`
+              )
+            ).join("")
+          : '<div class="empty">Squeeze yok</div>';
       }
 
       function renderPreAfter() {
         const el = $("preAfterList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, move: getPreAfterMove(q) })).filter(x => x.move != null && Math.abs(x.move) >= 2).sort((a,b) => Math.abs(b.move) - Math.abs(a.move)).slice(0, 20);
-        el.innerHTML = data.length ? data.map(({ q, move }) => buildStockCard(q, calculateTradePlan(q, "preafter"), `<strong>Pre/After:</strong> ${formatPct(move)}`)).join("") : '<div class="empty">Pre/After veri yok</div>';
+
+        const data = state.quotes
+          .map(q => ({ q, move: getPreAfterMove(q) }))
+          .filter(x => x.move != null && Math.abs(x.move) >= 2)
+          .sort((a, b) => Math.abs(b.move) - Math.abs(a.move))
+          .slice(0, 20);
+
+        el.innerHTML = data.length
+          ? data.map(({ q, move }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "preafter"),
+                `<strong>Pre/After:</strong> ${formatPct(move)}`
+              )
+            ).join("")
+          : '<div class="empty">Pre/After veri yok</div>';
       }
 
       function renderTomorrow() {
         const el = $("tomorrowList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getTomorrowScore(q) })).filter(x => x.score >= 45).sort((a,b) => b.score - a.score).slice(0, 20);
+
+        const data = state.quotes
+          .map(q => ({ q, score: getTomorrowScore(q) }))
+          .filter(x => x.score >= 45)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
         safeText($("tomorrowScanned"), String(state.quotes.length));
         safeText($("tomorrowStrong"), String(data.filter(x => x.score >= 65).length));
-        safeText($("tomorrowAvgSpike"), data.length ? formatPct(data.reduce((a,b) => a + Number(b.q.regularMarketChangePercent || 0), 0) / data.length) : "—");
+        safeText($("tomorrowAvgSpike"), data.length ? formatPct(data.reduce((a, b) => a + Number(b.q.regularMarketChangePercent || 0), 0) / data.length) : "—");
         safeText($("tomorrowUpdate"), nowText());
-        el.innerHTML = data.length ? data.map(({ q, score }) => buildStockCard(q, calculateTradePlan(q, "tomorrow"), `<strong>Yarın Skoru:</strong> ${score}`)).join("") : '<div class="empty">Yarın patlayacak aday yok</div>';
+
+        el.innerHTML = data.length
+          ? data.map(({ q, score }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "tomorrow"),
+                `<strong>Yarın Skoru:</strong> ${score}`
+              )
+            ).join("")
+          : '<div class="empty">Yarın patlayacak aday yok</div>';
       }
 
       function renderX10() {
         const el = $("x10List");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getX10Score(q) })).filter(x => x.score >= 55).sort((a,b) => b.score - a.score).slice(0, 20);
+
+        const data = state.quotes
+          .filter(q => CURATED_MULTI_BAGGERS.includes(q.symbol) || MULTI_BAGGER_THEMES[q.symbol])
+          .map(q => ({
+            q,
+            score: getX10Score(q),
+            stage: getX10Stage(q),
+            risk: getX10Risk(q),
+            action: getX10Action(q)
+          }))
+          .filter(x => x.score >= 50)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 20);
+
         safeText($("x10Count"), String(data.length));
-        safeText($("x10HighPotential"), String(data.filter(x => x.score >= 70).length));
-        safeText($("x10AvgPrice"), data.length ? formatPrice(data.reduce((a,b) => a + Number(b.q.regularMarketPrice || 0), 0) / data.length) : "—");
+        safeText($("x10HighPotential"), String(data.filter(x => x.score >= 82).length));
+        safeText($("x10AvgPrice"), data.length ? formatPrice(data.reduce((a, b) => a + Number(b.q.regularMarketPrice || 0), 0) / data.length) : "—");
         safeText($("x10Update"), nowText());
-        el.innerHTML = data.length ? data.map(({ q, score }) => buildStockCard(q, calculateTradePlan(q, "x10"), `<strong>5-10x Skoru:</strong> ${score} · <strong>Tema:</strong> ${SECTOR_HINTS[q.symbol] || "Büyüme"}`)).join("") : '<div class="empty">5-10x aday yok</div>';
+
+        if (!data.length) {
+          el.innerHTML = '<div class="empty">Gerçek 5-10x adayı bulunamadı</div>';
+          return;
+        }
+
+        el.innerHTML = data.map(({ q, score, stage, risk, action }) => {
+          const plan = calculateTradePlan(q, "x10");
+          const signalClass = getX10SignalClass(action);
+          const theme = MULTI_BAGGER_THEMES[q.symbol] || SECTOR_HINTS[q.symbol] || "Growth";
+          const rangePos = getRangePosition(q);
+
+          return `
+            <div class="watchlist-item">
+              <div style="flex:1">
+                <div style="font-weight:800">${q.symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?'green':'red'}">${formatPct(q.regularMarketChangePercent)}</span></div>
+                <div class="note-lines">
+                  <div><strong>Tema:</strong> ${theme} · <strong>Stage:</strong> ${stage} · <strong>Risk:</strong> ${risk}</div>
+                  <div><strong>Long-Term Score:</strong> ${score}/100 · <strong>Aksiyon:</strong> ${action}</div>
+                  <div><strong>Vol×:</strong> ${formatNumber(getVolumeRatio(q),2)} · <strong>Birikim:</strong> ${getAccumulationScore(q)} · <strong>52H Konum:</strong> ${rangePos == null ? "—" : formatNumber(rangePos,1) + "%"}</div>
+                  <div><strong>Not:</strong> Bu modül kısa vadeli TP hedefinden çok, 6-24 ay potansiyel sıralaması içindir.</div>
+                </div>
+                <div class="levels">
+                  <div class="level-box"><div class="lk">ENTRY</div><div class="lv">${formatPrice(plan.entry)}</div></div>
+                  <div class="level-box"><div class="lk">RISK STOP</div><div class="lv red">${formatPrice(plan.stop)}</div></div>
+                  <div class="level-box"><div class="lk">SWING TP1</div><div class="lv green">${formatPrice(plan.tp1)}</div></div>
+                  <div class="level-box"><div class="lk">SWING TP2</div><div class="lv green">${formatPrice(plan.tp2)}</div></div>
+                </div>
+              </div>
+              <div class="flex">
+                ${signalPill(action, signalClass)}
+              </div>
+            </div>
+          `;
+        }).join("");
       }
 
       function renderHighlights() {
         const el = $("highlightsList");
         if (!el) return;
-        const data = state.quotes.map(q => ({ q, score: getMomentumScore(q) + getWhaleScore(q) * 0.4 })).sort((a,b) => b.score - a.score).slice(0, 12);
-        el.innerHTML = data.length ? data.map(({ q }) => buildStockCard(q, calculateTradePlan(q, "standard"), `<strong>Öne çıkan setup</strong>`)).join("") : '<div class="empty">Fırsat yok</div>';
+
+        const data = state.quotes
+          .map(q => ({ q, score: getMomentumScore(q) + getWhaleScore(q) * 0.4 }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 12);
+
+        el.innerHTML = data.length
+          ? data.map(({ q }) =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "standard"),
+                `<strong>Öne çıkan setup</strong>`
+              )
+            ).join("")
+          : '<div class="empty">Fırsat yok</div>';
       }
 
       function renderAlerts() {
         const el = $("alertsList");
         if (!el) return;
-        const alerts = state.quotes.map(q => ({ q, plan: calculateTradePlan(q, "standard") })).filter(x => x.plan.signal === "AL" || x.plan.signal === "KAR AL").slice(0, 20);
-        el.innerHTML = alerts.length ? alerts.map(({ q, plan }) => buildStockCard(q, plan, `<strong>Alarm:</strong> ${plan.signal}`)).join("") : '<div class="empty">Alarm yok</div>';
+
+        const alerts = state.quotes
+          .map(q => ({ q, plan: calculateTradePlan(q, "standard") }))
+          .filter(x => x.plan.signal === "AL" || x.plan.signal === "KAR AL")
+          .slice(0, 20);
+
+        el.innerHTML = alerts.length
+          ? alerts.map(({ q, plan }) =>
+              buildStockCard(
+                q,
+                plan,
+                `<strong>Alarm:</strong> ${plan.signal}`
+              )
+            ).join("")
+          : '<div class="empty">Alarm yok</div>';
       }
 
       function addToWatchlist(symbol) {
@@ -982,8 +1497,26 @@
         const raw = await fetchQuotes(state.watchlist);
         const quotes = raw.map(normalizeQuote).filter(q => q.symbol && validPrice(q.regularMarketPrice));
 
-        list.innerHTML = quotes.length ? quotes.map(q => buildStockCard(q, calculateTradePlan(q, "standard"), `<strong>Watchlist</strong>`, true)).join("") : '<div class="empty">Watchlist verisi yok</div>';
-        sum.innerHTML = quotes.length ? quotes.slice(0, 6).map(q => buildStockCard(q, calculateTradePlan(q, "standard"), `<strong>Özet</strong>`)).join("") : '<div class="empty">Watchlist verisi yok</div>';
+        list.innerHTML = quotes.length
+          ? quotes.map(q =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "standard"),
+                `<strong>Watchlist</strong>`,
+                true
+              )
+            ).join("")
+          : '<div class="empty">Watchlist verisi yok</div>';
+
+        sum.innerHTML = quotes.length
+          ? quotes.slice(0, 6).map(q =>
+              buildStockCard(
+                q,
+                calculateTradePlan(q, "standard"),
+                `<strong>Özet</strong>`
+              )
+            ).join("")
+          : '<div class="empty">Watchlist verisi yok</div>';
 
         document.querySelectorAll(".remove-watch-btn").forEach(btn => {
           btn.onclick = () => removeFromWatchlist(btn.dataset.symbol);
@@ -1073,6 +1606,7 @@
           clearInterval(state.autoRefreshTimer);
           state.autoRefreshTimer = null;
         }
+
         const min = getAutoRefreshMinutes();
         if (min > 0) {
           state.autoRefreshTimer = setInterval(() => {
@@ -1123,7 +1657,10 @@
         $("scanPreAfterBtn")?.addEventListener("click", renderPreAfter);
         $("scanTomorrowBtn")?.addEventListener("click", renderTomorrow);
         $("scanX10Btn")?.addEventListener("click", renderX10);
-        $("refreshHighlightsBtn")?.addEventListener("click", () => { renderHighlights(); renderAlerts(); });
+        $("refreshHighlightsBtn")?.addEventListener("click", () => {
+          renderHighlights();
+          renderAlerts();
+        });
         $("refreshWatchSummaryBtn")?.addEventListener("click", () => refreshWatchlist().catch(console.error));
         $("refreshWatchBtn")?.addEventListener("click", () => refreshWatchlist().catch(console.error));
 
