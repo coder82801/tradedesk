@@ -36,635 +36,409 @@ const REVERSE_SYMBOL_MAP = {
   "^GSPC": "SP500"
 };
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function toNumber(value, fallback = null) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function sanitizeSymbol(symbol) {
-  const s = String(symbol || "").trim().toUpperCase();
-  const mapped = SYMBOL_MAP[s] || s;
-  return mapped.replace(/[^A-Z0-9.^\-]/g, "");
-}
-
-function parseSymbols(raw) {
-  return String(raw || "")
-    .split(",")
-    .map(sanitizeSymbol)
-    .filter(Boolean)
-    .filter((value, index, arr) => arr.indexOf(value) === index)
-    .slice(0, 300);
-}
-
-function displaySymbol(symbol) {
-  return REVERSE_SYMBOL_MAP[symbol] || symbol;
-}
-
-async function safeFetchJson(url, options = {}, retries = 2, timeoutMs = 10000) {
-  let lastError = null;
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        method: options.method || "GET",
-        headers: options.headers || DEFAULT_HEADERS,
-        body: options.body,
-        signal: controller.signal
-      });
-
-      clearTimeout(timeout);
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(`HTTP ${response.status}${text ? ` - ${text}` : ""}`);
-      }
-
-      const text = await response.text();
-
-      try {
-        return JSON.parse(text);
-      } catch (jsonError) {
-        throw new Error(`JSON parse error: ${jsonError.message}`);
-      }
-    } catch (error) {
-      clearTimeout(timeout);
-      lastError = error;
-
-      if (attempt < retries) {
-        await sleep(500 * (attempt + 1));
-      }
-    }
+/**
+ * Curated fundamental metadata layer
+ * NOTE:
+ * This is not a live SEC/financial API feed.
+ * It is a curated long-term conviction layer used to rank true multi-bagger-style candidates
+ * more intelligently than a pure technical scanner.
+ */
+const FUNDAMENTAL_DB = {
+  IONQ: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 8,
+    cash_runway_score: 7,
+    dilution_risk: 5,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.18,
+    notes: "Quantum computing leader narrative; high TAM; volatile but high upside profile."
+  },
+  RGTI: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.10,
+    notes: "Higher-risk quantum candidate with speculative upside."
+  },
+  QBTS: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.08,
+    notes: "Quantum theme strong; speculative execution profile."
+  },
+  QUBT: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 4,
+    dilution_risk: 8,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 4,
+    conviction_multiplier: 1.02,
+    notes: "High beta quantum exposure; weaker execution confidence."
+  },
+  PLTR: {
+    theme: "AI",
+    stage_bias: "mid",
+    narrative_quality: 10,
+    catalyst_strength: 9,
+    revenue_growth_score: 9,
+    cash_runway_score: 10,
+    dilution_risk: 2,
+    debt_pressure: 1,
+    addressable_market_score: 9,
+    execution_confidence: 9,
+    conviction_multiplier: 1.12,
+    notes: "High-quality AI platform; less likely true 10x from here than earlier stage names."
+  },
+  SOUN: {
+    theme: "AI",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 7,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.09,
+    notes: "Voice AI narrative strong; execution and financing still matter."
+  },
+  BBAI: {
+    theme: "AI",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 4,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.06,
+    notes: "Speculative AI/public sector theme."
+  },
+  RXRX: {
+    theme: "AI/Biotech",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 5,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.08,
+    notes: "AI drug discovery; high TAM, long commercialization path."
+  },
+  DNA: {
+    theme: "Biotech",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 6,
+    revenue_growth_score: 5,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 4,
+    addressable_market_score: 9,
+    execution_confidence: 4,
+    conviction_multiplier: 1.01,
+    notes: "Synthetic biology mega-story, but financing/execution risk elevated."
+  },
+  CTMX: {
+    theme: "Biotech",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.98,
+    notes: "Biotech catalyst-driven, high risk/high reward."
+  },
+  SOPA: {
+    theme: "Speculative Growth",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 5,
+    revenue_growth_score: 4,
+    cash_runway_score: 3,
+    dilution_risk: 9,
+    debt_pressure: 4,
+    addressable_market_score: 6,
+    execution_confidence: 3,
+    conviction_multiplier: 0.92,
+    notes: "Very speculative; should rarely outrank better quality names."
+  },
+  LUNR: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 7,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.12,
+    notes: "Lunar/space infrastructure narrative with contract catalyst appeal."
+  },
+  RKLB: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 8,
+    cash_runway_score: 8,
+    dilution_risk: 4,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 8,
+    conviction_multiplier: 1.15,
+    notes: "One of the stronger space execution stories."
+  },
+  ASTS: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 10,
+    catalyst_strength: 9,
+    revenue_growth_score: 5,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 10,
+    execution_confidence: 6,
+    conviction_multiplier: 1.10,
+    notes: "Huge TAM story; execution and financing still critical."
+  },
+  PL: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.00,
+    notes: "Space data/infrastructure theme; more selective treatment needed."
+  },
+  JOBY: {
+    theme: "eVTOL",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 3,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.06,
+    notes: "Strong TAM, pre-scale commercialization."
+  },
+  ACHR: {
+    theme: "eVTOL",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 3,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.04,
+    notes: "eVTOL upside, but capital needs remain important."
+  },
+  ENVX: {
+    theme: "Battery",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 4,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.05,
+    notes: "Battery innovation theme; execution still developing."
+  },
+  QS: {
+    theme: "Battery",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 2,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 4,
+    conviction_multiplier: 1.00,
+    notes: "Big battery narrative but long commercialization curve."
+  },
+  EOSE: {
+    theme: "Energy Storage",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 4,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.07,
+    notes: "Energy storage macro tailwind, but financing risk meaningful."
+  },
+  MARA: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.98,
+    notes: "Cycle-driven upside; more macro/BTC beta than pure business execution."
+  },
+  RIOT: {
+    theme: "Crypto Infra",
+    stage_bias: "mid",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.96,
+    notes: "Cycle-levered, less pure multi-bagger quality than top thematic names."
+  },
+  CLSK: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.98,
+    notes: "Crypto infrastructure exposure with cycle sensitivity."
+  },
+  HUT: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 5,
+    conviction_multiplier: 0.95,
+    notes: "Higher-risk crypto infra candidate."
+  },
+  IREN: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 5,
+    conviction_multiplier: 0.95,
+    notes: "Crypto infra, cycle-sensitive."
+  },
+  BITF: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 6,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.90,
+    notes: "Speculative crypto miner profile."
+  },
+  CIFR: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 6,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.90,
+    notes: "Speculative crypto miner profile."
   }
+};
 
-  throw lastError;
-}
-
-function normalizeQuoteShape(q = {}) {
-  const rawSymbol = q.symbol || "";
-  const shownSymbol = displaySymbol(rawSymbol);
+function getFundamentalMetadata(symbol) {
+  const upper = String(symbol || "").toUpperCase();
+  const item = FUNDAMENTAL_DB[upper];
+  if (!item) return null;
 
   return {
-    symbol: shownSymbol,
-    originalSymbol: rawSymbol,
-    shortName:
-      q.shortName ||
-      q.longName ||
-      q.displayName ||
-      shownSymbol ||
-      rawSymbol ||
-      "",
-    longName:
-      q.longName ||
-      q.shortName ||
-      q.displayName ||
-      shownSymbol ||
-      rawSymbol ||
-      "",
-    regularMarketPrice: toNumber(q.regularMarketPrice, null),
-    regularMarketChange: toNumber(q.regularMarketChange, 0),
-    regularMarketChangePercent: toNumber(q.regularMarketChangePercent, 0),
-    regularMarketOpen: toNumber(q.regularMarketOpen, null),
-    regularMarketDayHigh: toNumber(q.regularMarketDayHigh, null),
-    regularMarketDayLow: toNumber(q.regularMarketDayLow, null),
-    regularMarketPreviousClose: toNumber(q.regularMarketPreviousClose, null),
-    regularMarketVolume: toNumber(q.regularMarketVolume, 0),
-    averageVolume: toNumber(q.averageVolume, null),
-    averageDailyVolume3Month: toNumber(q.averageDailyVolume3Month, null),
-    marketCap: toNumber(q.marketCap, null),
-    fiftyTwoWeekHigh: toNumber(q.fiftyTwoWeekHigh, null),
-    fiftyTwoWeekLow: toNumber(q.fiftyTwoWeekLow, null),
-    trailingPE: toNumber(q.trailingPE, null),
-    forwardPE: toNumber(q.forwardPE, null),
-    bid: toNumber(q.bid, null),
-    ask: toNumber(q.ask, null),
-    preMarketPrice: toNumber(q.preMarketPrice, null),
-    preMarketChange: toNumber(q.preMarketChange, null),
-    preMarketChangePercent: toNumber(q.preMarketChangePercent, null),
-    postMarketPrice: toNumber(q.postMarketPrice, null),
-    postMarketChange: toNumber(q.postMarketChange, null),
-    postMarketChangePercent: toNumber(q.postMarketChangePercent, null),
-    shortNameSafe:
-      q.shortNameSafe ||
-      q.shortName ||
-      q.longName ||
-      shownSymbol ||
-      rawSymbol ||
-      "",
-    exchange: q.exchange || "",
-    quoteType: q.quoteType || "",
-    currency: q.currency || "USD",
-    sourceInterval: q.sourceInterval || null,
-    region: q.region || "",
-    shortPercentOfFloat: toNumber(q.shortPercentOfFloat, null)
+    symbol: upper,
+    ...item
   };
 }
 
-function normalizeYahooQuote(q = {}) {
-  return normalizeQuoteShape({
-    symbol: q.symbol || "",
-    shortName: q.shortName || q.longName || q.displayName || q.symbol || "",
-    longName: q.longName || q.shortName || q.displayName || q.symbol || "",
-    regularMarketPrice: toNumber(q.regularMarketPrice, null),
-    regularMarketChange: toNumber(q.regularMarketChange, 0),
-    regularMarketChangePercent: toNumber(q.regularMarketChangePercent, 0),
-    regularMarketOpen: toNumber(q.regularMarketOpen, null),
-    regularMarketDayHigh: toNumber(q.regularMarketDayHigh, null),
-    regularMarketDayLow: toNumber(q.regularMarketDayLow, null),
-    regularMarketPreviousClose: toNumber(q.regularMarketPreviousClose, null),
-    regularMarketVolume: toNumber(q.regularMarketVolume, 0),
-    averageVolume: toNumber(q.averageVolume, null),
-    averageDailyVolume3Month: toNumber(q.averageDailyVolume3Month, null),
-    marketCap: toNumber(q.marketCap, null),
-    fiftyTwoWeekHigh: toNumber(q.fiftyTwoWeekHigh, null),
-    fiftyTwoWeekLow: toNumber(q.fiftyTwoWeekLow, null),
-    trailingPE: toNumber(q.trailingPE, null),
-    forwardPE: toNumber(q.forwardPE, null),
-    bid: toNumber(q.bid, null),
-    ask: toNumber(q.ask, null),
-    preMarketPrice: toNumber(q.preMarketPrice, null),
-    preMarketChange: toNumber(q.preMarketChange, null),
-    preMarketChangePercent: toNumber(q.preMarketChangePercent, null),
-    postMarketPrice: toNumber(q.postMarketPrice, null),
-    postMarketChange: toNumber(q.postMarketChange, null),
-    postMarketChangePercent: toNumber(q.postMarketChangePercent, null),
-    shortNameSafe: q.shortName || q.longName || q.symbol || "",
-    exchange: q.fullExchangeName || q.exchange || "",
-    quoteType: q.quoteType || "",
-    currency: q.currency || "USD",
-    sourceInterval: q.sourceInterval || null,
-    region: q.region || "",
-    shortPercentOfFloat: toNumber(q.shortPercentOfFloat, null)
-  });
-}
-
-function buildFallbackQuote(symbol, chartMeta = {}, chartResult = {}) {
-  const meta = chartMeta || {};
-  const indicators = chartResult?.indicators?.quote?.[0] || {};
-  const closes = chartResult?.indicators?.adjclose?.[0]?.adjclose || [];
-  const volumes = indicators?.volume || [];
-  const highs = indicators?.high || [];
-  const lows = indicators?.low || [];
-  const opens = indicators?.open || [];
-
-  const validCloseSeries = closes.filter((x) => Number.isFinite(Number(x))).map(Number);
-  const validVolumeSeries = volumes.filter((x) => Number.isFinite(Number(x))).map(Number);
-  const validHighSeries = highs.filter((x) => Number.isFinite(Number(x))).map(Number);
-  const validLowSeries = lows.filter((x) => Number.isFinite(Number(x))).map(Number);
-  const validOpenSeries = opens.filter((x) => Number.isFinite(Number(x))).map(Number);
-
-  const price =
-    toNumber(meta.regularMarketPrice, null) ??
-    (validCloseSeries.length ? validCloseSeries[validCloseSeries.length - 1] : null);
-
-  const prevClose =
-    toNumber(meta.previousClose, null) ??
-    toNumber(meta.chartPreviousClose, null) ??
-    (validCloseSeries.length >= 2 ? validCloseSeries[validCloseSeries.length - 2] : null);
-
-  const change = price != null && prevClose != null ? price - prevClose : 0;
-  const changePercent =
-    price != null && prevClose != null && prevClose !== 0 ? (change / prevClose) * 100 : 0;
-
-  const avgVolume =
-    validVolumeSeries.length > 1
-      ? validVolumeSeries.reduce((a, b) => a + b, 0) / validVolumeSeries.length
-      : validVolumeSeries[0] || null;
-
-  return normalizeQuoteShape({
-    symbol,
-    shortName: displaySymbol(symbol),
-    longName: displaySymbol(symbol),
-    regularMarketPrice: price,
-    regularMarketChange: change,
-    regularMarketChangePercent: changePercent,
-    regularMarketOpen: toNumber(
-      meta.regularMarketOpen,
-      validOpenSeries[validOpenSeries.length - 1] || null
-    ),
-    regularMarketDayHigh: toNumber(
-      meta.regularMarketDayHigh,
-      validHighSeries[validHighSeries.length - 1] || null
-    ),
-    regularMarketDayLow: toNumber(
-      meta.regularMarketDayLow,
-      validLowSeries[validLowSeries.length - 1] || null
-    ),
-    regularMarketPreviousClose: prevClose,
-    regularMarketVolume: toNumber(
-      meta.regularMarketVolume,
-      validVolumeSeries[validVolumeSeries.length - 1] || 0
-    ),
-    averageVolume: avgVolume,
-    averageDailyVolume3Month: avgVolume,
-    marketCap: toNumber(meta.marketCap, null),
-    fiftyTwoWeekHigh: toNumber(
-      meta.fiftyTwoWeekHigh,
-      validHighSeries.length ? Math.max(...validHighSeries) : null
-    ),
-    fiftyTwoWeekLow: toNumber(
-      meta.fiftyTwoWeekLow,
-      validLowSeries.length ? Math.min(...validLowSeries) : null
-    ),
-    trailingPE: null,
-    forwardPE: null,
-    bid: null,
-    ask: null,
-    preMarketPrice: null,
-    preMarketChange: null,
-    preMarketChangePercent: null,
-    postMarketPrice: null,
-    postMarketChange: null,
-    postMarketChangePercent: null,
-    shortNameSafe: displaySymbol(symbol),
-    exchange: meta.exchangeName || "",
-    quoteType: meta.instrumentType || "",
-    currency: meta.currency || "USD",
-    sourceInterval: meta.dataGranularity || null,
-    region: "",
-    shortPercentOfFloat: null
-  });
-}
-
-function mapAlpacaBarsToQuote(symbol, bars = []) {
-  const validBars = Array.isArray(bars) ? bars : [];
-
-  if (!validBars.length) {
-    return normalizeQuoteShape({
-      symbol,
-      shortName: displaySymbol(symbol),
-      longName: displaySymbol(symbol),
-      regularMarketPrice: null,
-      regularMarketChange: 0,
-      regularMarketChangePercent: 0,
-      regularMarketOpen: null,
-      regularMarketDayHigh: null,
-      regularMarketDayLow: null,
-      regularMarketPreviousClose: null,
-      regularMarketVolume: 0,
-      averageVolume: null,
-      averageDailyVolume3Month: null,
-      marketCap: null,
-      fiftyTwoWeekHigh: null,
-      fiftyTwoWeekLow: null,
-      trailingPE: null,
-      forwardPE: null,
-      bid: null,
-      ask: null,
-      preMarketPrice: null,
-      preMarketChange: null,
-      preMarketChangePercent: null,
-      postMarketPrice: null,
-      postMarketChange: null,
-      postMarketChangePercent: null,
-      shortNameSafe: displaySymbol(symbol),
-      exchange: "Alpaca",
-      quoteType: "EQUITY",
-      currency: "USD",
-      sourceInterval: "1Day",
-      region: "US",
-      shortPercentOfFloat: null
-    });
-  }
-
-  const last = validBars[validBars.length - 1];
-  const prev = validBars.length >= 2 ? validBars[validBars.length - 2] : null;
-
-  const price = toNumber(last.c, null);
-  const open = toNumber(last.o, null);
-  const high = toNumber(last.h, null);
-  const low = toNumber(last.l, null);
-  const volume = toNumber(last.v, 0);
-  const prevClose = prev ? toNumber(prev.c, null) : open;
-
-  const change = price != null && prevClose != null ? price - prevClose : 0;
-  const changePercent =
-    price != null && prevClose != null && prevClose !== 0 ? (change / prevClose) * 100 : 0;
-
-  const volumes = validBars.map((b) => toNumber(b.v, 0)).filter((x) => Number.isFinite(x));
-  const avgVolume = volumes.length
-    ? volumes.reduce((a, b) => a + b, 0) / volumes.length
-    : null;
-
-  const highs = validBars.map((b) => toNumber(b.h, null)).filter((x) => x != null);
-  const lows = validBars.map((b) => toNumber(b.l, null)).filter((x) => x != null);
-
-  return normalizeQuoteShape({
-    symbol,
-    shortName: displaySymbol(symbol),
-    longName: displaySymbol(symbol),
-    regularMarketPrice: price,
-    regularMarketChange: change,
-    regularMarketChangePercent: changePercent,
-    regularMarketOpen: open,
-    regularMarketDayHigh: high,
-    regularMarketDayLow: low,
-    regularMarketPreviousClose: prevClose,
-    regularMarketVolume: volume,
-    averageVolume: avgVolume,
-    averageDailyVolume3Month: avgVolume,
-    marketCap: null,
-    fiftyTwoWeekHigh: highs.length ? Math.max(...highs) : null,
-    fiftyTwoWeekLow: lows.length ? Math.min(...lows) : null,
-    trailingPE: null,
-    forwardPE: null,
-    bid: null,
-    ask: null,
-    preMarketPrice: null,
-    preMarketChange: null,
-    preMarketChangePercent: null,
-    postMarketPrice: null,
-    postMarketChange: null,
-    postMarketChangePercent: null,
-    shortNameSafe: displaySymbol(symbol),
-    exchange: "Alpaca",
-    quoteType: "EQUITY",
-    currency: "USD",
-    sourceInterval: "1Day",
-    region: "US",
-    shortPercentOfFloat: null
-  });
-}
-
-async function fetchAlpacaBars(symbols) {
-  if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY || !symbols.length) {
-    return [];
-  }
-
-  const now = new Date();
-  const end = now.toISOString();
-  const start = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString();
-
-  const equitySymbols = symbols.filter((s) => !s.startsWith("^"));
-  if (!equitySymbols.length) {
-    return [];
-  }
-
-  const url =
-    `${ALPACA_BASE_URL}/stocks/bars?symbols=${encodeURIComponent(equitySymbols.join(","))}` +
-    `&timeframe=1Day&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` +
-    `&adjustment=raw&feed=iex&sort=asc&limit=15`;
-
-  const data = await safeFetchJson(
-    url,
-    {
-      headers: {
-        accept: "application/json",
-        "APCA-API-KEY-ID": ALPACA_API_KEY,
-        "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY
-      }
-    },
-    1,
-    12000
-  );
-
-  const barsMap = data?.bars || {};
-  return equitySymbols.map((symbol) => mapAlpacaBarsToQuote(symbol, barsMap[symbol] || []));
-}
-
-async function fetchYahooBatchQuotes(symbols) {
-  if (!symbols.length) return [];
-
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(
-    symbols.join(",")
-  )}`;
-
-  const data = await safeFetchJson(
-    url,
-    { headers: DEFAULT_HEADERS },
-    1,
-    9000
-  );
-
-  const results = data?.quoteResponse?.result || [];
-  return Array.isArray(results) ? results.map(normalizeYahooQuote) : [];
-}
-
-async function fetchYahooChartFallback(symbol) {
-  const intervals = [
-    { range: "5d", interval: "1d" },
-    { range: "1mo", interval: "1d" }
-  ];
-
-  for (const item of intervals) {
-    try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
-        symbol
-      )}?range=${item.range}&interval=${item.interval}&includePrePost=true`;
-
-      const data = await safeFetchJson(
-        url,
-        { headers: DEFAULT_HEADERS },
-        1,
-        9000
-      );
-
-      const result = data?.chart?.result?.[0];
-
-      if (result) {
-        const built = buildFallbackQuote(symbol, result.meta, result);
-        if (built && built.regularMarketPrice != null) {
-          return built;
-        }
-      }
-    } catch (error) {
-      console.error(`YAHOO FALLBACK ERROR [${symbol}]:`, error.message);
-    }
-  }
-
-  return normalizeQuoteShape({
-    symbol,
-    shortName: displaySymbol(symbol),
-    longName: displaySymbol(symbol),
-    regularMarketPrice: null,
-    regularMarketChange: 0,
-    regularMarketChangePercent: 0,
-    regularMarketOpen: null,
-    regularMarketDayHigh: null,
-    regularMarketDayLow: null,
-    regularMarketPreviousClose: null,
-    regularMarketVolume: 0,
-    averageVolume: null,
-    averageDailyVolume3Month: null,
-    marketCap: null,
-    fiftyTwoWeekHigh: null,
-    fiftyTwoWeekLow: null,
-    trailingPE: null,
-    forwardPE: null,
-    bid: null,
-    ask: null,
-    preMarketPrice: null,
-    preMarketChange: null,
-    preMarketChangePercent: null,
-    postMarketPrice: null,
-    postMarketChange: null,
-    postMarketChangePercent: null,
-    shortNameSafe: displaySymbol(symbol),
-    exchange: "",
-    quoteType: "",
-    currency: "USD",
-    sourceInterval: null,
-    region: "",
-    shortPercentOfFloat: null
-  });
-}
-
-async function fetchYahooQuotesWithFallback(symbols) {
-  const batchMap = new Map();
-
-  try {
-    const batchQuotes = await fetchYahooBatchQuotes(symbols);
-    for (const q of batchQuotes) {
-      if (q?.originalSymbol) batchMap.set(q.originalSymbol, q);
-      else if (q?.symbol) batchMap.set(q.symbol, q);
-    }
-  } catch (error) {
-    console.error("YAHOO BATCH ERROR:", error.message);
-  }
-
-  const finalResults = [];
-
-  for (const symbol of symbols) {
-    const existing = batchMap.get(symbol);
-
-    if (existing && existing.regularMarketPrice != null) {
-      finalResults.push(existing);
-      continue;
-    }
-
-    try {
-      const fallback = await fetchYahooChartFallback(symbol);
-      finalResults.push(fallback);
-    } catch (error) {
-      finalResults.push(
-        normalizeQuoteShape({
-          symbol,
-          shortName: displaySymbol(symbol),
-          longName: displaySymbol(symbol),
-          regularMarketPrice: null,
-          regularMarketChange: 0,
-          regularMarketChangePercent: 0,
-          regularMarketOpen: null,
-          regularMarketDayHigh: null,
-          regularMarketDayLow: null,
-          regularMarketPreviousClose: null,
-          regularMarketVolume: 0,
-          averageVolume: null,
-          averageDailyVolume3Month: null,
-          marketCap: null,
-          fiftyTwoWeekHigh: null,
-          fiftyTwoWeekLow: null,
-          trailingPE: null,
-          forwardPE: null,
-          bid: null,
-          ask: null,
-          preMarketPrice: null,
-          preMarketChange: null,
-          preMarketChangePercent: null,
-          postMarketPrice: null,
-          postMarketChange: null,
-          postMarketChangePercent: null,
-          shortNameSafe: displaySymbol(symbol),
-          exchange: "",
-          quoteType: "",
-          currency: "USD",
-          sourceInterval: null,
-          region: "",
-          shortPercentOfFloat: null
-        })
-      );
-    }
-
-    await sleep(120);
-  }
-
-  return finalResults;
-}
-
-async function getQuotesWithFallback(symbols) {
-  let alpacaQuotes = [];
-
-  if (ALPACA_API_KEY && ALPACA_SECRET_KEY) {
-    try {
-      alpacaQuotes = await fetchAlpacaBars(symbols);
-    } catch (error) {
-      console.error("ALPACA ERROR:", error.message);
-    }
-  } else {
-    console.log("ALPACA keys not set, using Yahoo fallback only.");
-  }
-
-  const alpacaMap = new Map(
-    alpacaQuotes
-      .filter((q) => q && q.originalSymbol)
-      .map((q) => [q.originalSymbol, q])
-  );
-
-  const missingSymbols = symbols.filter((symbol) => {
-    const q = alpacaMap.get(symbol);
-    return !q || q.regularMarketPrice == null;
-  });
-
-  let yahooQuotes = [];
-  if (missingSymbols.length) {
-    yahooQuotes = await fetchYahooQuotesWithFallback(missingSymbols);
-  }
-
-  const yahooMap = new Map(
-    yahooQuotes
-      .filter((q) => q && q.originalSymbol)
-      .map((q) => [q.originalSymbol, q])
-  );
-
-  return symbols.map((symbol) => {
-    const alpaca = alpacaMap.get(symbol);
-    if (alpaca && alpaca.regularMarketPrice != null) return alpaca;
-
-    const yahoo = yahooMap.get(symbol);
-    if (yahoo) return yahoo;
-
-    return normalizeQuoteShape({
-      symbol,
-      shortName: displaySymbol(symbol),
-      longName: displaySymbol(symbol),
-      regularMarketPrice: null,
-      regularMarketChange: 0,
-      regularMarketChangePercent: 0,
-      regularMarketOpen: null,
-      regularMarketDayHigh: null,
-      regularMarketDayLow: null,
-      regularMarketPreviousClose: null,
-      regularMarketVolume: 0,
-      averageVolume: null,
-      averageDailyVolume3Month: null,
-      marketCap: null,
-      fiftyTwoWeekHigh: null,
-      fiftyTwoWeekLow: null,
-      trailingPE: null,
-      forwardPE: null,
-      bid: null,
-      ask: null,
-      preMarketPrice: null,
-      preMarketChange: null,
-      preMarketChangePercent: null,
-      postMarketPrice: null,
-      postMarketChange: null,
-      postMarketChangePercent: null,
-      shortNameSafe: displaySymbol(symbol),
-      exchange: "",
-      quoteType: "",
-      currency: "USD",
-      sourceInterval: null,
-      region: "",
-      shortPercentOfFloat: null
-    });
-  });
+function getFundamentalsForSymbols(symbols) {
+  return symbols
+    .map((s) => getFundamentalMetadata(s))
+    .filter(Boolean);
 }
 
 app.get("/", (req, res) => {
@@ -676,8 +450,34 @@ app.get("/health", (req, res) => {
     ok: true,
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
-    alpacaConfigured: Boolean(ALPACA_API_KEY && ALPACA_SECRET_KEY)
+    alpacaConfigured: Boolean(ALPACA_API_KEY && ALPACA_SECRET_KEY),
+    fundamentalsCount: Object.keys(FUNDAMENTAL_DB).length
   });
+});
+
+app.get("/api/fundamentals", (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+    const result = symbols.length
+      ? getFundamentalsForSymbols(symbols)
+      : Object.values(FUNDAMENTAL_DB);
+
+    return res.json({
+      fundamentalsResponse: {
+        result,
+        error: null
+      }
+    });
+  } catch (error) {
+    console.error("FUNDAMENTALS ERROR:", error.message);
+    return res.status(500).json({
+      fundamentalsResponse: {
+        result: [],
+        error: "Fundamental metadata alınamadı"
+      },
+      details: error.message
+    });
+  }
 });
 
 app.get("/api/quote", async (req, res) => {
