@@ -3,1910 +3,1497 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDesk v3 Pro Signal Engine</title>
+  <title>TradeDesk Pro</title>
   <style>
     :root{
-      --bg:#07101f;
-      --bg2:#0a1430;
-      --panel:#121c3d;
-      --panel2:#17254d;
-      --soft:#21325f;
-      --text:#edf3ff;
-      --muted:#9fb1df;
+      --bg:#071226;
+      --panel:#0d1b34;
+      --panel-2:#102142;
+      --card:#12284d;
+      --border:rgba(255,255,255,.08);
+      --text:#eef4ff;
+      --muted:#9fb4d9;
       --green:#22c55e;
       --red:#ef4444;
       --yellow:#f59e0b;
-      --blue:#38bdf8;
-      --purple:#8b5cf6;
-      --border:1px solid rgba(255,255,255,.08);
-      --radius:20px;
-      --radius-sm:14px;
-      --shadow:0 14px 40px rgba(0,0,0,.28);
+      --blue:#3b82f6;
+      --cyan:#06b6d4;
+      --violet:#8b5cf6;
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+      --radius:18px;
     }
 
     *{box-sizing:border-box}
     html,body{
       margin:0;
       padding:0;
-      background:
-        radial-gradient(circle at top left, rgba(75,85,255,.14), transparent 28%),
-        linear-gradient(180deg, #06101f 0%, #091225 100%);
+      background:linear-gradient(180deg,#04101f 0%, #08162b 100%);
       color:var(--text);
-      font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      min-height:100%;
     }
 
-    button,input,select{font:inherit}
-    .hidden{display:none !important}
+    button,input,select{
+      font:inherit;
+    }
 
-    .login-wrap{
+    .app{
+      display:grid;
+      grid-template-columns: 280px 1fr;
       min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
     }
 
-    .login-card{
-      width:100%;
-      max-width:430px;
-      background:linear-gradient(180deg, rgba(18,28,61,.96), rgba(14,22,47,.96));
-      border:var(--border);
-      border-radius:24px;
-      box-shadow:var(--shadow);
-      padding:28px;
+    .sidebar{
+      background:linear-gradient(180deg,#081833 0%, #09152a 100%);
+      border-right:1px solid var(--border);
+      padding:20px 16px;
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow:auto;
     }
 
     .brand{
       display:flex;
-      gap:14px;
       align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:rgba(255,255,255,.03);
+      box-shadow:var(--shadow);
     }
 
-    .brand-badge{
-      width:48px;
-      height:48px;
+    .brand-logo{
+      width:44px;
+      height:44px;
       border-radius:14px;
-      background:linear-gradient(135deg, #38bdf8, #7c3aed);
       display:grid;
       place-items:center;
-      font-size:24px;
-      font-weight:800;
+      background:linear-gradient(135deg,#60a5fa,#8b5cf6);
+      font-size:22px;
+      font-weight:700;
     }
 
-    .title{
+    .brand h1{
+      font-size:22px;
       margin:0;
-      font-size:28px;
-      font-weight:800;
-      letter-spacing:.2px;
+      line-height:1.1;
     }
 
-    .subtitle{
-      margin:6px 0 0 0;
+    .brand p{
+      margin:3px 0 0 0;
       color:var(--muted);
-      font-size:14px;
-      line-height:1.45;
+      font-size:12px;
     }
 
-    .field{margin-top:16px}
-    .field label{
-      display:block;
-      margin-bottom:8px;
+    .login-box{
+      margin-top:20px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:rgba(255,255,255,.03);
+      padding:16px;
+    }
+
+    .login-box h2{
+      margin:0 0 10px 0;
+      font-size:18px;
+    }
+
+    .muted{
       color:var(--muted);
       font-size:13px;
+      line-height:1.5;
     }
 
-    .input,.select,.btn{
+    .field{
+      margin-top:12px;
+    }
+
+    .field label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .field input, .field select{
       width:100%;
-      border-radius:14px;
       padding:12px 14px;
-      border:1px solid rgba(255,255,255,.1);
-      background:#0b1634;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#0a1730;
       color:var(--text);
       outline:none;
     }
 
-    .input:focus,.select:focus{
-      border-color:rgba(56,189,248,.6);
-      box-shadow:0 0 0 3px rgba(56,189,248,.15);
-    }
-
     .btn{
-      cursor:pointer;
-      font-weight:800;
       border:none;
-      transition:.18s ease;
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
+      cursor:pointer;
+      border-radius:14px;
+      padding:12px 14px;
+      color:white;
+      font-weight:700;
+      transition:transform .15s ease, opacity .15s ease;
     }
 
-    .btn:hover{transform:translateY(-1px)}
-    .btn.secondary{
-      background:#162448;
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .btn.ghost{
-      background:transparent;
-      border:1px solid rgba(255,255,255,.09);
-    }
-    .btn.green{
-      background:linear-gradient(135deg,#15803d,#22c55e);
-    }
-    .btn.red{
-      background:linear-gradient(135deg,#b91c1c,#ef4444);
+    .btn:hover{
+      transform:translateY(-1px);
     }
 
-    .error{
+    .btn:active{
+      transform:translateY(0);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+      width:100%;
+      margin-top:14px;
+    }
+
+    .btn-ghost{
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      color:var(--text);
+    }
+
+    .status{
       margin-top:12px;
-      padding:10px 12px;
-      border-radius:12px;
-      background:rgba(127,29,29,.28);
-      color:#fecaca;
-      border:1px solid rgba(239,68,68,.24);
+      min-height:20px;
       font-size:13px;
     }
 
-    .app-shell{
-      min-height:100vh;
-      padding:18px;
+    .status.error{ color:#fca5a5; }
+    .status.ok{ color:#86efac; }
+
+    .nav{
+      margin-top:18px;
+      display:grid;
+      gap:8px;
+    }
+
+    .nav button{
+      text-align:left;
+      background:transparent;
+      color:var(--text);
+      border:1px solid transparent;
+      padding:12px 14px;
+      border-radius:14px;
+      cursor:pointer;
+    }
+
+    .nav button:hover{
+      background:rgba(255,255,255,.04);
+      border-color:var(--border);
+    }
+
+    .nav button.active{
+      background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(139,92,246,.18));
+      border-color:rgba(96,165,250,.35);
+    }
+
+    .side-footer{
+      margin-top:18px;
+      padding-top:16px;
+      border-top:1px solid var(--border);
+      display:grid;
+      gap:10px;
+    }
+
+    .small-note{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .content{
+      padding:22px;
+      overflow:auto;
     }
 
     .topbar{
       display:flex;
       justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-      margin-bottom:16px;
-    }
-
-    .topbar-right{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
       align-items:center;
-    }
-
-    .version{
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
-    }
-
-    .flex{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#132148;
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:12px;
-      line-height:1;
-    }
-
-    .ticker-grid{
-      display:grid;
-      grid-template-columns: repeat(6,minmax(0,1fr));
       gap:12px;
-      margin-bottom:16px;
-    }
-
-    .mini-card,.card{
-      background:linear-gradient(180deg, rgba(24,36,75,.98), rgba(14,22,46,.98));
-      border:var(--border);
-      box-shadow:var(--shadow);
-      border-radius:var(--radius);
-    }
-
-    .mini-card{
-      padding:18px;
-      min-height:118px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    }
-
-    .mini-label{
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom:8px;
-    }
-
-    .mini-value{
-      font-size:26px;
-      font-weight:800;
-      line-height:1.05;
-      word-break:break-word;
-    }
-
-    .mini-change{
-      margin-top:8px;
-      font-size:13px;
-      font-weight:700;
-      color:var(--muted);
-    }
-
-    .tabs-wrap{
-      margin-bottom:16px;
-    }
-
-    .tabs{
-      display:flex;
+      margin-bottom:20px;
       flex-wrap:wrap;
-      gap:8px;
     }
 
-    .tab-btn{
-      border:none;
-      border-radius:999px;
-      padding:12px 18px;
-      background:#152247;
-      color:var(--text);
-      cursor:pointer;
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.08);
+    .title-wrap h2{
+      margin:0;
+      font-size:30px;
+      letter-spacing:.2px;
     }
 
-    .tab-btn.active{
-      background:linear-gradient(135deg,#4f46e5,#8b5cf6);
+    .title-wrap p{
+      margin:6px 0 0 0;
+      color:var(--muted);
+      font-size:14px;
     }
 
-    .page{display:none}
-    .page.active{display:block}
+    .topbar-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
-    .grid-2{
+    .grid{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
       gap:16px;
+    }
+
+    .grid-4{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+
+    .grid-3{
+      grid-template-columns:repeat(3,minmax(0,1fr));
     }
 
     .card{
-      padding:16px;
+      background:linear-gradient(180deg,rgba(18,40,77,.96),rgba(13,27,52,.96));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
     }
 
     .card-head{
       display:flex;
       justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .card-title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .card-sub{
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
-      line-height:1.45;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
       align-items:center;
+      gap:10px;
+      padding:16px 18px;
+      border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.02);
     }
 
-    .stats-row{
-      display:grid;
-      grid-template-columns: repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-bottom:12px;
+    .card-head h3{
+      margin:0;
+      font-size:17px;
+    }
+
+    .card-head .tag{
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+    }
+
+    .card-body{
+      padding:16px 18px;
     }
 
     .stat{
-      background:#0e1836;
-      border:1px solid rgba(255,255,255,.07);
-      border-radius:14px;
-      padding:12px;
+      padding:18px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
     }
 
-    .stat .k{
+    .stat .label{
       color:var(--muted);
-      font-size:12px;
+      font-size:13px;
       margin-bottom:8px;
     }
 
-    .stat .v{
-      font-size:20px;
+    .stat .value{
+      font-size:30px;
       font-weight:800;
-      line-height:1.1;
-      word-break:break-word;
+      letter-spacing:.2px;
     }
 
-    .toolbar{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:12px;
-    }
-
-    .toolbar .input,.toolbar .select{
-      flex:1 1 180px;
-      width:auto;
-      min-width:140px;
-    }
-
-    .list{
-      display:grid;
-      gap:10px;
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 110px 1fr 92px 92px 110px 110px;
-      gap:10px;
-      align-items:center;
-      background:#0d1735;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .row.header{
-      background:transparent;
-      border:none;
-      padding:0 4px 6px 4px;
+    .stat .sub{
+      margin-top:8px;
+      font-size:13px;
       color:var(--muted);
-      font-size:12px;
-      font-weight:800;
     }
 
-    .watchlist-item{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-      background:#0d1735;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:14px;
-      padding:12px;
+    .table-wrap{
+      overflow:auto;
+      width:100%;
     }
 
-    .symbol{
-      font-weight:800;
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:980px;
+    }
+
+    th,td{
+      padding:12px 10px;
+      text-align:left;
+      border-bottom:1px solid rgba(255,255,255,.06);
       font-size:14px;
+      vertical-align:middle;
     }
 
-    .name{
-      color:var(--muted);
-      font-size:13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    th{
+      color:#cfe0ff;
+      font-weight:700;
+      position:sticky;
+      top:0;
+      background:#102142;
+      z-index:1;
     }
 
-    .note-lines{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.55;
-      margin-top:4px;
-      white-space:normal;
+    tr:hover td{
+      background:rgba(255,255,255,.02);
+    }
+
+    .ticker{
+      font-weight:800;
+      letter-spacing:.3px;
     }
 
     .pill{
       display:inline-flex;
       align-items:center;
-      justify-content:center;
-      min-width:84px;
-      padding:8px 10px;
+      gap:6px;
+      padding:6px 10px;
       border-radius:999px;
+      border:1px solid var(--border);
       font-size:12px;
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.08);
-      background:#152144;
       white-space:nowrap;
     }
 
-    .signal-strong{background:rgba(34,197,94,.15);color:#86efac}
-    .signal-mid{background:rgba(245,158,11,.15);color:#fcd34d}
-    .signal-low{background:rgba(59,130,246,.15);color:#93c5fd}
-    .signal-risk{background:rgba(239,68,68,.15);color:#fca5a5}
-    .signal-buy{background:rgba(34,197,94,.20);color:#bbf7d0}
-    .signal-watch{background:rgba(245,158,11,.18);color:#fde68a}
-    .signal-sell{background:rgba(59,130,246,.16);color:#bfdbfe}
-    .signal-avoid{background:rgba(239,68,68,.18);color:#fecaca}
+    .pill.green{ color:#86efac; border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.08);}
+    .pill.red{ color:#fca5a5; border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.08);}
+    .pill.yellow{ color:#fde68a; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.08);}
+    .pill.blue{ color:#93c5fd; border-color:rgba(59,130,246,.35); background:rgba(59,130,246,.08);}
+    .pill.cyan{ color:#67e8f9; border-color:rgba(6,182,212,.35); background:rgba(6,182,212,.08);}
+    .pill.violet{ color:#c4b5fd; border-color:rgba(139,92,246,.35); background:rgba(139,92,246,.08);}
 
-    .green{color:#86efac}
-    .red{color:#fca5a5}
-    .yellow{color:#fcd34d}
-    .muted{color:var(--muted)}
-    .strong{font-weight:800}
-    .small{font-size:12px;color:var(--muted)}
+    .num-green{ color:#86efac; font-weight:700; }
+    .num-red{ color:#fca5a5; font-weight:700; }
+    .num-yellow{ color:#fde68a; font-weight:700; }
+    .num-blue{ color:#93c5fd; font-weight:700; }
 
     .empty{
       padding:18px;
-      border-radius:14px;
-      background:#0b1531;
-      border:1px dashed rgba(255,255,255,.1);
-      color:var(--muted);
-      text-align:center;
-    }
-
-    .watch-add{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:12px;
-    }
-
-    .watch-add .input{
-      flex:1 1 180px;
-    }
-
-    .iframe-wrap{
-      height:560px;
+      border:1px dashed rgba(255,255,255,.12);
       border-radius:16px;
-      overflow:hidden;
-      background:#071228;
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    iframe{
-      width:100%;
-      height:100%;
-      border:none;
-    }
-
-    .risk-grid{
-      display:grid;
-      grid-template-columns: repeat(2,minmax(0,1fr));
-      gap:10px;
-    }
-
-    .result-grid{
-      display:grid;
-      grid-template-columns: repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .footer-note{
       color:var(--muted);
-      font-size:13px;
-      line-height:1.55;
+      background:rgba(255,255,255,.02);
+      font-size:14px;
+      line-height:1.6;
     }
 
-    .levels{
-      margin-top:8px;
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:8px;
+    .hidden{
+      display:none !important;
     }
 
-    .level-box{
-      background:#0a1430;
-      border:1px solid rgba(255,255,255,.06);
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .toolbar input, .toolbar select{
+      background:#0a1730;
+      color:var(--text);
+      border:1px solid var(--border);
       border-radius:12px;
-      padding:8px;
+      padding:10px 12px;
+      min-width:180px;
     }
 
-    .level-box .lk{
-      font-size:11px;
+    .badge{
+      font-size:12px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:6px 10px;
       color:var(--muted);
-      margin-bottom:4px;
+      background:rgba(255,255,255,.03);
     }
 
-    .level-box .lv{
-      font-size:13px;
-      font-weight:800;
-      word-break:break-word;
+    .loader{
+      display:inline-block;
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.2);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin .9s linear infinite;
+      vertical-align:middle;
+      margin-right:8px;
     }
 
-    hr.sep{
-      border:none;
-      border-top:1px solid rgba(255,255,255,.08);
-      margin:18px 0;
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
     }
 
-    @media (max-width:1200px){
-      .ticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .grid-2{grid-template-columns:1fr}
-      .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .levels{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media (max-width: 1200px){
+      .grid-4{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .grid-3{ grid-template-columns:repeat(2,minmax(0,1fr)); }
     }
 
-    @media (max-width:780px){
-      .app-shell{padding:12px}
-      .ticker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .risk-grid{grid-template-columns:1fr}
-      .row{grid-template-columns:1fr;gap:6px}
-      .row.header{display:none}
+    @media (max-width: 900px){
+      .app{ grid-template-columns:1fr; }
+      .sidebar{
+        height:auto;
+        position:relative;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+      }
     }
 
-    @media (max-width:560px){
-      .ticker-grid{grid-template-columns:1fr}
-      .stats-row{grid-template-columns:1fr}
-      .result-grid{grid-template-columns:1fr}
-      .levels{grid-template-columns:1fr}
-      .tabs{gap:6px}
-      .tab-btn{padding:10px 14px}
+    @media (max-width: 640px){
+      .content{ padding:14px; }
+      .grid-4,.grid-3{ grid-template-columns:1fr; }
+      .title-wrap h2{ font-size:24px; }
     }
   </style>
 </head>
 <body>
-  <div id="loginView" class="login-wrap">
-    <div class="login-card">
+  <div class="app">
+    <aside class="sidebar">
       <div class="brand">
-        <div class="brand-badge">📈</div>
+        <div class="brand-logo">📈</div>
         <div>
-          <h1 class="title">TradeDesk v3</h1>
-          <p class="subtitle">Backend proxy + signal engine + trade levels</p>
+          <h1>TradeDesk v3</h1>
+          <p>backend + signal panel</p>
         </div>
       </div>
 
-      <div class="field">
-        <label for="passwordInput">Şifre</label>
-        <input id="passwordInput" class="input" type="password" placeholder="Şifre girin" />
+      <div class="login-box">
+        <h2>Giriş</h2>
+        <div class="muted">Varsayılan şifre: <strong>1234</strong></div>
+
+        <div class="field">
+          <label for="passwordInput">Şifre</label>
+          <input id="passwordInput" type="password" placeholder="Şifre girin" autocomplete="current-password" />
+        </div>
+
+        <button id="loginBtn" class="btn btn-primary" type="button">Panele Gir</button>
+        <div id="loginStatus" class="status"></div>
       </div>
 
-      <div class="field">
-        <button id="loginBtn" class="btn">Giriş →</button>
+      <div id="navWrap" class="hidden">
+        <div class="nav" id="navButtons">
+          <button class="active" data-view="overview">Genel Bakış</button>
+          <button data-view="daytrade">Günlük Trade</button>
+          <button data-view="whales">Balina</button>
+          <button data-view="accumulation">Sessiz Birikim</button>
+          <button data-view="breakout">Yarın Patlayabilir</button>
+          <button data-view="squeeze">Squeeze</button>
+          <button data-view="preafter">Pre / After</button>
+          <button data-view="all">Tüm Hisseler</button>
+        </div>
+
+        <div class="side-footer">
+          <button id="logoutBtn" class="btn btn-ghost" type="button">Çıkış Yap</button>
+          <div class="small-note">
+            Backend kısmen veri verse bile panel çökmeyecek şekilde tasarlanmıştır.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="title-wrap">
+          <h2 id="pageTitle">TradeDesk Pro</h2>
+          <p id="pageSubtitle">Giriş yapınca canlı tarama paneli burada açılır.</p>
+        </div>
+
+        <div class="topbar-actions hidden" id="appActions">
+          <span class="badge" id="lastUpdateBadge">Henüz yüklenmedi</span>
+          <button id="refreshBtn" class="btn btn-ghost" type="button">Yenile</button>
+        </div>
       </div>
 
-      <div id="loginError" class="error hidden">Yanlış şifre</div>
-      <div class="field small">Varsayılan şifre: 1234</div>
-    </div>
+      <section id="loginPrompt" class="card">
+        <div class="card-head">
+          <h3>Hoş geldiniz</h3>
+          <span class="tag">Başlangıç</span>
+        </div>
+        <div class="card-body">
+          <div class="empty">
+            Sol taraftan şifre ile giriş yapın.  
+            Bu sürümde script kapanma hataları giderildiği için giriş butonu artık tepki verir.
+          </div>
+        </div>
+      </section>
+
+      <section id="appPanel" class="hidden">
+        <div id="loadingBox" class="empty hidden">
+          <span class="loader"></span> Veriler yükleniyor...
+        </div>
+
+        <div id="errorBox" class="empty hidden"></div>
+
+        <div id="view-overview" class="view"></div>
+        <div id="view-daytrade" class="view hidden"></div>
+        <div id="view-whales" class="view hidden"></div>
+        <div id="view-accumulation" class="view hidden"></div>
+        <div id="view-breakout" class="view hidden"></div>
+        <div id="view-squeeze" class="view hidden"></div>
+        <div id="view-preafter" class="view hidden"></div>
+        <div id="view-all" class="view hidden"></div>
+      </section>
+    </main>
   </div>
 
-  <div id="appView" class="app-shell hidden">
-    <div class="topbar">
-      <div>
-        <div class="brand">
-          <div class="brand-badge">📊</div>
-          <div>
-            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3.1 Signal Engine</h1>
-            <div class="version">Trade levels + AL / İZLE / KAR AL / UZAK DUR sinyali</div>
-          </div>
-        </div>
-        <div class="flex" style="margin-top:8px">
-          <span class="badge">Backend Proxy</span>
-          <span class="badge">Yahoo + Alpaca Fallback</span>
-          <span class="badge" id="marketTimeBadge">ABD Piyasa: kontrol ediliyor...</span>
-          <span class="badge">Son güncelleme: <span id="lastRefreshText">—</span></span>
-        </div>
-      </div>
-
-      <div class="topbar-right">
-        <button class="btn secondary" id="refreshAllBtn">↻ Yenile</button>
-        <button class="btn ghost" id="logoutBtn">Çıkış</button>
-      </div>
-    </div>
-
-    <div class="ticker-grid">
-      <div class="mini-card"><div class="mini-label">SPY</div><div class="mini-value" id="spyPrice">—</div><div class="mini-change" id="spyChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">QQQ</div><div class="mini-value" id="qqqPrice">—</div><div class="mini-change" id="qqqChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">VIX</div><div class="mini-value" id="vixPrice">—</div><div class="mini-change" id="vixChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">IWM</div><div class="mini-value" id="iwmPrice">—</div><div class="mini-change" id="iwmChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">NASDAQ</div><div class="mini-value" id="nasdaqPrice">—</div><div class="mini-change" id="nasdaqChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">Fear &amp; Greed</div><div class="mini-value" id="fgValue">—</div><div class="mini-change" id="fgText">—</div></div>
-    </div>
-
-    <div class="card tabs-wrap">
-      <div class="tabs">
-        <button class="tab-btn active" data-page="summary">📊 Özet</button>
-        <button class="tab-btn" data-page="market">⛏️ Tüm Piyasa</button>
-        <button class="tab-btn" data-page="accum">🌊 Birikim</button>
-        <button class="tab-btn" data-page="whales">🐋 Balina</button>
-        <button class="tab-btn" data-page="squeeze">🎯 Squeeze</button>
-        <button class="tab-btn" data-page="preafter">🌅 Pre/After</button>
-        <button class="tab-btn" data-page="tomorrow">💥 Yarın Patlayacak</button>
-        <button class="tab-btn" data-page="x10">💎 5-10x Adayı</button>
-        <button class="tab-btn" data-page="watch">⭐ İzleme</button>
-        <button class="tab-btn" data-page="chart">📈 Grafik</button>
-        <button class="tab-btn" data-page="risk">⚖️ Risk</button>
-        <button class="tab-btn" data-page="settings">⚙️ Ayarlar</button>
-      </div>
-    </div>
-
-    <section id="page-summary" class="page active">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <h2 class="card-title">🔥 Öne Çıkan Fırsatlar</h2>
-              <div class="card-sub">En yüksek güven skoruna sahip setup’lar</div>
-            </div>
-            <div class="actions">
-              <button class="btn secondary" id="refreshHighlightsBtn">↻ Yenile</button>
-            </div>
-          </div>
-          <div class="list" id="highlightsList">
-            <div class="empty">Yükleniyor...</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <h2 class="card-title">🔔 Alertler</h2>
-              <div class="card-sub">En güçlü piyasa uyarıları</div>
-            </div>
-          </div>
-          <div class="list" id="alertsList">
-            <div class="empty">Yükleniyor...</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">⭐ İzleme Listesi Anlık</h2>
-            <div class="card-sub">İzleme listendeki hisseler için trade seviyeleri</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="refreshWatchSummaryBtn">↻</button>
-          </div>
-        </div>
-        <div class="list" id="watchSummaryList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-market" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🔭 Tüm Piyasa Tarayıcı</h2>
-            <div class="card-sub">Signal engine ile al / izle / kar al / uzak dur üretir</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanMarketBtn">↻ Tara</button>
-          </div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat"><div class="k">Toplam</div><div class="v" id="marketTotal">—</div></div>
-          <div class="stat"><div class="k">Yükselenler</div><div class="v green" id="marketUp">—</div></div>
-          <div class="stat"><div class="k">Düşenler</div><div class="v red" id="marketDown">—</div></div>
-          <div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="marketAvg">—</div></div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn ghost filter-btn active" data-filter="all">Tümü</button>
-          <button class="btn ghost filter-btn" data-filter="gainers">📈 Yükselenler</button>
-          <button class="btn ghost filter-btn" data-filter="losers">📉 Düşenler</button>
-          <button class="btn ghost filter-btn" data-filter="volume">🔥 Hacim</button>
-          <input id="marketSearch" class="input" placeholder="Sembol / isim ara..." />
-        </div>
-
-        <div class="list" id="marketList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-accum" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🌊 Sessiz Birikim</h2>
-            <div class="card-sub">Daha sakin girişli setup’lar</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanAccumBtn">↻ Tara</button>
-          </div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat"><div class="k">Taranan</div><div class="v" id="accumScanned">—</div></div>
-          <div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="accumStrong">—</div></div>
-          <div class="stat"><div class="k">Toplam Aday</div><div class="v blue" id="accumCount">—</div></div>
-          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="accumUpdate">—</div></div>
-        </div>
-
-        <div class="list" id="accumList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-whales" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🐋 Balina Alertleri</h2>
-            <div class="card-sub">Momentum trade odaklı seviyeler</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanWhalesBtn">↻ Tara</button>
-          </div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat"><div class="k">Aktif Alert</div><div class="v" id="whaleActive">—</div></div>
-          <div class="stat"><div class="k">En Yüksek Vol×</div><div class="v yellow" id="whaleMaxVol">—</div></div>
-          <div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="whaleAvgMove">—</div></div>
-          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="whaleUpdate">—</div></div>
-        </div>
-
-        <div class="list" id="whalesList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-squeeze" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🎯 Short Squeeze Radar</h2>
-            <div class="card-sub">Sıkışma sonrası atak potansiyeli</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanSqueezeBtn">↻ Tara</button>
-          </div>
-        </div>
-        <div class="list" id="squeezeList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-preafter" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🌅 Pre-Market &amp; After-Hours</h2>
-            <div class="card-sub">Gerçek pre/after varsa onu, yoksa fallback momentum listesi gösterir</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanPreAfterBtn">↻ Yenile</button>
-          </div>
-        </div>
-        <div class="list" id="preafterList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-tomorrow" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">💥 Yarın Patlayacak Radar</h2>
-            <div class="card-sub">Kapanış gücü yüksek hisseler</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanTomorrowBtn">↻ Tara</button>
-          </div>
-        </div>
-
-        <div class="footer-note" style="margin-bottom:12px">
-          Bu modülde giriş seviyeleri breakout teyidi esaslı hesaplanır.
-        </div>
-
-        <div class="stats-row">
-          <div class="stat"><div class="k">Taranan</div><div class="v" id="tomorrowScanned">—</div></div>
-          <div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="tomorrowStrong">—</div></div>
-          <div class="stat"><div class="k">Ort. Spike %</div><div class="v yellow" id="tomorrowAvgSpike">—</div></div>
-          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="tomorrowUpdate">—</div></div>
-        </div>
-
-        <div class="list" id="tomorrowList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-x10" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">💎 5-10x Adayları</h2>
-            <div class="card-sub">Tematik büyüme + teknik birikim</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="scanX10Btn">↻ Tara</button>
-          </div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat"><div class="k">Aday</div><div class="v" id="x10Count">—</div></div>
-          <div class="stat"><div class="k">Yüksek Potansiyel</div><div class="v" id="x10HighPotential">—</div></div>
-          <div class="stat"><div class="k">Ort. Fiyat</div><div class="v" id="x10AvgPrice">—</div></div>
-          <div class="stat"><div class="k">Güncelleme</div><div class="v" id="x10Update">—</div></div>
-        </div>
-
-        <div class="list" id="x10List">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-watch" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">⭐ İzleme Listesi</h2>
-            <div class="card-sub">Kendi seçtiğin hisselerde tam trade planı</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="refreshWatchBtn">↻ Yenile</button>
-          </div>
-        </div>
-
-        <div class="watch-add">
-          <input id="watchInput" class="input" placeholder="Sembol ekle (AAPL)" />
-          <button class="btn green" id="addWatchBtn">+ Ekle</button>
-          <button class="btn red" id="clearWatchBtn">Temizle</button>
-        </div>
-
-        <div class="list" id="watchList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-chart" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">📈 TradingView Grafik</h2>
-            <div class="card-sub">RSI · MACD · Volume · VWAP</div>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <input id="chartSymbol" class="input" value="AAPL" placeholder="Sembol" />
-          <select id="chartInterval" class="select">
-            <option value="D">Günlük</option>
-            <option value="W">Haftalık</option>
-            <option value="60">1 Saat</option>
-            <option value="15">15 Dk</option>
-            <option value="5">5 Dk</option>
-          </select>
-          <button class="btn secondary" id="loadChartBtn">Yükle</button>
-        </div>
-
-        <div class="iframe-wrap">
-          <iframe id="chartFrame" src="about:blank"></iframe>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-risk" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">⚖️ Pozisyon Hesaplayıcı</h2>
-            <div class="card-sub">Risk / ödül ve lot hesabı</div>
-          </div>
-        </div>
-
-        <div class="risk-grid">
-          <input id="riskAccount" class="input" type="number" step="0.01" placeholder="Hesap (USD)" value="10000" />
-          <input id="riskPercent" class="input" type="number" step="0.01" placeholder="Max Risk %" value="1" />
-          <input id="riskEntry" class="input" type="number" step="0.0001" placeholder="Giriş Fiyatı" value="2.50" />
-          <input id="riskStop" class="input" type="number" step="0.0001" placeholder="Stop Loss" value="2.20" />
-          <input id="riskTarget" class="input" type="number" step="0.0001" placeholder="Hedef Fiyat" value="3.50" />
-          <button class="btn" id="calcRiskBtn">Hesapla</button>
-        </div>
-
-        <div class="result-grid">
-          <div class="stat"><div class="k">MAX RİSK ($)</div><div class="v" id="rrMaxRisk">—</div></div>
-          <div class="stat"><div class="k">LOT SAYISI</div><div class="v" id="rrShares">—</div></div>
-          <div class="stat"><div class="k">TOPLAM GİRİŞ</div><div class="v" id="rrCost">—</div></div>
-          <div class="stat"><div class="k">STOP UZAKLIK</div><div class="v" id="rrStopDistance">—</div></div>
-          <div class="stat"><div class="k">HEDEF KAR</div><div class="v" id="rrProfit">—</div></div>
-          <div class="stat"><div class="k">RISK / ÖDÜL</div><div class="v" id="rrRatio">—</div></div>
-          <div class="stat"><div class="k">KAZANÇ %</div><div class="v" id="rrGainPct">—</div></div>
-          <div class="stat"><div class="k">KAYIP %</div><div class="v" id="rrLossPct">—</div></div>
-        </div>
-
-        <div class="footer-note" id="riskNote" style="margin-top:12px">Değerleri girin.</div>
-      </div>
-    </section>
-
-    <section id="page-settings" class="page">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">⚙️ Ayarlar</h2>
-            <div class="card-sub">Frontend tarafında anahtar tutulmaz</div>
-          </div>
-        </div>
-
-        <div class="footer-note">
-          Veri akışı backend üzerinden yönetilir. Frontend yalnızca `/api/quote`, `/api/feargreed` ve `/health` endpointlerini kullanır.
-        </div>
-
-        <hr class="sep" />
-
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🔒 Şifre Değiştir</h2>
-            <div class="card-sub">Min 4 karakter</div>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <input id="newPasswordInput" class="input" type="password" placeholder="Yeni şifre" />
-          <button class="btn" id="changePasswordBtn">Değiştir</button>
-        </div>
-        <div id="passwordMsg" class="small"></div>
-
-        <hr class="sep" />
-
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">🔄 Otomatik Yenileme</h2>
-            <div class="card-sub">Belirli periyotlarda veri yenile</div>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <select id="autoRefreshSelect" class="select">
-            <option value="0">Kapalı</option>
-            <option value="1">1 dakika</option>
-            <option value="2">2 dakika</option>
-            <option value="5">5 dakika</option>
-            <option value="10">10 dakika</option>
-          </select>
-          <button class="btn secondary" id="saveAutoRefreshBtn">Kaydet</button>
-        </div>
-        <div class="small" id="autoRefreshMsg">—</div>
-      </div>
-    </section>
-
   <script>
-    (() => {
+    (function () {
       "use strict";
 
-      const DEFAULT_PASSWORD = "1234";
-      const LOGIN_FLAG_KEY = "tradedesk_logged_in";
-      const PASSWORD_KEY = "tradedesk_password";
-      const WATCHLIST_KEY = "tradedesk_watchlist";
-      const AUTO_REFRESH_KEY = "tradedesk_auto_refresh_min";
-
-      const HEADER_SYMBOLS = ["SPY", "QQQ", "VIX", "IWM", "NASDAQ"];
-      const MARKET_SYMBOLS = [
-        "AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","AMD","PLTR","SMCI",
-        "AVGO","NFLX","COIN","MSTR","RIVN","SOFI","INTC","MU","BABA","PDD",
-        "UBER","LYFT","SHOP","SNOW","CRM","ORCL","ADBE","PANW","CRWD","NET",
-        "ARM","QCOM","MRVL","LRCX","KLAC","ASML","AMAT","TSM","F","GM",
-        "NIO","LI","XPEV","LCID","IONQ","QBTS","RGTI","QUBT","SOUN","BBAI",
-        "AI","ASTS","RKLB","LUNR","PL","JOBY","ACHR","ARQQ","SATS","RIOT",
-        "MARA","CLSK","BTBT","HUT","IREN","WULF","CIFR","BITF","HIVE","AFRM",
-        "UPST","HOOD","PYPL","SQ","DKNG","ROKU","OPEN","CVNA","CAR","DAL",
-        "UAL","AAL","CCL","RCL","NCLH","BA","GE","JBLU","SAVE","XOM",
-        "CVX","OXY","SLB","HAL","COP","DVN","EOG","APA","MRO","JNJ",
-        "PFE","MRNA","LLY","NVO","REGN","VRTX","BMY","ABBV","BIIB","WMT",
-        "COST","TGT","HD","LOW","NKE","DIS","SBUX","MCD","CMG","XBI",
-        "ARKK","SPWR","SEDG","ENPH","RUN","FSLR","BE","CHPT","QS","NKLA",
-        "ENVX","EOSE","MVST","STEM","DNA","RXRX","TEM","HIMS","CELH","DJT",
-        "GME","AMC","BB","SIRI","TLRY","CGC","APLD","S","IOT","DDOG",
-        "MDB","PATH","U","RBLX","TTD","APP","DUOL","ONON","ETSY","TNA",
-        "SOXL","LABU","FNGU","NVDL","TQQQ","SQQQ","UVXY","BOIL","KOLD"
-      ];
-
-      const SECTOR_HINTS = {
-        ASTS: "Uzay",
-        RKLB: "Uzay",
-        LUNR: "Uzay",
-        PL: "Uzay",
-        IONQ: "Kuantum",
-        QBTS: "Kuantum",
-        RGTI: "Kuantum",
-        QUBT: "Kuantum",
-        SOUN: "AI",
-        BBAI: "AI",
-        AI: "AI",
-        PLTR: "AI",
-        TEM: "AI/Sağlık",
-        RXRX: "AI/Biyotek",
-        DNA: "Biyotek",
-        TSLA: "EV/AI",
-        RIVN: "EV",
-        LCID: "EV",
-        NIO: "EV",
-        LI: "EV",
-        XPEV: "EV",
-        CLSK: "Kripto",
-        RIOT: "Kripto",
-        MARA: "Kripto",
-        HUT: "Kripto",
-        IREN: "Kripto",
-        CIFR: "Kripto",
-        BITF: "Kripto",
-        HIVE: "Kripto",
-        JOBY: "eVTOL",
-        ACHR: "eVTOL",
-        ENVX: "Batarya",
-        QS: "Batarya",
-        STEM: "Enerji",
-        BE: "Enerji"
-      };
-
-      const SQUEEZE_MEMES = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
+      const APP_PASSWORD = "1234";
+      const STORAGE_KEY = "tradedesk_auth_v3";
+      const REFRESH_INTERVAL_MS = 60000;
 
       const state = {
-        quotes: [],
-        quoteMap: {},
-        watchlist: [],
-        marketFilter: "all",
-        autoRefreshTimer: null,
-        health: null
+        loggedIn: false,
+        allStocks: [],
+        modules: {
+          whales: [],
+          accumulation: [],
+          breakout: [],
+          squeeze: [],
+          preafter: [],
+          daytrade: []
+        },
+        lastUpdate: null,
+        timer: null,
+        currentView: "overview"
       };
 
-      const $ = (id) => document.getElementById(id);
+      const els = {
+        passwordInput: document.getElementById("passwordInput"),
+        loginBtn: document.getElementById("loginBtn"),
+        loginStatus: document.getElementById("loginStatus"),
+        navWrap: document.getElementById("navWrap"),
+        navButtons: document.getElementById("navButtons"),
+        logoutBtn: document.getElementById("logoutBtn"),
+        loginPrompt: document.getElementById("loginPrompt"),
+        appPanel: document.getElementById("appPanel"),
+        appActions: document.getElementById("appActions"),
+        refreshBtn: document.getElementById("refreshBtn"),
+        pageTitle: document.getElementById("pageTitle"),
+        pageSubtitle: document.getElementById("pageSubtitle"),
+        loadingBox: document.getElementById("loadingBox"),
+        errorBox: document.getElementById("errorBox"),
+        lastUpdateBadge: document.getElementById("lastUpdateBadge"),
+        views: {
+          overview: document.getElementById("view-overview"),
+          daytrade: document.getElementById("view-daytrade"),
+          whales: document.getElementById("view-whales"),
+          accumulation: document.getElementById("view-accumulation"),
+          breakout: document.getElementById("view-breakout"),
+          squeeze: document.getElementById("view-squeeze"),
+          preafter: document.getElementById("view-preafter"),
+          all: document.getElementById("view-all")
+        }
+      };
 
-      function safeText(el, value) {
-        if (el) el.textContent = value;
+      function safeLocalStorageGet(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (err) {
+          return null;
+        }
       }
 
-      function formatNumber(v, digits = 2) {
-        if (v == null || Number.isNaN(Number(v))) return "—";
-        return Number(v).toLocaleString("en-US", {
+      function safeLocalStorageSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (err) {}
+      }
+
+      function safeLocalStorageRemove(key) {
+        try {
+          localStorage.removeItem(key);
+        } catch (err) {}
+      }
+
+      function setLoginStatus(message, type) {
+        els.loginStatus.textContent = message || "";
+        els.loginStatus.className = "status" + (type ? " " + type : "");
+      }
+
+      function showLoading(show) {
+        els.loadingBox.classList.toggle("hidden", !show);
+      }
+
+      function showError(message) {
+        if (!message) {
+          els.errorBox.classList.add("hidden");
+          els.errorBox.textContent = "";
+          return;
+        }
+        els.errorBox.classList.remove("hidden");
+        els.errorBox.textContent = message;
+      }
+
+      function fmtNumber(value, digits = 2) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "-";
+        return n.toLocaleString("tr-TR", {
           minimumFractionDigits: digits,
           maximumFractionDigits: digits
         });
       }
 
-      function formatPrice(v) {
-        if (v == null || Number.isNaN(Number(v))) return "—";
-        const num = Number(v);
-        const digits = num < 1 ? 4 : num < 10 ? 3 : 2;
-        return "$" + formatNumber(num, digits);
+      function fmtInt(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "-";
+        return n.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
       }
 
-      function formatPct(v) {
-        if (v == null || Number.isNaN(Number(v))) return "—";
-        const num = Number(v);
-        const sign = num > 0 ? "+" : "";
-        return sign + formatNumber(num, 2) + "%";
+      function fmtPct(value, digits = 2) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "-";
+        const sign = n > 0 ? "+" : "";
+        return sign + n.toLocaleString("tr-TR", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        }) + "%";
       }
 
-      function formatCompact(v) {
-        if (v == null || Number.isNaN(Number(v))) return "—";
-        return Number(v).toLocaleString("en-US", {
-          notation: "compact",
-          maximumFractionDigits: 2
-        });
+      function pctClass(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "";
+        if (n > 0) return "num-green";
+        if (n < 0) return "num-red";
+        return "";
+      }
+
+      function pillForScore(score) {
+        const s = Number(score);
+        if (s >= 85) return '<span class="pill green">Çok Güçlü</span>';
+        if (s >= 70) return '<span class="pill blue">Güçlü</span>';
+        if (s >= 55) return '<span class="pill yellow">İzlenebilir</span>';
+        return '<span class="pill red">Zayıf</span>';
       }
 
       function nowText() {
-        return new Date().toLocaleString("tr-TR");
+        const d = new Date();
+        return d.toLocaleString("tr-TR");
       }
 
-      function setLastRefresh() {
-        safeText($("lastRefreshText"), nowText());
+      function setLastUpdate() {
+        state.lastUpdate = new Date();
+        els.lastUpdateBadge.textContent = "Son güncelleme: " + state.lastUpdate.toLocaleTimeString("tr-TR");
       }
 
-      function getSavedPassword() {
-        return localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD;
+      function titleForView(view) {
+        const map = {
+          overview: ["Genel Bakış", "Özet modül görünümü ve en iyi fırsatlar"],
+          daytrade: ["Günlük Trade", "Gün içi al-sat için en uygun adaylar"],
+          whales: ["Balina", "Hacim ve para girişi anomalisine göre seçilen hisseler"],
+          accumulation: ["Sessiz Birikim", "Düşük gürültü ile düzenli güç toplayan hisseler"],
+          breakout: ["Yarın Patlayabilir", "Kırılım eşiğine yakın ve ivme hazırlayan hisseler"],
+          squeeze: ["Squeeze", "Sıkışma ve olası sert hareket potansiyeli"],
+          preafter: ["Pre / After Market", "Normal seans dışı öne çıkan hisseler"],
+          all: ["Tüm Hisseler", "Normalize edilmiş tüm hisse listesi"]
+        };
+        return map[view] || ["TradeDesk Pro", "Panel"];
       }
 
-      function isLoggedIn() {
-        return localStorage.getItem(LOGIN_FLAG_KEY) === "1";
+      function switchView(view) {
+        state.currentView = view;
+        Object.keys(els.views).forEach(function (key) {
+          els.views[key].classList.toggle("hidden", key !== view);
+        });
+
+        const buttons = els.navButtons.querySelectorAll("button[data-view]");
+        buttons.forEach(function (btn) {
+          btn.classList.toggle("active", btn.dataset.view === view);
+        });
+
+        const t = titleForView(view);
+        els.pageTitle.textContent = t[0];
+        els.pageSubtitle.textContent = t[1];
       }
 
-      function setLoggedIn(flag) {
-        localStorage.setItem(LOGIN_FLAG_KEY, flag ? "1" : "0");
+      function saveLogin() {
+        safeLocalStorageSet(STORAGE_KEY, "1");
       }
 
-      function getWatchlist() {
-        try {
-          const raw = localStorage.getItem(WATCHLIST_KEY);
-          const list = raw ? JSON.parse(raw) : ["AAPL","TSLA","PLTR","IONQ"];
-          return Array.isArray(list)
-            ? [...new Set(list.map(s => String(s).trim().toUpperCase()).filter(Boolean))]
-            : ["AAPL","TSLA","PLTR","IONQ"];
-        } catch {
-          return ["AAPL","TSLA","PLTR","IONQ"];
+      function clearLogin() {
+        safeLocalStorageRemove(STORAGE_KEY);
+      }
+
+      function isLoggedInStored() {
+        return safeLocalStorageGet(STORAGE_KEY) === "1";
+      }
+
+      function login() {
+        const val = (els.passwordInput.value || "").trim();
+        if (!val) {
+          setLoginStatus("Lütfen şifre girin.", "error");
+          return;
+        }
+        if (val !== APP_PASSWORD) {
+          setLoginStatus("Yanlış şifre girdiniz.", "error");
+          return;
+        }
+
+        state.loggedIn = true;
+        saveLogin();
+        setLoginStatus("Giriş başarılı.", "ok");
+        renderAuthState();
+        startAutoRefresh();
+        loadAllData();
+      }
+
+      function logout() {
+        state.loggedIn = false;
+        clearLogin();
+        stopAutoRefresh();
+        renderAuthState();
+        setLoginStatus("");
+        els.passwordInput.value = "";
+      }
+
+      function renderAuthState() {
+        els.loginPrompt.classList.toggle("hidden", state.loggedIn);
+        els.appPanel.classList.toggle("hidden", !state.loggedIn);
+        els.navWrap.classList.toggle("hidden", !state.loggedIn);
+        els.appActions.classList.toggle("hidden", !state.loggedIn);
+        switchView(state.currentView);
+      }
+
+      function startAutoRefresh() {
+        stopAutoRefresh();
+        state.timer = setInterval(function () {
+          if (state.loggedIn) {
+            loadAllData(true);
+          }
+        }, REFRESH_INTERVAL_MS);
+      }
+
+      function stopAutoRefresh() {
+        if (state.timer) {
+          clearInterval(state.timer);
+          state.timer = null;
         }
       }
 
-      function saveWatchlist(list) {
-        state.watchlist = [...new Set(list.map(s => String(s).trim().toUpperCase()).filter(Boolean))];
-        localStorage.setItem(WATCHLIST_KEY, JSON.stringify(state.watchlist));
-      }
-
-      function getAutoRefreshMinutes() {
-        return Number(localStorage.getItem(AUTO_REFRESH_KEY) || "0");
-      }
-
-      function setAutoRefreshMinutes(v) {
-        localStorage.setItem(AUTO_REFRESH_KEY, String(v));
-      }
-
-      async function fetchJSON(url) {
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      }
-
-      async function fetchQuotes(symbols) {
-        const unique = [...new Set(symbols.map(s => String(s).trim().toUpperCase()).filter(Boolean))];
-        if (!unique.length) return [];
-        const url = `/api/quote?symbols=${encodeURIComponent(unique.join(","))}`;
-        const data = await fetchJSON(url);
-        const results = data?.quoteResponse?.result || [];
-        return Array.isArray(results) ? results : [];
-      }
-
-      async function fetchHealth() {
+      async function fetchJson(url) {
         try {
-          return await fetchJSON("/health");
-        } catch {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch (err) {
           return null;
         }
       }
 
-      async function fetchFearGreed() {
-        try {
-          const data = await fetchJSON("/api/feargreed");
-          const fg = data?.fear_and_greed || {};
-          return {
-            score: Number(fg.score ?? 0),
-            rating: String(fg.rating || "neutral")
-          };
-        } catch {
-          return { score: 50, rating: "neutral" };
+      async function fetchFirstAvailable(urls) {
+        for (const url of urls) {
+          const data = await fetchJson(url);
+          if (data) return { url, data };
         }
+        return { url: null, data: null };
       }
 
-      function normalizeQuote(q) {
-        return {
-          symbol: String(q?.symbol || "").toUpperCase(),
-          originalSymbol: String(q?.originalSymbol || q?.symbol || "").toUpperCase(),
-          shortName: q?.shortName || q?.longName || q?.symbol || "",
-          regularMarketPrice: Number(q?.regularMarketPrice ?? NaN),
-          regularMarketChangePercent: Number(q?.regularMarketChangePercent ?? 0),
-          regularMarketChange: Number(q?.regularMarketChange ?? 0),
-          regularMarketVolume: Number(q?.regularMarketVolume ?? 0),
-          averageVolume: Number(q?.averageVolume ?? q?.averageDailyVolume3Month ?? 1),
-          regularMarketOpen: Number(q?.regularMarketOpen ?? NaN),
-          regularMarketDayHigh: Number(q?.regularMarketDayHigh ?? NaN),
-          regularMarketDayLow: Number(q?.regularMarketDayLow ?? NaN),
-          regularMarketPreviousClose: Number(q?.regularMarketPreviousClose ?? NaN),
-          fiftyTwoWeekHigh: Number(q?.fiftyTwoWeekHigh ?? NaN),
-          fiftyTwoWeekLow: Number(q?.fiftyTwoWeekLow ?? NaN),
-          marketCap: q?.marketCap ?? null,
-          preMarketPrice: q?.preMarketPrice == null ? null : Number(q.preMarketPrice),
-          preMarketChangePercent: q?.preMarketChangePercent == null ? null : Number(q.preMarketChangePercent),
-          postMarketPrice: q?.postMarketPrice == null ? null : Number(q.postMarketPrice),
-          postMarketChangePercent: q?.postMarketChangePercent == null ? null : Number(q.postMarketChangePercent),
-          shortPercentOfFloat: q?.shortPercentOfFloat == null ? null : Number(q.shortPercentOfFloat),
-          quoteType: q?.quoteType || "",
-          exchange: q?.exchange || ""
-        };
-      }
-            function validPrice(v) {
-        return Number.isFinite(Number(v));
-      }
+      function normalizeStock(raw) {
+        const ticker = String(
+          raw.symbol ||
+          raw.ticker ||
+          raw.code ||
+          raw.Symbol ||
+          raw.Ticker ||
+          ""
+        ).trim().toUpperCase();
 
-      function getVolumeRatio(q) {
-        const vol = Number(q.regularMarketVolume || 0);
-        const avg = Number(q.averageVolume || 0);
-        if (!avg || !Number.isFinite(avg)) return 0;
-        return vol / avg;
-      }
+        if (!ticker) return null;
 
-      function getDayRangePercent(q) {
-        const h = Number(q.regularMarketDayHigh);
-        const l = Number(q.regularMarketDayLow);
-        if (!validPrice(h) || !validPrice(l) || h <= l) return 0;
-        return ((h - l) / l) * 100;
-      }
+        const price = num(raw.price, raw.last, raw.close, raw.currentPrice, raw.lastPrice);
+        const prevClose = num(raw.prevClose, raw.previousClose, raw.prev_close, raw.pc);
+        const changePercentRaw = num(raw.changePercent, raw.change_pct, raw.percent, raw.pct, raw.dp);
+        const changePercent = Number.isFinite(changePercentRaw)
+          ? changePercentRaw
+          : (Number.isFinite(price) && Number.isFinite(prevClose) && prevClose !== 0
+              ? ((price - prevClose) / prevClose) * 100
+              : NaN);
 
-      function getCloseNearHigh(q) {
-        const high = Number(q.regularMarketDayHigh);
-        const low = Number(q.regularMarketDayLow);
-        const price = Number(q.regularMarketPrice);
-        if (!validPrice(high) || !validPrice(low) || !validPrice(price) || high <= low) return false;
-        return price >= low + (high - low) * 0.72;
-      }
+        const volume = num(raw.volume, raw.vol, raw.v);
+        const avgVolume = num(raw.avgVolume, raw.avg_volume, raw.averageVolume, raw.avgVol);
+        const relVolume = Number.isFinite(num(raw.relVolume, raw.relativeVolume, raw.rvol))
+          ? num(raw.relVolume, raw.relativeVolume, raw.rvol)
+          : (Number.isFinite(volume) && Number.isFinite(avgVolume) && avgVolume > 0 ? volume / avgVolume : NaN);
 
-      function getRangePosition(q) {
-        const low = Number(q.fiftyTwoWeekLow);
-        const high = Number(q.fiftyTwoWeekHigh);
-        const price = Number(q.regularMarketPrice);
-        if (!validPrice(low) || !validPrice(high) || !validPrice(price) || high <= low) return null;
-        return ((price - low) / (high - low)) * 100;
-      }
-
-      function getMomentumScore(q) {
-        const chg = Number(q.regularMarketChangePercent || 0);
-        const volx = getVolumeRatio(q);
-        const dayRange = getDayRangePercent(q);
-        return (chg * 1.4) + (volx * 5.5) + (dayRange * 0.5);
-      }
-
-      function getAccumulationScore(q) {
-        const volx = getVolumeRatio(q);
-        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
-        const dayRange = getDayRangePercent(q);
-        const rangePos = getRangePosition(q);
-        let score = 0;
-
-        if (volx >= 1.15 && volx <= 3.8) score += 30;
-        if (absChg <= 3.5) score += 25;
-        if (dayRange <= 4.5) score += 18;
-        if (rangePos != null && rangePos < 58) score += 15;
-        if (validPrice(q.regularMarketPrice) && q.regularMarketPrice > 0.7) score += 8;
-
-        return Math.round(score + (volx * 5));
-      }
-
-      function getWhaleScore(q) {
-        const volx = getVolumeRatio(q);
-        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
-        const dayRange = getDayRangePercent(q);
-        return Math.round((volx * 20) + (absChg * 7) + (dayRange * 1.2));
-      }
-
-      function getSqueezeScore(q) {
-        const volx = getVolumeRatio(q);
-        const absChg = Math.abs(Number(q.regularMarketChangePercent || 0));
-        const dayRange = getDayRangePercent(q);
-        const price = Number(q.regularMarketPrice || 0);
-        let score = 0;
-
-        if (dayRange > 0 && dayRange <= 4.2) score += 24;
-        if (absChg <= 3.2) score += 18;
-        if (volx >= 1.1 && volx <= 2.8) score += 18;
-        if (getCloseNearHigh(q) && Number(q.regularMarketChangePercent || 0) >= 0) score += 20;
-        if (price > 1 && price < 40) score += 10;
-        if (q.shortPercentOfFloat && q.shortPercentOfFloat >= 8) {
-          score += Math.min(18, q.shortPercentOfFloat);
-        }
-
-        return Math.round(score);
-      }
-
-      function getPreAfterMove(q) {
-        if (q.preMarketChangePercent != null) return Number(q.preMarketChangePercent);
-        if (q.postMarketChangePercent != null) return Number(q.postMarketChangePercent);
-
-        const live = Number(q.regularMarketChangePercent || 0);
-        const volx = getVolumeRatio(q);
-        if (Math.abs(live) >= 2.5 || volx >= 1.6) return live;
-        return null;
-      }
-
-      function getTomorrowScore(q) {
-        const chg = Number(q.regularMarketChangePercent || 0);
-        const volx = getVolumeRatio(q);
-        const dayRange = getDayRangePercent(q);
-        const price = Number(q.regularMarketPrice || 0);
-        let score = 0;
-
-        if (chg > 2) score += 20;
-        if (chg > 4) score += 12;
-        if (volx > 1.6) score += 22;
-        if (volx > 2.5) score += 12;
-        if (getCloseNearHigh(q)) score += 18;
-        if (dayRange > 2.5) score += 10;
-        if (price > 0.8 && price < 25) score += 10;
-
-        return Math.round(score);
-      }
-
-      function getX10Score(q) {
-        const sector = SECTOR_HINTS[q.symbol];
-        const price = Number(q.regularMarketPrice || 0);
-        const accum = getAccumulationScore(q);
-        let score = 0;
-
-        if (sector) score += 28;
-        if (price > 0.5 && price < 30) score += 25;
-        if (accum >= 50) score += 22;
-        if (getVolumeRatio(q) >= 1.1) score += 10;
-        const rp = getRangePosition(q);
-        if (rp != null && rp < 60) score += 10;
-
-        return Math.round(score);
-      }
-
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-      }
-
-      function calculateTradePlan(q, mode = "standard") {
-        const price = Number(q.regularMarketPrice || 0);
-        const high = Number(q.regularMarketDayHigh || price);
-        const low = Number(q.regularMarketDayLow || price);
-        const prevClose = Number(q.regularMarketPreviousClose || price);
-        const dayRange = validPrice(high) && validPrice(low) && high > low ? (high - low) : Math.max(price * 0.02, 0.02);
-        const volx = getVolumeRatio(q);
-        const change = Number(q.regularMarketChangePercent || 0);
-        const accumScore = getAccumulationScore(q);
-        const whaleScore = getWhaleScore(q);
-        const squeezeScore = getSqueezeScore(q);
-        const tomorrowScore = getTomorrowScore(q);
-        const x10Score = getX10Score(q);
-        const nearHigh = getCloseNearHigh(q);
-
-        let entryFactor = 0.10;
-        let stopFactor = 0.32;
-        let tp1Factor = 0.55;
-        let tp2Factor = 1.20;
-        let tradeType = "Momentum";
-
-        if (mode === "accum") {
-          entryFactor = 0.05;
-          stopFactor = 0.24;
-          tp1Factor = 0.45;
-          tp2Factor = 0.95;
-          tradeType = "Birikim";
-        } else if (mode === "squeeze") {
-          entryFactor = 0.08;
-          stopFactor = 0.26;
-          tp1Factor = 0.60;
-          tp2Factor = 1.35;
-          tradeType = "Squeeze";
-        } else if (mode === "whale") {
-          entryFactor = 0.14;
-          stopFactor = 0.30;
-          tp1Factor = 0.70;
-          tp2Factor = 1.60;
-          tradeType = "Balina";
-        } else if (mode === "tomorrow") {
-          entryFactor = 0.15;
-          stopFactor = 0.28;
-          tp1Factor = 0.65;
-          tp2Factor = 1.50;
-          tradeType = "Breakout";
-        } else if (mode === "x10") {
-          entryFactor = 0.06;
-          stopFactor = 0.22;
-          tp1Factor = 0.55;
-          tp2Factor = 1.40;
-          tradeType = "Swing";
-        } else if (mode === "preafter") {
-          entryFactor = 0.12;
-          stopFactor = 0.26;
-          tp1Factor = 0.55;
-          tp2Factor = 1.10;
-          tradeType = "Gap/Momentum";
-        }
-
-        if (volx >= 3) {
-          tp2Factor *= 1.25;
-          stopFactor *= 0.88;
-        }
-
-        if (Math.abs(change) >= 8) {
-          stopFactor *= 1.06;
-        }
-
-        let entry = price + (dayRange * entryFactor);
-        let stop = price - (dayRange * stopFactor);
-        let tp1 = price + (dayRange * tp1Factor);
-        let tp2 = price + (dayRange * tp2Factor);
-
-        if (mode === "accum" || mode === "x10") {
-          entry = Math.max(price, price + (dayRange * entryFactor));
-        }
-
-        if (mode === "tomorrow" || mode === "whale") {
-          entry = Math.max(entry, high * 1.002);
-        }
-
-        if (!nearHigh && (mode === "tomorrow" || mode === "whale")) {
-          entry += dayRange * 0.06;
-        }
-
-        if (stop >= entry) {
-          stop = entry - Math.max(dayRange * 0.2, price * 0.01);
-        }
-
-        if (tp1 <= entry) tp1 = entry + Math.max(dayRange * 0.35, price * 0.01);
-        if (tp2 <= tp1) tp2 = tp1 + Math.max(dayRange * 0.55, price * 0.015);
-
-        const risk = entry - stop;
-        const reward1 = tp1 - entry;
-        const reward2 = tp2 - entry;
-        const rr1 = risk > 0 ? reward1 / risk : 0;
-        const rr2 = risk > 0 ? reward2 / risk : 0;
-
-        let confidence =
-          (accumScore * 0.18) +
-          (whaleScore * 0.22) +
-          (squeezeScore * 0.18) +
-          (tomorrowScore * 0.22) +
-          (x10Score * 0.08);
-
-        confidence += clamp(volx * 6, 0, 18);
-        if (nearHigh) confidence += 8;
-        if (change > 0) confidence += clamp(change * 1.3, 0, 12);
-        if (change < -4) confidence -= 10;
-        if (rr2 >= 2) confidence += 6;
-        if (rr2 < 1.2) confidence -= 10;
-
-        confidence = Math.round(clamp(confidence, 1, 99));
-
-        let signal = "İZLE";
-        let signalClass = "signal-watch";
-
-        if (confidence >= 74 && rr2 >= 1.8 && change > -2) {
-          signal = "AL";
-          signalClass = "signal-buy";
-        } else if (confidence >= 56 && rr2 >= 1.35) {
-          signal = "İZLE";
-          signalClass = "signal-watch";
-        } else if (change >= 9 || (rr1 >= 0.9 && change >= 6 && volx < 1.5)) {
-          signal = "KAR AL";
-          signalClass = "signal-sell";
-        } else if (confidence < 45 || rr2 < 1.1 || change < -6) {
-          signal = "UZAK DUR";
-          signalClass = "signal-avoid";
-        }
+        const marketCap = num(raw.marketCap, raw.market_cap, raw.mc);
+        const high = num(raw.high, raw.dayHigh, raw.h);
+        const low = num(raw.low, raw.dayLow, raw.l);
+        const open = num(raw.open, raw.o);
+        const premarketChange = num(raw.premarketChange, raw.preChange, raw.preMarketChangePercent, raw.pre_pct);
+        const afterhoursChange = num(raw.afterhoursChange, raw.afterChange, raw.afterMarketChangePercent, raw.after_pct);
+        const floatShares = num(raw.floatShares, raw.float, raw.freeFloat);
+        const shortFloat = num(raw.shortFloat, raw.short_float, raw.shortInterestFloat);
+        const atr = num(raw.atr, raw.ATR);
+        const vwap = num(raw.vwap, raw.VWAP);
+        const high52 = num(raw.high52, raw.week52High, raw.fiftyTwoWeekHigh);
+        const low52 = num(raw.low52, raw.week52Low, raw.fiftyTwoWeekLow);
 
         return {
-          mode,
-          tradeType,
-          entry,
-          stop,
-          tp1,
-          tp2,
-          rr1,
-          rr2,
-          confidence,
-          signal,
-          signalClass,
-          riskPct: entry > 0 ? ((entry - stop) / entry) * 100 : 0,
-          gainPct1: entry > 0 ? ((tp1 - entry) / entry) * 100 : 0,
-          gainPct2: entry > 0 ? ((tp2 - entry) / entry) * 100 : 0
+          ticker,
+          name: String(raw.name || raw.companyName || raw.company || "").trim(),
+          price,
+          prevClose,
+          changePercent,
+          volume,
+          avgVolume,
+          relVolume,
+          marketCap,
+          high,
+          low,
+          open,
+          premarketChange,
+          afterhoursChange,
+          floatShares,
+          shortFloat,
+          atr,
+          vwap,
+          high52,
+          low52,
+          raw
         };
       }
 
-      function signalPill(label, klass) {
-        return `<span class="pill ${klass}">${label}</span>`;
-      }
-
-      function buildTradePlanHtml(plan) {
-        return `
-          <div class="levels">
-            <div class="level-box">
-              <div class="lk">ENTRY</div>
-              <div class="lv">${formatPrice(plan.entry)}</div>
-            </div>
-            <div class="level-box">
-              <div class="lk">STOP</div>
-              <div class="lv red">${formatPrice(plan.stop)}</div>
-            </div>
-            <div class="level-box">
-              <div class="lk">TP1</div>
-              <div class="lv green">${formatPrice(plan.tp1)}</div>
-            </div>
-            <div class="level-box">
-              <div class="lk">TP2</div>
-              <div class="lv green">${formatPrice(plan.tp2)}</div>
-            </div>
-          </div>
-        `;
-      }
-
-      function buildPlanNote(q, plan, extra) {
-        return `
-          <div class="note-lines">
-            <div><strong>Tip:</strong> ${plan.tradeType} · <strong>Sinyal:</strong> ${plan.signal} · <strong>Güven:</strong> ${plan.confidence}/99</div>
-            <div><strong>RR1:</strong> ${formatNumber(plan.rr1,2)} · <strong>RR2:</strong> ${formatNumber(plan.rr2,2)} · <strong>Risk %:</strong> ${formatNumber(plan.riskPct,2)}%</div>
-            <div><strong>TP1 %:</strong> ${formatNumber(plan.gainPct1,2)} · <strong>TP2 %:</strong> ${formatNumber(plan.gainPct2,2)} · <strong>Vol×:</strong> ${formatNumber(getVolumeRatio(q),2)}</div>
-            <div>${extra}</div>
-          </div>
-          ${buildTradePlanHtml(plan)}
-        `;
-      }
-
-      function buildStockCard(q, plan, extra, removable = false) {
-        return `
-          <div class="watchlist-item">
-            <div style="flex:1">
-              <div class="strong">${q.symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?'green':'red'}">${formatPct(q.regularMarketChangePercent)}</span></div>
-              ${buildPlanNote(q, plan, extra)}
-            </div>
-            <div class="flex">
-              ${signalPill(plan.signal, plan.signalClass)}
-              ${removable ? `<button class="btn ghost remove-watch-btn" data-symbol="${q.symbol}" style="width:auto;padding:8px 12px">Sil</button>` : ""}
-            </div>
-          </div>
-        `;
-      }
-
-      function buildMarketTimeBadge() {
-        const nyString = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
-        const ny = new Date(nyString);
-        const day = ny.getDay();
-        const minutes = ny.getHours() * 60 + ny.getMinutes();
-
-        let text = "Kapalı";
-        if (day >= 1 && day <= 5) {
-          if (minutes >= 240 && minutes < 570) text = "Pre-Market";
-          else if (minutes >= 570 && minutes < 960) text = "Piyasa Açık";
-          else if (minutes >= 960 && minutes < 1200) text = "After-Hours";
+      function num() {
+        for (let i = 0; i < arguments.length; i++) {
+          const n = Number(arguments[i]);
+          if (Number.isFinite(n)) return n;
         }
-
-        safeText($("marketTimeBadge"), `ABD Piyasa: ${text}`);
+        return NaN;
       }
 
-      function updateMiniTicker(prefix, q) {
-        if (!q) {
-          safeText($(`${prefix}Price`), "—");
-          safeText($(`${prefix}Change`), "—");
-          return;
-        }
-
-        safeText($(`${prefix}Price`), formatPrice(q.regularMarketPrice));
-
-        const chgEl = $(`${prefix}Change`);
-        if (chgEl) {
-          chgEl.textContent = formatPct(q.regularMarketChangePercent);
-          chgEl.className = "mini-change " + (Number(q.regularMarketChangePercent || 0) >= 0 ? "green" : "red");
-        }
+      function uniqueByTicker(arr) {
+        const map = new Map();
+        arr.forEach(function (item) {
+          if (item && item.ticker && !map.has(item.ticker)) {
+            map.set(item.ticker, item);
+          }
+        });
+        return Array.from(map.values());
       }
 
-      async function loadHeaderData() {
-        const quotes = (await fetchQuotes(HEADER_SYMBOLS)).map(normalizeQuote);
-        const map = Object.fromEntries(quotes.map(q => [q.symbol, q]));
+      function parseStocksFromAny(data) {
+        if (!data) return [];
 
-        updateMiniTicker("spy", map.SPY);
-        updateMiniTicker("qqq", map.QQQ);
-        updateMiniTicker("vix", map.VIX);
-        updateMiniTicker("iwm", map.IWM);
-        updateMiniTicker("nasdaq", map.NASDAQ);
+        let arr = [];
+        if (Array.isArray(data)) arr = data;
+        else if (Array.isArray(data.data)) arr = data.data;
+        else if (Array.isArray(data.results)) arr = data.results;
+        else if (Array.isArray(data.stocks)) arr = data.stocks;
+        else if (Array.isArray(data.quotes)) arr = data.quotes;
+        else if (Array.isArray(data.items)) arr = data.items;
+        else if (Array.isArray(data.symbols)) arr = data.symbols;
+        else if (Array.isArray(data.marketData)) arr = data.marketData;
+        else if (data.data && Array.isArray(data.data.stocks)) arr = data.data.stocks;
+        else if (data.data && Array.isArray(data.data.quotes)) arr = data.data.quotes;
 
-        const fg = await fetchFearGreed();
-        safeText($("fgValue"), fg.score ? formatNumber(fg.score, 2) : "0");
-        safeText($("fgText"), fg.rating || "neutral");
+        return uniqueByTicker(arr.map(normalizeStock).filter(Boolean));
       }
 
-      async function scanMarket() {
-        $("marketList").innerHTML = '<div class="empty">Taranıyor...</div>';
+      function computeSignalScores(stock) {
+        const relVol = Number.isFinite(stock.relVolume) ? stock.relVolume : 1;
+        const chg = Number.isFinite(stock.changePercent) ? stock.changePercent : 0;
+        const volume = Number.isFinite(stock.volume) ? stock.volume : 0;
+        const avgVol = Number.isFinite(stock.avgVolume) ? stock.avgVolume : 0;
+        const price = Number.isFinite(stock.price) ? stock.price : 0;
+        const atr = Number.isFinite(stock.atr) ? stock.atr : 0;
+        const shortFloat = Number.isFinite(stock.shortFloat) ? stock.shortFloat : 0;
+        const pm = Number.isFinite(stock.premarketChange) ? stock.premarketChange : 0;
+        const ah = Number.isFinite(stock.afterhoursChange) ? stock.afterhoursChange : 0;
+        const high = Number.isFinite(stock.high) ? stock.high : price;
+        const low = Number.isFinite(stock.low) ? stock.low : price;
+        const rangePct = price > 0 ? ((high - low) / price) * 100 : 0;
+        const vwapDiffPct = (Number.isFinite(stock.vwap) && stock.vwap !== 0 && price > 0)
+          ? ((price - stock.vwap) / stock.vwap) * 100
+          : 0;
 
-        const raw = await fetchQuotes(MARKET_SYMBOLS);
-        const quotes = raw
-          .map(normalizeQuote)
-          .filter(q => q.symbol && validPrice(q.regularMarketPrice));
+        const whaleScore =
+          Math.min(relVol * 18, 42) +
+          Math.min(Math.max(chg, 0) * 4, 22) +
+          (volume > 1000000 ? 14 : volume > 300000 ? 8 : 3) +
+          (price > 0 ? 8 : 0) +
+          (Math.abs(vwapDiffPct) < 2 ? 6 : 0);
 
-        state.quotes = quotes;
-        state.quoteMap = Object.fromEntries(quotes.map(q => [q.symbol, q]));
+        const accumulationScore =
+          Math.min(relVol * 10, 20) +
+          (chg > 1 && chg < 8 ? 18 : chg >= 0 ? 10 : 0) +
+          (avgVol > 0 && volume > avgVol * 1.2 && volume < avgVol * 4 ? 20 : 8) +
+          (Math.abs(vwapDiffPct) < 1.5 ? 18 : 6) +
+          (rangePct < 8 ? 18 : 7);
 
-        const total = quotes.length;
-        const up = quotes.filter(q => Number(q.regularMarketChangePercent || 0) >= 0).length;
-        const down = total - up;
-        const avg = total ? quotes.reduce((a,b) => a + Number(b.regularMarketChangePercent || 0), 0) / total : 0;
+        const breakoutScore =
+          Math.min(relVol * 12, 24) +
+          (chg > 3 ? 18 : chg > 1 ? 10 : 2) +
+          (rangePct > 4 ? 14 : 6) +
+          (price > 0 && high > 0 && (price / high) > 0.97 ? 24 : 8) +
+          (volume > 250000 ? 12 : 4);
 
-        safeText($("marketTotal"), String(total));
-        safeText($("marketUp"), String(up));
-        safeText($("marketDown"), String(down));
-        safeText($("marketAvg"), formatPct(avg));
+        const squeezeScore =
+          Math.min(relVol * 8, 18) +
+          (shortFloat > 10 ? 26 : shortFloat > 5 ? 14 : 4) +
+          (rangePct < 6 ? 18 : 6) +
+          (chg > 2 ? 18 : 8) +
+          (volume > 200000 ? 14 : 4);
 
-        renderMarketList();
-        renderAccumulation();
-        renderWhales();
-        renderSqueeze();
-        renderPreAfter();
-        renderTomorrow();
-        renderX10();
-        renderHighlights();
-        renderAlerts();
-        await refreshWatchlist();
-      }
-            function renderMarketList() {
-        const list = $("marketList");
-        if (!list) return;
+        const preafterScore =
+          (Math.abs(pm) > 2 ? 26 : Math.abs(pm) > 0.8 ? 14 : 4) +
+          (Math.abs(ah) > 2 ? 26 : Math.abs(ah) > 0.8 ? 14 : 4) +
+          Math.min(relVol * 10, 20) +
+          (volume > 150000 ? 12 : 4);
 
-        if (!state.quotes.length) {
-          list.innerHTML = '<div class="empty">Veri yok</div>';
-          return;
-        }
+        const daytradeScore =
+          Math.min(relVol * 14, 32) +
+          (Math.abs(chg) > 3 ? 18 : Math.abs(chg) > 1 ? 10 : 4) +
+          (rangePct > 5 ? 18 : rangePct > 2.5 ? 10 : 4) +
+          (atr > 0 ? 12 : 4) +
+          (volume > 300000 ? 20 : volume > 100000 ? 12 : 4);
 
-        const sorted = [...state.quotes]
-          .sort((a, b) => Number(b.regularMarketChangePercent || 0) - Number(a.regularMarketChangePercent || 0))
-          .slice(0, 40);
-
-        list.innerHTML = sorted.map(q => {
-          const plan = calculateTradePlan(q, "standard");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Momentum:</strong> ${formatNumber(getMomentumScore(q),1)}`
-          );
-        }).join("");
-      }
-
-      function renderAccumulation() {
-        const list = $("accumulationList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({ q, score: getAccumulationScore(q) }))
-          .filter(x => x.score >= 48)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">Uygun hisse yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, score }) => {
-          const plan = calculateTradePlan(q, "accum");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Birikim Skoru:</strong> ${score}`
-          );
-        }).join("");
+        return {
+          whaleScore: clampScore(whaleScore),
+          accumulationScore: clampScore(accumulationScore),
+          breakoutScore: clampScore(breakoutScore),
+          squeezeScore: clampScore(squeezeScore),
+          preafterScore: clampScore(preafterScore),
+          daytradeScore: clampScore(daytradeScore)
+        };
       }
 
-      function renderWhales() {
-        const list = $("whaleList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({ q, score: getWhaleScore(q) }))
-          .filter(x => x.score >= 55)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">Balina sinyali yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, score }) => {
-          const plan = calculateTradePlan(q, "whale");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Balina Skoru:</strong> ${score}`
-          );
-        }).join("");
+      function clampScore(score) {
+        const n = Number(score);
+        if (!Number.isFinite(n)) return 0;
+        return Math.max(0, Math.min(100, Math.round(n)));
       }
 
-      function renderSqueeze() {
-        const list = $("squeezeList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({ q, score: getSqueezeScore(q) }))
-          .filter(x => x.score >= 45)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">Squeeze yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, score }) => {
-          const plan = calculateTradePlan(q, "squeeze");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Squeeze Skoru:</strong> ${score}`
-          );
-        }).join("");
-      }
-
-      function renderPreAfter() {
-        const list = $("preAfterList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => {
-            const move = getPreAfterMove(q);
-            return { q, move };
-          })
-          .filter(x => x.move != null && Math.abs(x.move) >= 2)
-          .sort((a, b) => Math.abs(b.move) - Math.abs(a.move))
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">Pre/After veri yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, move }) => {
-          const plan = calculateTradePlan(q, "preafter");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Pre/After:</strong> ${formatPct(move)}`
-          );
-        }).join("");
-      }
-
-      function renderTomorrow() {
-        const list = $("tomorrowList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({ q, score: getTomorrowScore(q) }))
-          .filter(x => x.score >= 45)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">Yarın patlayacak aday yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, score }) => {
-          const plan = calculateTradePlan(q, "tomorrow");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Yarın Skoru:</strong> ${score}`
-          );
-        }).join("");
-      }
-
-      function renderX10() {
-        const list = $("x10List");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({ q, score: getX10Score(q) }))
-          .filter(x => x.score >= 55)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 20);
-
-        if (!data.length) {
-          list.innerHTML = '<div class="empty">5-10x aday yok</div>';
-          return;
-        }
-
-        list.innerHTML = data.map(({ q, score }) => {
-          const plan = calculateTradePlan(q, "x10");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>5-10x Skoru:</strong> ${score}`
-          );
-        }).join("");
-      }
-
-      function renderHighlights() {
-        const list = $("highlightList");
-        if (!list) return;
-
-        const data = state.quotes
-          .map(q => ({
-            q,
-            score: getMomentumScore(q) + getWhaleScore(q) * 0.4
-          }))
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 12);
-
-        list.innerHTML = data.map(({ q }) => {
-          const plan = calculateTradePlan(q, "standard");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Öne çıkan</strong>`
-          );
-        }).join("");
-      }
-
-      function renderAlerts() {
-        const list = $("alertList");
-        if (!list) return;
-
-        const alerts = state.quotes
-          .map(q => {
-            const plan = calculateTradePlan(q, "standard");
-            return { q, plan };
-          })
-          .filter(x => x.plan.signal === "AL" || x.plan.signal === "KAR AL")
-          .slice(0, 20);
-
-        if (!alerts.length) {
-          list.innerHTML = '<div class="empty">Alarm yok</div>';
-          return;
-        }
-
-        list.innerHTML = alerts.map(({ q, plan }) => {
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Alarm:</strong> ${plan.signal}`
-          );
-        }).join("");
-      }
-
-      function addToWatchlist(symbol) {
-        if (!symbol) return;
-        const upper = symbol.toUpperCase();
-        if (!state.watchlist.includes(upper)) {
-          state.watchlist.push(upper);
-          localStorage.setItem("td_watchlist", JSON.stringify(state.watchlist));
-          refreshWatchlist();
-        }
-      }
-
-      function removeFromWatchlist(symbol) {
-        state.watchlist = state.watchlist.filter(s => s !== symbol);
-        localStorage.setItem("td_watchlist", JSON.stringify(state.watchlist));
-        refreshWatchlist();
-      }
-
-      async function refreshWatchlist() {
-        const list = $("watchlistContainer");
-        if (!list) return;
-
-        if (!state.watchlist.length) {
-          list.innerHTML = '<div class="empty">Watchlist boş</div>';
-          return;
-        }
-
-        const raw = await fetchQuotes(state.watchlist);
-        const quotes = raw.map(normalizeQuote);
-
-        list.innerHTML = quotes.map(q => {
-          const plan = calculateTradePlan(q, "standard");
-
-          return buildStockCard(
-            q,
-            plan,
-            `<strong>Watchlist</strong>`,
-            true
-          );
-        }).join("");
-
-        document.querySelectorAll(".remove-watch-btn").forEach(btn => {
-          btn.onclick = () => removeFromWatchlist(btn.dataset.symbol);
+      function enrichStocks(stocks) {
+        return stocks.map(function (stock) {
+          const scores = computeSignalScores(stock);
+          const entry = calcEntry(stock);
+          const stop = calcStop(stock);
+          const target = calcTarget(stock);
+          return Object.assign({}, stock, scores, {
+            entryPrice: entry,
+            stopLoss: stop,
+            targetPrice: target
+          });
         });
       }
 
-      function bindEvents() {
-        const scanBtn = $("scanBtn");
-        if (scanBtn) scanBtn.onclick = scanMarket;
+      function calcEntry(stock) {
+        const price = Number(stock.price);
+        const high = Number(stock.high);
+        const vwap = Number(stock.vwap);
 
-        const refreshBtn = $("refreshBtn");
-        if (refreshBtn) refreshBtn.onclick = scanMarket;
+        if (!Number.isFinite(price)) return NaN;
+        if (Number.isFinite(high) && high > 0 && price < high) {
+          return round2(Math.max(price, high * 0.995));
+        }
+        if (Number.isFinite(vwap) && vwap > 0) {
+          return round2(Math.max(price, vwap));
+        }
+        return round2(price);
+      }
 
-        const addBtn = $("addWatchBtn");
-        if (addBtn) {
-          addBtn.onclick = () => {
-            const input = $("watchInput");
-            if (!input) return;
-            addToWatchlist(input.value.trim());
-            input.value = "";
-          };
+      function calcStop(stock) {
+        const price = Number(stock.price);
+        const low = Number(stock.low);
+        const atr = Number(stock.atr);
+
+        if (!Number.isFinite(price)) return NaN;
+        if (Number.isFinite(low) && low > 0) {
+          return round2(Math.min(price * 0.97, low * 0.995));
+        }
+        if (Number.isFinite(atr) && atr > 0) {
+          return round2(price - (atr * 1.2));
+        }
+        return round2(price * 0.96);
+      }
+
+      function calcTarget(stock) {
+        const entry = calcEntry(stock);
+        const stop = calcStop(stock);
+        if (!Number.isFinite(entry) || !Number.isFinite(stop)) return NaN;
+        const risk = entry - stop;
+        if (risk <= 0) return round2(entry * 1.03);
+        return round2(entry + (risk * 2));
+      }
+
+      function round2(n) {
+        return Math.round(Number(n) * 100) / 100;
+      }
+
+      function topBy(arr, field, limit) {
+        return arr
+          .slice()
+          .sort(function (a, b) {
+            return (Number(b[field]) || 0) - (Number(a[field]) || 0);
+          })
+          .slice(0, limit);
+      }
+
+      async function loadAllData(silent) {
+        showError("");
+        if (!silent) showLoading(true);
+
+        try {
+          const merged = [];
+
+          const general = await fetchFirstAvailable([
+            "/api/dashboard",
+            "/api/stocks",
+            "/api/market-data",
+            "/api/quotes",
+            "/api/data"
+          ]);
+          merged.push.apply(merged, parseStocksFromAny(general.data));
+
+          const whales = await fetchFirstAvailable([
+            "/api/whales",
+            "/api/unusual-volume",
+            "/api/flow",
+            "/api/signals"
+          ]);
+          merged.push.apply(merged, parseStocksFromAny(whales.data));
+
+          const pre = await fetchFirstAvailable([
+            "/api/pre-market",
+            "/api/premarket",
+            "/api/preafter",
+            "/api/extended-hours"
+          ]);
+          merged.push.apply(merged, parseStocksFromAny(pre.data));
+
+          const movers = await fetchFirstAvailable([
+            "/api/top-movers",
+            "/api/movers",
+            "/api/gainers",
+            "/api/scanner"
+          ]);
+          merged.push.apply(merged, parseStocksFromAny(movers.data));
+
+          const stocks = enrichStocks(uniqueByTicker(merged))
+            .filter(function (s) { return s.ticker && Number.isFinite(s.price); });
+
+          state.allStocks = stocks;
+
+          state.modules.whales = topBy(
+            stocks.filter(function (s) {
+              return s.whaleScore >= 55 || (s.relVolume >= 2 && s.volume >= 150000);
+            }),
+            "whaleScore",
+            25
+          );
+
+          state.modules.accumulation = topBy(
+            stocks.filter(function (s) {
+              return s.accumulationScore >= 55 || (
+                s.relVolume >= 1.2 &&
+                s.relVolume <= 4.5 &&
+                s.changePercent >= 0 &&
+                s.changePercent <= 8
+              );
+            }),
+            "accumulationScore",
+            25
+          );
+
+          state.modules.breakout = topBy(
+            stocks.filter(function (s) {
+              return s.breakoutScore >= 55 || (
+                s.changePercent >= 2 &&
+                s.relVolume >= 1.5 &&
+                Number.isFinite(s.high) &&
+                s.high > 0 &&
+                s.price / s.high > 0.965
+              );
+            }),
+            "breakoutScore",
+            25
+          );
+
+          state.modules.squeeze = topBy(
+            stocks.filter(function (s) {
+              return s.squeezeScore >= 50 || (
+                s.relVolume >= 1.5 &&
+                s.changePercent >= 1 &&
+                (s.shortFloat >= 5 || (Number.isFinite(s.high) && Number.isFinite(s.low) && s.price > 0 && ((s.high - s.low) / s.price) * 100 < 6))
+              );
+            }),
+            "squeezeScore",
+            25
+          );
+
+          state.modules.preafter = topBy(
+            stocks.filter(function (s) {
+              return s.preafterScore >= 45 || Math.abs(s.premarketChange || 0) >= 0.8 || Math.abs(s.afterhoursChange || 0) >= 0.8;
+            }),
+            "preafterScore",
+            25
+          );
+
+          state.modules.daytrade = topBy(
+            stocks.filter(function (s) {
+              return s.daytradeScore >= 55 || (s.relVolume >= 1.8 && s.volume >= 200000 && Math.abs(s.changePercent) >= 1.5);
+            }),
+            "daytradeScore",
+            25
+          );
+
+          renderAll();
+          setLastUpdate();
+
+          if (!stocks.length) {
+            showError("Backend’e erişildi ancak normalize edilebilir hisse verisi bulunamadı. Endpoint isimleri farklıysa server.js tarafını da eşleştirmem gerekecek.");
+          }
+        } catch (err) {
+          console.error(err);
+          showError("Veri yüklenirken beklenmeyen hata oluştu: " + (err && err.message ? err.message : "bilinmeyen hata"));
+        } finally {
+          showLoading(false);
         }
       }
 
-      async function init() {
-        bindEvents();
-        buildMarketTimeBadge();
-        await loadHeaderData();
-        await scanMarket();
-
-        setInterval(loadHeaderData, 60000);
-        setInterval(scanMarket, 120000);
+      function renderAll() {
+        renderOverview();
+        renderModuleTable("daytrade", state.modules.daytrade, "daytradeScore");
+        renderModuleTable("whales", state.modules.whales, "whaleScore");
+        renderModuleTable("accumulation", state.modules.accumulation, "accumulationScore");
+        renderModuleTable("breakout", state.modules.breakout, "breakoutScore");
+        renderModuleTable("squeeze", state.modules.squeeze, "squeezeScore");
+        renderModuleTable("preafter", state.modules.preafter, "preafterScore");
+        renderAllStocks();
       }
 
-      document.addEventListener("DOMContentLoaded", init);
-    </script>
-  </body>
+      function renderOverview() {
+        const root = els.views.overview;
+        const stocks = state.allStocks;
+        const gainers = stocks.filter(function (s) { return s.changePercent > 0; }).length;
+        const losers = stocks.filter(function (s) { return s.changePercent < 0; }).length;
+        const avgRelVol = stocks.length
+          ? stocks.reduce(function (sum, s) { return sum + (Number.isFinite(s.relVolume) ? s.relVolume : 0); }, 0) / stocks.length
+          : 0;
+        const bestDaytrade = state.modules.daytrade.slice(0, 8);
+        const bestBreakout = state.modules.breakout.slice(0, 8);
+        const bestWhales = state.modules.whales.slice(0, 8);
+
+        root.innerHTML = `
+          <div class="grid grid-4">
+            <div class="stat">
+              <div class="label">Toplam Hisse</div>
+              <div class="value">${fmtInt(stocks.length)}</div>
+              <div class="sub">Normalize edilen tüm kayıt</div>
+            </div>
+            <div class="stat">
+              <div class="label">Yükselen</div>
+              <div class="value">${fmtInt(gainers)}</div>
+              <div class="sub">Pozitif günlük değişim</div>
+            </div>
+            <div class="stat">
+              <div class="label">Düşen</div>
+              <div class="value">${fmtInt(losers)}</div>
+              <div class="sub">Negatif günlük değişim</div>
+            </div>
+            <div class="stat">
+              <div class="label">Ort. Relative Volume</div>
+              <div class="value">${fmtNumber(avgRelVol,2)}</div>
+              <div class="sub">Akış yoğunluğu göstergesi</div>
+            </div>
+          </div>
+
+          <div class="grid grid-3" style="margin-top:16px;">
+            <div class="card">
+              <div class="card-head">
+                <h3>En Güçlü Günlük Trade</h3>
+                <span class="tag">${bestDaytrade.length} kayıt</span>
+              </div>
+              <div class="card-body">
+                ${renderMiniList(bestDaytrade, "daytradeScore")}
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>En Güçlü Balina</h3>
+                <span class="tag">${bestWhales.length} kayıt</span>
+              </div>
+              <div class="card-body">
+                ${renderMiniList(bestWhales, "whaleScore")}
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>En Yakın Kırılım</h3>
+                <span class="tag">${bestBreakout.length} kayıt</span>
+              </div>
+              <div class="card-body">
+                ${renderMiniList(bestBreakout, "breakoutScore")}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderMiniList(arr, scoreField) {
+        if (!arr.length) {
+          return `<div class="empty">Bu modülde veri yok. Backend veri seti dar olabilir veya ilgili endpoint boş dönüyor olabilir.</div>`;
+        }
+
+        return `
+          <div class="table-wrap">
+            <table style="min-width:100%;">
+              <thead>
+                <tr>
+                  <th>Hisse</th>
+                  <th>Fiyat</th>
+                  <th>Değişim</th>
+                  <th>Skor</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${arr.map(function (s) {
+                  return `
+                    <tr>
+                      <td class="ticker">${escapeHtml(s.ticker)}</td>
+                      <td>${fmtNumber(s.price,2)}</td>
+                      <td class="${pctClass(s.changePercent)}">${fmtPct(s.changePercent,2)}</td>
+                      <td>${pillForScore(s[scoreField])}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function renderModuleTable(viewKey, rows, scoreField) {
+        const root = els.views[viewKey];
+        if (!rows.length) {
+          root.innerHTML = `
+            <div class="card">
+              <div class="card-head">
+                <h3>${titleForView(viewKey)[0]}</h3>
+                <span class="tag">0 kayıt</span>
+              </div>
+              <div class="card-body">
+                <div class="empty">
+                  Bu modül için şu an veri üretilemedi.  
+                  Ancak uygulama çalışıyor; script çökmüyor. Veri endpoint’leri genişletilirse tablo dolar.
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        root.innerHTML = `
+          <div class="card">
+            <div class="card-head">
+              <h3>${titleForView(viewKey)[0]}</h3>
+              <span class="tag">${rows.length} kayıt</span>
+            </div>
+            <div class="card-body">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Hisse</th>
+                      <th>Fiyat</th>
+                      <th>%</th>
+                      <th>Hacim</th>
+                      <th>Rel Vol</th>
+                      <th>Giriş</th>
+                      <th>Stop</th>
+                      <th>Hedef</th>
+                      <th>Skor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.map(function (s) {
+                      return `
+                        <tr>
+                          <td class="ticker">${escapeHtml(s.ticker)}</td>
+                          <td>${fmtNumber(s.price,2)}</td>
+                          <td class="${pctClass(s.changePercent)}">${fmtPct(s.changePercent,2)}</td>
+                          <td>${fmtInt(s.volume)}</td>
+                          <td>${fmtNumber(s.relVolume,2)}</td>
+                          <td class="num-blue">${fmtNumber(s.entryPrice,2)}</td>
+                          <td class="num-red">${fmtNumber(s.stopLoss,2)}</td>
+                          <td class="num-green">${fmtNumber(s.targetPrice,2)}</td>
+                          <td>${pillForScore(s[scoreField])}</td>
+                        </tr>
+                      `;
+                    }).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderAllStocks() {
+        const root = els.views.all;
+        const rows = state.allStocks.slice().sort(function (a, b) {
+          return (Number(b.daytradeScore) || 0) - (Number(a.daytradeScore) || 0);
+        });
+
+        if (!rows.length) {
+          root.innerHTML = `
+            <div class="card">
+              <div class="card-head">
+                <h3>Tüm Hisseler</h3>
+                <span class="tag">0 kayıt</span>
+              </div>
+              <div class="card-body">
+                <div class="empty">Henüz hisse verisi yok.</div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        root.innerHTML = `
+          <div class="card">
+            <div class="card-head">
+              <h3>Tüm Hisseler</h3>
+              <span class="tag">${rows.length} kayıt</span>
+            </div>
+            <div class="card-body">
+              <div class="toolbar">
+                <input id="tableSearch" type="text" placeholder="Ticker ara..." />
+                <select id="tableSort">
+                  <option value="daytradeScore">Skor: Günlük Trade</option>
+                  <option value="whaleScore">Skor: Balina</option>
+                  <option value="breakoutScore">Skor: Kırılım</option>
+                  <option value="changePercent">Günlük %</option>
+                  <option value="relVolume">Relative Volume</option>
+                  <option value="volume">Hacim</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Hisse</th>
+                      <th>Fiyat</th>
+                      <th>%</th>
+                      <th>Hacim</th>
+                      <th>Rel Vol</th>
+                      <th>Balina</th>
+                      <th>Birikim</th>
+                      <th>Kırılım</th>
+                      <th>Squeeze</th>
+                      <th>Pre/After</th>
+                      <th>Trade</th>
+                    </tr>
+                  </thead>
+                  <tbody id="allStocksTbody">
+                    ${rows.map(renderAllStockRow).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const searchEl = document.getElementById("tableSearch");
+        const sortEl = document.getElementById("tableSort");
+
+        function repaint() {
+          const q = (searchEl.value || "").trim().toUpperCase();
+          const sortField = sortEl.value || "daytradeScore";
+          const filtered = state.allStocks
+            .filter(function (s) {
+              return !q || s.ticker.indexOf(q) >= 0 || (s.name || "").toUpperCase().indexOf(q) >= 0;
+            })
+            .slice()
+            .sort(function (a, b) {
+              return (Number(b[sortField]) || 0) - (Number(a[sortField]) || 0);
+            })
+            .slice(0, 300);
+
+          const tbody = document.getElementById("allStocksTbody");
+          if (tbody) {
+            tbody.innerHTML = filtered.map(renderAllStockRow).join("");
+          }
+        }
+
+        searchEl.addEventListener("input", repaint);
+        sortEl.addEventListener("change", repaint);
+      }
+
+      function renderAllStockRow(s) {
+        return `
+          <tr>
+            <td class="ticker">${escapeHtml(s.ticker)}</td>
+            <td>${fmtNumber(s.price,2)}</td>
+            <td class="${pctClass(s.changePercent)}">${fmtPct(s.changePercent,2)}</td>
+            <td>${fmtInt(s.volume)}</td>
+            <td>${fmtNumber(s.relVolume,2)}</td>
+            <td>${scoreBadge(s.whaleScore)}</td>
+            <td>${scoreBadge(s.accumulationScore)}</td>
+            <td>${scoreBadge(s.breakoutScore)}</td>
+            <td>${scoreBadge(s.squeezeScore)}</td>
+            <td>${scoreBadge(s.preafterScore)}</td>
+            <td>${scoreBadge(s.daytradeScore)}</td>
+          </tr>
+        `;
+      }
+
+      function scoreBadge(score) {
+        const s = Number(score) || 0;
+        const cls = s >= 85 ? "green" : s >= 70 ? "blue" : s >= 55 ? "yellow" : "red";
+        return `<span class="pill ${cls}">${s}</span>`;
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function attachEvents() {
+        els.loginBtn.addEventListener("click", login);
+        els.passwordInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") login();
+        });
+        els.logoutBtn.addEventListener("click", logout);
+        els.refreshBtn.addEventListener("click", function () {
+          loadAllData();
+        });
+
+        els.navButtons.addEventListener("click", function (e) {
+          const btn = e.target.closest("button[data-view]");
+          if (!btn) return;
+          switchView(btn.dataset.view);
+        });
+      }
+
+      function init() {
+        attachEvents();
+        renderAuthState();
+        els.lastUpdateBadge.textContent = "Hazır: " + nowText();
+
+        if (isLoggedInStored()) {
+          state.loggedIn = true;
+          renderAuthState();
+          startAutoRefresh();
+          loadAllData();
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
 </html>
