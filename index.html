@@ -1,778 +1,582 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDesk v3 Final</title>
-  <style>
-    :root{
-      --bg:#07101f;
-      --panel:#121c3d;
-      --panel2:#17254d;
-      --text:#edf3ff;
-      --muted:#9fb1df;
-      --green:#22c55e;
-      --red:#ef4444;
-      --yellow:#f59e0b;
-      --blue:#38bdf8;
-      --purple:#8b5cf6;
-      --border:1px solid rgba(255,255,255,.08);
-      --radius:18px;
-      --shadow:0 14px 40px rgba(0,0,0,.28);
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname));
+
+const PORT = process.env.PORT || 3000;
+
+const ALPACA_API_KEY = process.env.ALPACA_API_KEY || "";
+const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY || "";
+const ALPACA_BASE_URL =
+  process.env.ALPACA_BASE_URL || "https://data.alpaca.markets/v2";
+
+const DEFAULT_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  Accept: "application/json,text/plain,*/*",
+  "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
+  Referer: "https://finance.yahoo.com/",
+  Origin: "https://finance.yahoo.com"
+};
+
+const SYMBOL_MAP = {
+  VIX: "^VIX",
+  NASDAQ: "^IXIC",
+  SP500: "^GSPC"
+};
+
+const REVERSE_SYMBOL_MAP = {
+  "^VIX": "VIX",
+  "^IXIC": "NASDAQ",
+  "^GSPC": "SP500"
+};
+
+/**
+ * Curated fundamental metadata layer
+ * NOTE:
+ * This is not a live SEC/financial API feed.
+ * It is a curated long-term conviction layer used to rank true multi-bagger-style candidates
+ * more intelligently than a pure technical scanner.
+ */
+const FUNDAMENTAL_DB = {
+  IONQ: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 8,
+    cash_runway_score: 7,
+    dilution_risk: 5,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.18,
+    notes: "Quantum computing leader narrative; high TAM; volatile but high upside profile."
+  },
+  RGTI: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.10,
+    notes: "Higher-risk quantum candidate with speculative upside."
+  },
+  QBTS: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.08,
+    notes: "Quantum theme strong; speculative execution profile."
+  },
+  QUBT: {
+    theme: "Quantum",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 4,
+    dilution_risk: 8,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 4,
+    conviction_multiplier: 1.02,
+    notes: "High beta quantum exposure; weaker execution confidence."
+  },
+  PLTR: {
+    theme: "AI",
+    stage_bias: "mid",
+    narrative_quality: 10,
+    catalyst_strength: 9,
+    revenue_growth_score: 9,
+    cash_runway_score: 10,
+    dilution_risk: 2,
+    debt_pressure: 1,
+    addressable_market_score: 9,
+    execution_confidence: 9,
+    conviction_multiplier: 1.12,
+    notes: "High-quality AI platform; less likely true 10x from here than earlier stage names."
+  },
+  SOUN: {
+    theme: "AI",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 7,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.09,
+    notes: "Voice AI narrative strong; execution and financing still matter."
+  },
+  BBAI: {
+    theme: "AI",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 4,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.06,
+    notes: "Speculative AI/public sector theme."
+  },
+  RXRX: {
+    theme: "AI/Biotech",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 5,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.08,
+    notes: "AI drug discovery; high TAM, long commercialization path."
+  },
+  DNA: {
+    theme: "Biotech",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 6,
+    revenue_growth_score: 5,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 4,
+    addressable_market_score: 9,
+    execution_confidence: 4,
+    conviction_multiplier: 1.01,
+    notes: "Synthetic biology mega-story, but financing/execution risk elevated."
+  },
+  CTMX: {
+    theme: "Biotech",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.98,
+    notes: "Biotech catalyst-driven, high risk/high reward."
+  },
+  SOPA: {
+    theme: "Speculative Growth",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 5,
+    revenue_growth_score: 4,
+    cash_runway_score: 3,
+    dilution_risk: 9,
+    debt_pressure: 4,
+    addressable_market_score: 6,
+    execution_confidence: 3,
+    conviction_multiplier: 0.92,
+    notes: "Very speculative; should rarely outrank better quality names."
+  },
+  LUNR: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 7,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.12,
+    notes: "Lunar/space infrastructure narrative with contract catalyst appeal."
+  },
+  RKLB: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 9,
+    catalyst_strength: 9,
+    revenue_growth_score: 8,
+    cash_runway_score: 8,
+    dilution_risk: 4,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 8,
+    conviction_multiplier: 1.15,
+    notes: "One of the stronger space execution stories."
+  },
+  ASTS: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 10,
+    catalyst_strength: 9,
+    revenue_growth_score: 5,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 10,
+    execution_confidence: 6,
+    conviction_multiplier: 1.10,
+    notes: "Huge TAM story; execution and financing still critical."
+  },
+  PL: {
+    theme: "Space",
+    stage_bias: "mid",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 8,
+    execution_confidence: 5,
+    conviction_multiplier: 1.00,
+    notes: "Space data/infrastructure theme; more selective treatment needed."
+  },
+  JOBY: {
+    theme: "eVTOL",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 3,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 6,
+    conviction_multiplier: 1.06,
+    notes: "Strong TAM, pre-scale commercialization."
+  },
+  ACHR: {
+    theme: "eVTOL",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 3,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.04,
+    notes: "eVTOL upside, but capital needs remain important."
+  },
+  ENVX: {
+    theme: "Battery",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 4,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.05,
+    notes: "Battery innovation theme; execution still developing."
+  },
+  QS: {
+    theme: "Battery",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 7,
+    revenue_growth_score: 2,
+    cash_runway_score: 6,
+    dilution_risk: 7,
+    debt_pressure: 2,
+    addressable_market_score: 9,
+    execution_confidence: 4,
+    conviction_multiplier: 1.00,
+    notes: "Big battery narrative but long commercialization curve."
+  },
+  EOSE: {
+    theme: "Energy Storage",
+    stage_bias: "early",
+    narrative_quality: 8,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 5,
+    dilution_risk: 8,
+    debt_pressure: 4,
+    addressable_market_score: 9,
+    execution_confidence: 5,
+    conviction_multiplier: 1.07,
+    notes: "Energy storage macro tailwind, but financing risk meaningful."
+  },
+  MARA: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 7,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.98,
+    notes: "Cycle-driven upside; more macro/BTC beta than pure business execution."
+  },
+  RIOT: {
+    theme: "Crypto Infra",
+    stage_bias: "mid",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.96,
+    notes: "Cycle-levered, less pure multi-bagger quality than top thematic names."
+  },
+  CLSK: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 8,
+    revenue_growth_score: 6,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 6,
+    conviction_multiplier: 0.98,
+    notes: "Crypto infrastructure exposure with cycle sensitivity."
+  },
+  HUT: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 5,
+    conviction_multiplier: 0.95,
+    notes: "Higher-risk crypto infra candidate."
+  },
+  IREN: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 7,
+    catalyst_strength: 7,
+    revenue_growth_score: 5,
+    cash_runway_score: 6,
+    dilution_risk: 6,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 5,
+    conviction_multiplier: 0.95,
+    notes: "Crypto infra, cycle-sensitive."
+  },
+  BITF: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 6,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.90,
+    notes: "Speculative crypto miner profile."
+  },
+  CIFR: {
+    theme: "Crypto Infra",
+    stage_bias: "early",
+    narrative_quality: 6,
+    catalyst_strength: 6,
+    revenue_growth_score: 4,
+    cash_runway_score: 5,
+    dilution_risk: 7,
+    debt_pressure: 3,
+    addressable_market_score: 7,
+    execution_confidence: 4,
+    conviction_multiplier: 0.90,
+    notes: "Speculative crypto miner profile."
+  }
+};
+
+function getFundamentalMetadata(symbol) {
+  const upper = String(symbol || "").toUpperCase();
+  const item = FUNDAMENTAL_DB[upper];
+  if (!item) return null;
+
+  return {
+    symbol: upper,
+    ...item
+  };
+}
+
+function getFundamentalsForSymbols(symbols) {
+  return symbols
+    .map((s) => getFundamentalMetadata(s))
+    .filter(Boolean);
+}
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+    alpacaConfigured: Boolean(ALPACA_API_KEY && ALPACA_SECRET_KEY),
+    fundamentalsCount: Object.keys(FUNDAMENTAL_DB).length
+  });
+});
+
+app.get("/api/fundamentals", (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+    const result = symbols.length
+      ? getFundamentalsForSymbols(symbols)
+      : Object.values(FUNDAMENTAL_DB);
+
+    return res.json({
+      fundamentalsResponse: {
+        result,
+        error: null
+      }
+    });
+  } catch (error) {
+    console.error("FUNDAMENTALS ERROR:", error.message);
+    return res.status(500).json({
+      fundamentalsResponse: {
+        result: [],
+        error: "Fundamental metadata alınamadı"
+      },
+      details: error.message
+    });
+  }
+});
+
+app.get("/api/quote", async (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+
+    if (!symbols.length) {
+      return res.status(400).json({
+        error: "symbols query param gerekli",
+        example: "/api/quote?symbols=AAPL,TSLA,NVDA"
+      });
     }
 
-    * { box-sizing:border-box; }
-
-    html,body{
-      margin:0;
-      padding:0;
-      background:
-        radial-gradient(circle at top left, rgba(75,85,255,.14), transparent 28%),
-        linear-gradient(180deg, #06101f 0%, #091225 100%);
-      color:var(--text);
-      font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    }
-
-    button,input,select{font:inherit}
-    .hidden{display:none !important}
-
-    .login-wrap{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-
-    .login-card{
-      width:100%;
-      max-width:430px;
-      background:linear-gradient(180deg, rgba(18,28,61,.96), rgba(14,22,47,.96));
-      border:var(--border);
-      border-radius:24px;
-      box-shadow:var(--shadow);
-      padding:28px;
-    }
-
-    .brand{
-      display:flex;
-      gap:14px;
-      align-items:center;
-    }
-
-    .brand-badge{
-      width:48px;
-      height:48px;
-      border-radius:14px;
-      background:linear-gradient(135deg,#38bdf8,#7c3aed);
-      display:grid;
-      place-items:center;
-      font-size:24px;
-      font-weight:800;
-    }
-
-    .title{
-      margin:0;
-      font-size:28px;
-      font-weight:800;
-    }
-
-    .subtitle{
-      margin:6px 0 0 0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.45;
-    }
-
-    .field{margin-top:16px}
-
-    .field label{
-      display:block;
-      margin-bottom:8px;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .input,.select,.btn{
-      width:100%;
-      border-radius:14px;
-      padding:12px 14px;
-      border:1px solid rgba(255,255,255,.1);
-      background:#0b1634;
-      color:var(--text);
-      outline:none;
-    }
-
-    .btn{
-      cursor:pointer;
-      font-weight:800;
-      border:none;
-      transition:.18s ease;
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
-    }
-
-    .btn.secondary{
-      background:#162448;
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .btn.ghost{
-      background:transparent;
-      border:1px solid rgba(255,255,255,.09);
-    }
-
-    .btn.green{
-      background:linear-gradient(135deg,#15803d,#22c55e);
-    }
-
-    .btn.red{
-      background:linear-gradient(135deg,#b91c1c,#ef4444);
-    }
-
-    .error{
-      margin-top:12px;
-      padding:10px 12px;
-      border-radius:12px;
-      background:rgba(127,29,29,.28);
-      color:#fecaca;
-      border:1px solid rgba(239,68,68,.24);
-      font-size:13px;
-    }
-
-    .small{font-size:12px;color:var(--muted)}
-
-    .app-shell{
-      min-height:100vh;
-      padding:18px;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-      margin-bottom:16px;
-    }
-
-    .topbar-right{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
-    .version{
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
-    }
-
-    .flex{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#132148;
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .ticker-grid{
-      display:grid;
-      grid-template-columns:repeat(6,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:16px;
-    }
-
-    .mini-card,.card{
-      background:linear-gradient(180deg, rgba(24,36,75,.98), rgba(14,22,46,.98));
-      border:var(--border);
-      box-shadow:var(--shadow);
-      border-radius:var(--radius);
-    }
-
-    .mini-card{
-      padding:18px;
-      min-height:118px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    }
-
-    .mini-label{
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom:8px;
-    }
-
-    .mini-value{
-      font-size:26px;
-      font-weight:800;
-      line-height:1.05;
-      word-break:break-word;
-    }
-
-    .mini-change{
-      margin-top:8px;
-      font-size:13px;
-      font-weight:700;
-      color:var(--muted);
-    }
-
-    .tabs-wrap{margin-bottom:16px}
-
-    .tabs{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-
-    .tab-btn{
-      border:none;
-      border-radius:999px;
-      padding:12px 18px;
-      background:#152247;
-      color:var(--text);
-      cursor:pointer;
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .tab-btn.active{
-      background:linear-gradient(135deg,#4f46e5,#8b5cf6);
-    }
-
-    .page{display:none}
-    .page.active{display:block}
-
-    .grid-2{
-      display:grid;
-      grid-template-columns:1.2fr .8fr;
-      gap:16px;
-    }
-
-    .card{padding:16px}
-
-    .card-head{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .card-title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .card-sub{
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
-      line-height:1.45;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
-    .stats-row{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-bottom:12px;
-    }
-
-    .stat{
-      background:#0e1836;
-      border:1px solid rgba(255,255,255,.07);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .stat .k{
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-    }
-
-    .stat .v{
-      font-size:20px;
-      font-weight:800;
-      line-height:1.1;
-      word-break:break-word;
-    }
-
-    .toolbar{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:12px;
-    }
-
-    .toolbar .input,.toolbar .select{
-      flex:1 1 180px;
-      width:auto;
-      min-width:140px;
-    }
-
-    .list{
-      display:grid;
-      gap:10px;
-    }
-
-    .watchlist-item{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-      background:#0d1735;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .note-lines{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.55;
-      margin-top:4px;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:84px;
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.08);
-      background:#152144;
-      white-space:nowrap;
-    }
-
-    .signal-buy{background:rgba(34,197,94,.20);color:#bbf7d0}
-    .signal-watch{background:rgba(245,158,11,.18);color:#fde68a}
-    .signal-sell{background:rgba(59,130,246,.16);color:#bfdbfe}
-    .signal-avoid{background:rgba(239,68,68,.18);color:#fecaca}
-
-    .green{color:#86efac}
-    .red{color:#fca5a5}
-    .yellow{color:#fcd34d}
-
-    .empty{
-      padding:18px;
-      border-radius:14px;
-      background:#0b1531;
-      border:1px dashed rgba(255,255,255,.1);
-      color:var(--muted);
-      text-align:center;
-    }
-
-    .watch-add{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:12px;
-    }
-
-    .watch-add .input{flex:1 1 180px}
-
-    .iframe-wrap{
-      height:560px;
-      border-radius:16px;
-      overflow:hidden;
-      background:#071228;
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    iframe{
-      width:100%;
-      height:100%;
-      border:none;
-    }
-
-    .risk-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:10px;
-    }
-
-    .result-grid{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .footer-note{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.55;
-    }
-
-    .levels{
-      margin-top:8px;
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:8px;
-    }
-
-    .level-box{
-      background:#0a1430;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:12px;
-      padding:8px;
-    }
-
-    .level-box .lk{
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:4px;
-    }
-
-    .level-box .lv{
-      font-size:13px;
-      font-weight:800;
-      word-break:break-word;
-    }
-
-    hr.sep{
-      border:none;
-      border-top:1px solid rgba(255,255,255,.08);
-      margin:18px 0;
-    }
-
-    @media (max-width:1200px){
-      .ticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .grid-2{grid-template-columns:1fr}
-      .stats-row{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .levels{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-
-    @media (max-width:780px){
-      .app-shell{padding:12px}
-      .ticker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .risk-grid{grid-template-columns:1fr}
-    }
-
-    @media (max-width:560px){
-      .ticker-grid{grid-template-columns:1fr}
-      .stats-row{grid-template-columns:1fr}
-      .result-grid{grid-template-columns:1fr}
-      .levels{grid-template-columns:1fr}
-    }
-  </style>
-</head>
-<body>
-  <div id="loginView" class="login-wrap">
-    <div class="login-card">
-      <div class="brand">
-        <div class="brand-badge">📈</div>
-        <div>
-          <h1 class="title">TradeDesk v3</h1>
-          <p class="subtitle">Final sürüm · stabil giriş · curated 5-10x motoru</p>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="passwordInput">Şifre</label>
-        <input id="passwordInput" class="input" type="password" placeholder="Şifre girin" />
-      </div>
-
-      <div class="field">
-        <button id="loginBtn" class="btn">Giriş →</button>
-      </div>
-
-      <div id="loginError" class="error hidden">Yanlış şifre</div>
-      <div class="field small">Varsayılan şifre: 1234</div>
-    </div>
-  </div>
-
-  <div id="appView" class="app-shell hidden">
-    <div class="topbar">
-      <div>
-        <div class="brand">
-          <div class="brand-badge">📊</div>
-          <div>
-            <h1 class="title" style="font-size:24px;margin:0">TradeDesk v3 Final</h1>
-            <div class="version">Çalışan modüller + trade planı + curated long-term motor</div>
-          </div>
-        </div>
-        <div class="flex" style="margin-top:8px">
-          <span class="badge">Backend Proxy</span>
-          <span class="badge">Yahoo + Alpaca Fallback</span>
-          <span class="badge" id="marketTimeBadge">ABD Piyasa: kontrol ediliyor...</span>
-          <span class="badge">Son güncelleme: <span id="lastRefreshText">—</span></span>
-        </div>
-      </div>
-
-      <div class="topbar-right">
-        <button class="btn secondary" id="refreshAllBtn">↻ Yenile</button>
-        <button class="btn ghost" id="logoutBtn">Çıkış</button>
-      </div>
-    </div>
-
-    <div class="ticker-grid">
-      <div class="mini-card"><div class="mini-label">SPY</div><div class="mini-value" id="spyPrice">—</div><div class="mini-change" id="spyChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">QQQ</div><div class="mini-value" id="qqqPrice">—</div><div class="mini-change" id="qqqChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">VIX</div><div class="mini-value" id="vixPrice">—</div><div class="mini-change" id="vixChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">IWM</div><div class="mini-value" id="iwmPrice">—</div><div class="mini-change" id="iwmChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">NASDAQ</div><div class="mini-value" id="nasdaqPrice">—</div><div class="mini-change" id="nasdaqChange">—</div></div>
-      <div class="mini-card"><div class="mini-label">Fear &amp; Greed</div><div class="mini-value" id="fgValue">—</div><div class="mini-change" id="fgText">—</div></div>
-    </div>
-
-    <div class="card tabs-wrap">
-      <div class="tabs">
-        <button class="tab-btn active" data-page="summary">📊 Özet</button>
-        <button class="tab-btn" data-page="market">⛏️ Tüm Piyasa</button>
-        <button class="tab-btn" data-page="accum">🌊 Birikim</button>
-        <button class="tab-btn" data-page="whales">🐋 Balina</button>
-        <button class="tab-btn" data-page="squeeze">🎯 Squeeze</button>
-        <button class="tab-btn" data-page="preafter">🌅 Pre/After</button>
-        <button class="tab-btn" data-page="tomorrow">💥 Yarın Patlayacak</button>
-        <button class="tab-btn" data-page="x10">💎 Long-Term 5-10x</button>
-        <button class="tab-btn" data-page="watch">⭐ İzleme</button>
-        <button class="tab-btn" data-page="chart">📈 Grafik</button>
-        <button class="tab-btn" data-page="risk">⚖️ Risk</button>
-        <button class="tab-btn" data-page="settings">⚙️ Ayarlar</button>
-      </div>
-    </div>
-
-    <section id="page-summary" class="page active">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <h2 class="card-title">🔥 Öne Çıkan Fırsatlar</h2>
-              <div class="card-sub">En güçlü setup’lar</div>
-            </div>
-            <div class="actions">
-              <button class="btn secondary" id="refreshHighlightsBtn">↻ Yenile</button>
-            </div>
-          </div>
-          <div class="list" id="highlightsList">
-            <div class="empty">Yükleniyor...</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <h2 class="card-title">🔔 Alertler</h2>
-              <div class="card-sub">Anlık güçlü sinyaller</div>
-            </div>
-          </div>
-          <div class="list" id="alertsList">
-            <div class="empty">Yükleniyor...</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="card-head">
-          <div>
-            <h2 class="card-title">⭐ İzleme Listesi Anlık</h2>
-            <div class="card-sub">Watchlist için hızlı plan</div>
-          </div>
-          <div class="actions">
-            <button class="btn secondary" id="refreshWatchSummaryBtn">↻</button>
-          </div>
-        </div>
-        <div class="list" id="watchSummaryList">
-          <div class="empty">Yükleniyor...</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="page-market" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">🔭 Tüm Piyasa</h2><div class="card-sub">Tüm hisseler için plan</div></div><div class="actions"><button class="btn secondary" id="scanMarketBtn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Toplam</div><div class="v" id="marketTotal">—</div></div><div class="stat"><div class="k">Yükselenler</div><div class="v green" id="marketUp">—</div></div><div class="stat"><div class="k">Düşenler</div><div class="v red" id="marketDown">—</div></div><div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="marketAvg">—</div></div></div><div class="list" id="marketList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-accum" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">🌊 Birikim</h2><div class="card-sub">Sessiz birikim adayları</div></div><div class="actions"><button class="btn secondary" id="scanAccumBtn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Taranan</div><div class="v" id="accumScanned">—</div></div><div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="accumStrong">—</div></div><div class="stat"><div class="k">Toplam Aday</div><div class="v" id="accumCount">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="accumUpdate">—</div></div></div><div class="list" id="accumulationList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-whales" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">🐋 Balina</h2><div class="card-sub">Momentum odaklı trade planı</div></div><div class="actions"><button class="btn secondary" id="scanWhalesBtn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Aktif Alert</div><div class="v" id="whaleActive">—</div></div><div class="stat"><div class="k">En Yüksek Vol×</div><div class="v yellow" id="whaleMaxVol">—</div></div><div class="stat"><div class="k">Ort. Değişim</div><div class="v" id="whaleAvgMove">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="whaleUpdate">—</div></div></div><div class="list" id="whaleList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-squeeze" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">🎯 Squeeze</h2><div class="card-sub">Sıkışma + atak</div></div><div class="actions"><button class="btn secondary" id="scanSqueezeBtn">↻ Tara</button></div></div><div class="list" id="squeezeList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-preafter" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">🌅 Pre/After</h2><div class="card-sub">Seans dışı / fallback momentum</div></div><div class="actions"><button class="btn secondary" id="scanPreAfterBtn">↻ Yenile</button></div></div><div class="list" id="preAfterList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-tomorrow" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">💥 Yarın Patlayacak</h2><div class="card-sub">Breakout planı</div></div><div class="actions"><button class="btn secondary" id="scanTomorrowBtn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Taranan</div><div class="v" id="tomorrowScanned">—</div></div><div class="stat"><div class="k">Güçlü Sinyal</div><div class="v green" id="tomorrowStrong">—</div></div><div class="stat"><div class="k">Ort. Spike %</div><div class="v yellow" id="tomorrowAvgSpike">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="tomorrowUpdate">—</div></div></div><div class="list" id="tomorrowList"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-x10" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">💎 Long-Term 5-10x</h2><div class="card-sub">Curated multi-bagger adayları · 6-24 ay perspektifi</div></div><div class="actions"><button class="btn secondary" id="scanX10Btn">↻ Tara</button></div></div><div class="stats-row"><div class="stat"><div class="k">Aday</div><div class="v" id="x10Count">—</div></div><div class="stat"><div class="k">Yüksek Potansiyel</div><div class="v" id="x10HighPotential">—</div></div><div class="stat"><div class="k">Ort. Fiyat</div><div class="v" id="x10AvgPrice">—</div></div><div class="stat"><div class="k">Güncelleme</div><div class="v" id="x10Update">—</div></div></div><div class="list" id="x10List"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-watch" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">⭐ İzleme</h2><div class="card-sub">Watchlist için tam plan</div></div><div class="actions"><button class="btn secondary" id="refreshWatchBtn">↻ Yenile</button></div></div><div class="watch-add"><input id="watchInput" class="input" placeholder="Sembol ekle (AAPL)" /><button class="btn green" id="addWatchBtn">+ Ekle</button><button class="btn red" id="clearWatchBtn">Temizle</button></div><div class="list" id="watchlistContainer"><div class="empty">Yükleniyor...</div></div></div></section>
-
-    <section id="page-chart" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">📈 Grafik</h2><div class="card-sub">TradingView</div></div></div><div class="toolbar"><input id="chartSymbol" class="input" value="AAPL" placeholder="Sembol" /><select id="chartInterval" class="select"><option value="D">Günlük</option><option value="W">Haftalık</option><option value="60">1 Saat</option><option value="15">15 Dk</option><option value="5">5 Dk</option></select><button class="btn secondary" id="loadChartBtn">Yükle</button></div><div class="iframe-wrap"><iframe id="chartFrame" src="about:blank"></iframe></div></div></section>
-
-    <section id="page-risk" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">⚖️ Risk</h2><div class="card-sub">Pozisyon hesaplayıcı</div></div></div><div class="risk-grid"><input id="riskAccount" class="input" type="number" step="0.01" placeholder="Hesap (USD)" value="10000" /><input id="riskPercent" class="input" type="number" step="0.01" placeholder="Max Risk %" value="1" /><input id="riskEntry" class="input" type="number" step="0.0001" placeholder="Giriş Fiyatı" value="2.50" /><input id="riskStop" class="input" type="number" step="0.0001" placeholder="Stop Loss" value="2.20" /><input id="riskTarget" class="input" type="number" step="0.0001" placeholder="Hedef Fiyat" value="3.50" /><button class="btn" id="calcRiskBtn">Hesapla</button></div><div class="result-grid"><div class="stat"><div class="k">MAX RİSK ($)</div><div class="v" id="rrMaxRisk">—</div></div><div class="stat"><div class="k">LOT SAYISI</div><div class="v" id="rrShares">—</div></div><div class="stat"><div class="k">TOPLAM GİRİŞ</div><div class="v" id="rrCost">—</div></div><div class="stat"><div class="k">STOP UZAKLIK</div><div class="v" id="rrStopDistance">—</div></div><div class="stat"><div class="k">HEDEF KAR</div><div class="v" id="rrProfit">—</div></div><div class="stat"><div class="k">RISK / ÖDÜL</div><div class="v" id="rrRatio">—</div></div><div class="stat"><div class="k">KAZANÇ %</div><div class="v" id="rrGainPct">—</div></div><div class="stat"><div class="k">KAYIP %</div><div class="v" id="rrLossPct">—</div></div></div><div class="footer-note" id="riskNote" style="margin-top:12px">Değerleri girin.</div></div></section>
-
-    <section id="page-settings" class="page"><div class="card"><div class="card-head"><div><h2 class="card-title">⚙️ Ayarlar</h2><div class="card-sub">Temel ayarlar</div></div></div><div class="footer-note">Veri akışı backend üzerinden yönetilir.</div><hr class="sep" /><div class="card-head"><div><h2 class="card-title">🔒 Şifre Değiştir</h2><div class="card-sub">Min 4 karakter</div></div></div><div class="toolbar"><input id="newPasswordInput" class="input" type="password" placeholder="Yeni şifre" /><button class="btn" id="changePasswordBtn">Değiştir</button></div><div id="passwordMsg" class="small"></div><hr class="sep" /><div class="card-head"><div><h2 class="card-title">🔄 Otomatik Yenileme</h2><div class="card-sub">Dakika bazlı</div></div></div><div class="toolbar"><select id="autoRefreshSelect" class="select"><option value="0">Kapalı</option><option value="1">1 dakika</option><option value="2">2 dakika</option><option value="5">5 dakika</option><option value="10">10 dakika</option></select><button class="btn secondary" id="saveAutoRefreshBtn">Kaydet</button></div><div class="small" id="autoRefreshMsg">—</div></div></section>
-
-  <script>
-    (() => {
-      "use strict";
-
-      const DEFAULT_PASSWORD = "1234";
-      const LOGIN_FLAG_KEY = "tradedesk_logged_in";
-      const PASSWORD_KEY = "tradedesk_password";
-      const WATCHLIST_KEY = "td_watchlist";
-      const AUTO_REFRESH_KEY = "td_auto_refresh";
-
-      const HEADER_SYMBOLS = ["SPY", "QQQ", "VIX", "IWM", "NASDAQ"];
-      const MARKET_SYMBOLS = ["AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","AMD","PLTR","SMCI","AVGO","NFLX","COIN","MSTR","RIVN","SOFI","INTC","MU","BABA","PDD","UBER","SHOP","SNOW","CRM","ORCL","ADBE","PANW","CRWD","NET","ARM","QCOM","MRVL","TSM","F","GM","NIO","LI","XPEV","LCID","IONQ","QBTS","RGTI","QUBT","SOUN","BBAI","AI","ASTS","RKLB","LUNR","PL","JOBY","ACHR","RIOT","MARA","CLSK","HUT","AFRM","UPST","HOOD","PYPL","SQ","DKNG","ROKU","OPEN","CVNA","DAL","UAL","AAL","CCL","BA","XOM","CVX","JNJ","PFE","MRNA","LLY","NVO","ABBV","WMT","COST","TGT","NKE","DIS","SBUX","XBI","ARKK","SPWR","SEDG","ENPH","RUN","FSLR","BE","CHPT","QS","NKLA","ENVX","EOSE","MVST","STEM","DNA","RXRX","TEM","HIMS","CELH","DJT","GME","AMC","BB","SIRI","TLRY","CGC","APLD","DDOG","MDB","PATH","U","RBLX","TTD","APP","DUOL","ETSY","TNA","SOXL","LABU","FNGU","NVDL","TQQQ","SQQQ","UVXY","BOIL","KOLD"];
-
-      const SECTOR_HINTS = {
-        ASTS:"Uzay", RKLB:"Uzay", LUNR:"Uzay", PL:"Uzay",
-        IONQ:"Kuantum", QBTS:"Kuantum", RGTI:"Kuantum", QUBT:"Kuantum",
-        SOUN:"AI", BBAI:"AI", AI:"AI", PLTR:"AI",
-        TEM:"AI/Sağlık", RXRX:"AI/Biyotek", DNA:"Biyotek",
-        TSLA:"EV/AI", RIVN:"EV", LCID:"EV", NIO:"EV", LI:"EV", XPEV:"EV",
-        CLSK:"Kripto", RIOT:"Kripto", MARA:"Kripto", HUT:"Kripto",
-        JOBY:"eVTOL", ACHR:"eVTOL", ENVX:"Batarya", QS:"Batarya",
-        STEM:"Enerji", BE:"Enerji", EOSE:"Enerji"
-      };
-
-      const SQUEEZE_MEMES = ["GME","AMC","SIRI","UPST","SOFI","IONQ","QBTS","RGTI","QUBT","DJT","TLRY","CVNA","SOUN"];
-
-      const CURATED_MULTI_BAGGERS = [
-        "IONQ","PLTR","RGTI","QBTS","QUBT","LUNR","RKLB","EOSE","ENVX","QS",
-        "SOUN","BBAI","RXRX","DNA","ACHR","JOBY","ASTS","PL","CTMX","SOPA",
-        "MARA","RIOT","CLSK","HUT","IREN","BITF","CIFR"
-      ];
-
-      const MULTI_BAGGER_THEMES = {
-        IONQ:"Quantum",
-        PLTR:"AI",
-        RGTI:"Quantum",
-        QBTS:"Quantum",
-        QUBT:"Quantum",
-        LUNR:"Space",
-        RKLB:"Space",
-        ASTS:"Space",
-        PL:"Space",
-        EOSE:"Energy Storage",
-        ENVX:"Battery",
-        QS:"Battery",
-        SOUN:"AI",
-        BBAI:"AI",
-        RXRX:"AI/Biotech",
-        DNA:"Biotech",
-        ACHR:"eVTOL",
-        JOBY:"eVTOL",
-        CTMX:"Biotech",
-        SOPA:"Speculative Growth",
-        MARA:"Crypto Infra",
-        RIOT:"Crypto Infra",
-        CLSK:"Crypto Infra",
-        HUT:"Crypto Infra",
-        IREN:"Crypto Infra",
-        BITF:"Crypto Infra",
-        CIFR:"Crypto Infra"
-      };
-
-      const state = {
-        quotes: [],
-        quoteMap: {},
-        watchlist: [],
-        autoRefreshTimer: null
-      };
-
-      const $ = (id) => document.getElementById(id);
-
-      function safeText(el, value) { if (el) el.textContent = value; }
-      function formatNumber(v, d = 2) { if (v == null || Number.isNaN(Number(v))) return "—"; return Number(v).toLocaleString("en-US", { minimumFractionDigits:d, maximumFractionDigits:d }); }
-      function formatPrice(v) { if (v == null || Number.isNaN(Number(v))) return "—"; const n = Number(v); const d = n < 1 ? 4 : n < 10 ? 3 : 2; return "$" + formatNumber(n, d); }
-      function formatPct(v) { if (v == null || Number.isNaN(Number(v))) return "—"; const n = Number(v); return `${n > 0 ? "+" : ""}${formatNumber(n, 2)}%`; }
-      function nowText() { return new Date().toLocaleString("tr-TR"); }
-      function setLastRefresh() { safeText($("lastRefreshText"), nowText()); }
-      function validPrice(v) { return Number.isFinite(Number(v)); }
-      function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-
-      function getSavedPassword() { return localStorage.getItem(PASSWORD_KEY) || DEFAULT_PASSWORD; }
-      function isLoggedIn() { return localStorage.getItem(LOGIN_FLAG_KEY) === "1"; }
-      function setLoggedIn(flag) { localStorage.setItem(LOGIN_FLAG_KEY, flag ? "1" : "0"); }
-
-      function getWatchlist() {
-        try {
-          const raw = localStorage.getItem(WATCHLIST_KEY);
-          const list = raw ? JSON.parse(raw) : ["AAPL","TSLA","PLTR","IONQ"];
-          return Array.isArray(list) ? [...new Set(list.map(x => String(x).trim().toUpperCase()).filter(Boolean))] : ["AAPL","TSLA","PLTR","IONQ"];
-        } catch {
-          return ["AAPL","TSLA","PLTR","IONQ"];
+    const quotes = await getQuotesWithFallback(symbols);
+
+    return res.json({
+      quoteResponse: {
+        result: quotes,
+        error: null
+      }
+    });
+  } catch (error) {
+    console.error("QUOTE ERROR:", error.message);
+
+    return res.status(500).json({
+      quoteResponse: {
+        result: [],
+        error: "Quote verisi alınamadı"
+      },
+      details: error.message
+    });
+  }
+});
+
+app.get("/api/feargreed", async (req, res) => {
+  const sources = [
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata",
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata/"
+  ];
+
+  for (const url of sources) {
+    try {
+      const data = await safeFetchJson(
+        url,
+        {
+          headers: {
+            "User-Agent": DEFAULT_HEADERS["User-Agent"],
+            Accept: "application/json,text/plain,*/*",
+            Referer: "https://www.cnn.com/markets/fear-and-greed",
+            Origin: "https://www.cnn.com"
+          }
+        },
+        1,
+        9000
+      );
+
+      const score =
+        toNumber(data?.fear_and_greed?.score, null) ??
+        toNumber(data?.fear_and_greed_historical?.data?.[0]?.score, null) ??
+        50;
+
+      const rating =
+        data?.fear_and_greed?.rating ||
+        data?.fear_and_greed_historical?.data?.[0]?.rating ||
+        "neutral";
+
+      return res.json({
+        fear_and_greed: {
+          score,
+          rating
         }
+      });
+    } catch (error) {
+      console.error("FEAR_GREED ERROR:", error.message);
+    }
+  }
+
+  return res.json({
+    fear_and_greed: {
+      score: 50,
+      rating: "neutral"
+    }
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not found"
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`TradeDesk backend running on port ${PORT}`);
+});
+      function getFundamental(symbol) {
+        return state.fundamentalsMap[String(symbol || "").toUpperCase()] || null;
       }
 
-      function saveWatchlist(list) {
-        state.watchlist = [...new Set(list.map(x => String(x).trim().toUpperCase()).filter(Boolean))];
-        localStorage.setItem(WATCHLIST_KEY, JSON.stringify(state.watchlist));
-      }
-
-      function getAutoRefreshMinutes() { return Number(localStorage.getItem(AUTO_REFRESH_KEY) || "0"); }
-      function setAutoRefreshMinutes(v) { localStorage.setItem(AUTO_REFRESH_KEY, String(v)); }
-
-      async function fetchJSON(url) {
-        const res = await fetch(url, { cache:"no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      }
-
-      async function fetchQuotes(symbols) {
-        const unique = [...new Set(symbols.map(s => String(s).trim().toUpperCase()).filter(Boolean))];
-        if (!unique.length) return [];
-        const data = await fetchJSON(`/api/quote?symbols=${encodeURIComponent(unique.join(","))}`);
-        return Array.isArray(data?.quoteResponse?.result) ? data.quoteResponse.result : [];
-      }
-
-      async function fetchFearGreed() {
-        try {
-          const data = await fetchJSON("/api/feargreed");
-          const fg = data?.fear_and_greed || {};
-          return { score:Number(fg.score ?? 50), rating:String(fg.rating || "neutral") };
-        } catch {
-          return { score:50, rating:"neutral" };
-        }
-      }
-
-      function normalizeQuote(q) {
-        return {
-          symbol: String(q?.symbol || "").toUpperCase(),
-          shortName: q?.shortName || q?.longName || q?.symbol || "",
-          regularMarketPrice: Number(q?.regularMarketPrice ?? NaN),
-          regularMarketChangePercent: Number(q?.regularMarketChangePercent ?? 0),
-          regularMarketVolume: Number(q?.regularMarketVolume ?? 0),
-          averageVolume: Number(q?.averageVolume ?? q?.averageDailyVolume3Month ?? 1),
-          regularMarketOpen: Number(q?.regularMarketOpen ?? NaN),
-          regularMarketDayHigh: Number(q?.regularMarketDayHigh ?? NaN),
-          regularMarketDayLow: Number(q?.regularMarketDayLow ?? NaN),
-          regularMarketPreviousClose: Number(q?.regularMarketPreviousClose ?? NaN),
-          fiftyTwoWeekHigh: Number(q?.fiftyTwoWeekHigh ?? NaN),
-          fiftyTwoWeekLow: Number(q?.fiftyTwoWeekLow ?? NaN),
-          marketCap: q?.marketCap ?? null,
-          preMarketChangePercent: q?.preMarketChangePercent == null ? null : Number(q.preMarketChangePercent),
-          postMarketChangePercent: q?.postMarketChangePercent == null ? null : Number(q.postMarketChangePercent),
-          shortPercentOfFloat: q?.shortPercentOfFloat == null ? null : Number(q.shortPercentOfFloat)
-        };
-      }
-            function getVolumeRatio(q) {
+      function getVolumeRatio(q) {
         const vol = Number(q.regularMarketVolume || 0);
         const avg = Number(q.averageVolume || 0);
         if (!avg || !Number.isFinite(avg)) return 0;
@@ -876,7 +680,33 @@
         return Math.round(score);
       }
 
-      function getX10Score(q) {
+      function getFundamentalScore(q) {
+        const f = getFundamental(q.symbol);
+        if (!f) return 0;
+
+        let score = 0;
+        score += Number(f.narrative_quality || 0) * 4;
+        score += Number(f.catalyst_strength || 0) * 4;
+        score += Number(f.revenue_growth_score || 0) * 4;
+        score += Number(f.cash_runway_score || 0) * 3.5;
+        score += Number(f.addressable_market_score || 0) * 3.5;
+        score += Number(f.execution_confidence || 0) * 3;
+
+        score -= Number(f.dilution_risk || 0) * 3.5;
+        score -= Number(f.debt_pressure || 0) * 2.5;
+
+        const multiplier = Number(f.conviction_multiplier || 1);
+        score *= multiplier;
+
+        const stageBias = String(f.stage_bias || "").toLowerCase();
+        if (stageBias === "early") score += 6;
+        if (stageBias === "mid") score += 3;
+        if (stageBias === "late") score -= 4;
+
+        return Math.round(clamp(score, 0, 100));
+      }
+
+      function getX10TechnicalScore(q) {
         const symbol = q.symbol;
         const price = Number(q.regularMarketPrice || 0);
         const volx = getVolumeRatio(q);
@@ -890,8 +720,8 @@
 
         let score = 0;
 
-        if (CURATED_MULTI_BAGGERS.includes(symbol)) score += 38;
-        if (MULTI_BAGGER_THEMES[symbol]) score += 18;
+        if (CURATED_MULTI_BAGGERS.includes(symbol)) score += 30;
+        if (MULTI_BAGGER_THEMES[symbol]) score += 12;
 
         if (price > 1 && price <= 25) score += 14;
         else if (price > 25 && price <= 60) score += 7;
@@ -927,7 +757,21 @@
         return Math.round(Math.max(0, Math.min(100, score)));
       }
 
+      function getX10Score(q) {
+        const fScore = getFundamentalScore(q);
+        const techScore = getX10TechnicalScore(q);
+        return Math.round((fScore * 0.62) + (techScore * 0.38));
+      }
+
       function getX10Stage(q) {
+        const f = getFundamental(q.symbol);
+        if (f?.stage_bias) {
+          const v = String(f.stage_bias).toLowerCase();
+          if (v === "early") return "Early";
+          if (v === "mid") return "Mid";
+          if (v === "late") return "Late";
+        }
+
         const rangePos = getRangePosition(q);
         const price = Number(q.regularMarketPrice || 0);
 
@@ -943,6 +787,7 @@
       }
 
       function getX10Risk(q) {
+        const f = getFundamental(q.symbol);
         const price = Number(q.regularMarketPrice || 0);
         const volx = getVolumeRatio(q);
         const dayRange = getDayRangePercent(q);
@@ -961,19 +806,25 @@
         if (volx < 0.6) risk += 1;
         if (marketCap > 0 && marketCap < 1e9) risk += 2;
 
-        if (risk >= 6) return "High";
-        if (risk >= 3) return "Medium";
+        if (f) {
+          risk += Math.round(Number(f.dilution_risk || 0) * 0.45);
+          risk += Math.round(Number(f.debt_pressure || 0) * 0.25);
+          risk -= Math.round(Number(f.cash_runway_score || 0) * 0.20);
+        }
+
+        if (risk >= 8) return "High";
+        if (risk >= 4) return "Medium";
         return "Controlled";
       }
 
       function getX10Action(q) {
-        const score = getX10Score(q);
+        const total = getX10Score(q);
         const stage = getX10Stage(q);
         const risk = getX10Risk(q);
 
-        if (score >= 82 && stage !== "Late" && risk !== "High") return "Güçlü Aday";
-        if (score >= 68) return "Kademeli Topla";
-        if (score >= 55) return "İzle";
+        if (total >= 84 && stage !== "Late" && risk !== "High") return "Güçlü Aday";
+        if (total >= 72) return "Kademeli Topla";
+        if (total >= 58) return "İzle";
         return "Uzak Dur";
       }
 
@@ -1209,6 +1060,11 @@
         state.quotes = raw.map(normalizeQuote).filter(q => q.symbol && validPrice(q.regularMarketPrice));
         state.quoteMap = Object.fromEntries(state.quotes.map(q => [q.symbol, q]));
 
+        const fundamentals = await fetchFundamentals(state.quotes.map(q => q.symbol));
+        state.fundamentalsMap = Object.fromEntries(
+          fundamentals.map(item => [String(item.symbol || "").toUpperCase(), item])
+        );
+
         const total = state.quotes.length;
         const up = state.quotes.filter(q => Number(q.regularMarketChangePercent || 0) >= 0).length;
         const down = total - up;
@@ -1230,7 +1086,7 @@
         renderAlerts();
         await refreshWatchlist();
       }
-            function renderMarketList() {
+                  function renderMarketList() {
         const el = $("marketList");
         if (!el) return;
 
@@ -1374,20 +1230,26 @@
         if (!el) return;
 
         const data = state.quotes
-          .filter(q => CURATED_MULTI_BAGGERS.includes(q.symbol) || MULTI_BAGGER_THEMES[q.symbol])
-          .map(q => ({
-            q,
-            score: getX10Score(q),
-            stage: getX10Stage(q),
-            risk: getX10Risk(q),
-            action: getX10Action(q)
-          }))
+          .filter(q => CURATED_MULTI_BAGGERS.includes(q.symbol) || MULTI_BAGGER_THEMES[q.symbol] || getFundamental(q.symbol))
+          .map(q => {
+            const f = getFundamental(q.symbol);
+            return {
+              q,
+              score: getX10Score(q),
+              stage: getX10Stage(q),
+              risk: getX10Risk(q),
+              action: getX10Action(q),
+              fScore: getFundamentalScore(q),
+              tScore: getX10TechnicalScore(q),
+              fundamental: f
+            };
+          })
           .filter(x => x.score >= 50)
           .sort((a, b) => b.score - a.score)
           .slice(0, 20);
 
         safeText($("x10Count"), String(data.length));
-        safeText($("x10HighPotential"), String(data.filter(x => x.score >= 82).length));
+        safeText($("x10HighPotential"), String(data.filter(x => x.score >= 84).length));
         safeText($("x10AvgPrice"), data.length ? formatPrice(data.reduce((a, b) => a + Number(b.q.regularMarketPrice || 0), 0) / data.length) : "—");
         safeText($("x10Update"), nowText());
 
@@ -1396,10 +1258,10 @@
           return;
         }
 
-        el.innerHTML = data.map(({ q, score, stage, risk, action }) => {
+        el.innerHTML = data.map(({ q, score, stage, risk, action, fScore, tScore, fundamental }) => {
           const plan = calculateTradePlan(q, "x10");
           const signalClass = getX10SignalClass(action);
-          const theme = MULTI_BAGGER_THEMES[q.symbol] || SECTOR_HINTS[q.symbol] || "Growth";
+          const theme = fundamental?.theme || MULTI_BAGGER_THEMES[q.symbol] || SECTOR_HINTS[q.symbol] || "Growth";
           const rangePos = getRangePosition(q);
 
           return `
@@ -1408,9 +1270,11 @@
                 <div style="font-weight:800">${q.symbol} · ${formatPrice(q.regularMarketPrice)} · <span class="${Number(q.regularMarketChangePercent)>=0?'green':'red'}">${formatPct(q.regularMarketChangePercent)}</span></div>
                 <div class="note-lines">
                   <div><strong>Tema:</strong> ${theme} · <strong>Stage:</strong> ${stage} · <strong>Risk:</strong> ${risk}</div>
-                  <div><strong>Long-Term Score:</strong> ${score}/100 · <strong>Aksiyon:</strong> ${action}</div>
-                  <div><strong>Vol×:</strong> ${formatNumber(getVolumeRatio(q),2)} · <strong>Birikim:</strong> ${getAccumulationScore(q)} · <strong>52H Konum:</strong> ${rangePos == null ? "—" : formatNumber(rangePos,1) + "%"}</div>
-                  <div><strong>Not:</strong> Bu modül kısa vadeli TP hedefinden çok, 6-24 ay potansiyel sıralaması içindir.</div>
+                  <div><strong>Blend Score:</strong> ${score}/100 · <strong>Fundamental:</strong> ${fScore}/100 · <strong>Teknik:</strong> ${tScore}/100</div>
+                  <div><strong>Aksiyon:</strong> ${action} · <strong>Vol×:</strong> ${formatNumber(getVolumeRatio(q),2)} · <strong>52H Konum:</strong> ${rangePos == null ? "—" : formatNumber(rangePos,1) + "%"}</div>
+                  <div><strong>Anlatı:</strong> ${fundamental?.narrative_quality ?? "—"} · <strong>Katalist:</strong> ${fundamental?.catalyst_strength ?? "—"} · <strong>Gelir Büyümesi:</strong> ${fundamental?.revenue_growth_score ?? "—"}</div>
+                  <div><strong>Cash Runway:</strong> ${fundamental?.cash_runway_score ?? "—"} · <strong>Dilution Risk:</strong> ${fundamental?.dilution_risk ?? "—"} · <strong>Debt:</strong> ${fundamental?.debt_pressure ?? "—"}</div>
+                  <div><strong>Not:</strong> ${fundamental?.notes || "Bu modül 6-24 ay perspektifli long-term sıralama üretir."}</div>
                 </div>
                 <div class="levels">
                   <div class="level-box"><div class="lk">ENTRY</div><div class="lv">${formatPrice(plan.entry)}</div></div>
@@ -1496,6 +1360,11 @@
 
         const raw = await fetchQuotes(state.watchlist);
         const quotes = raw.map(normalizeQuote).filter(q => q.symbol && validPrice(q.regularMarketPrice));
+
+        const fundamentals = await fetchFundamentals(quotes.map(q => q.symbol));
+        fundamentals.forEach(item => {
+          state.fundamentalsMap[String(item.symbol || "").toUpperCase()] = item;
+        });
 
         list.innerHTML = quotes.length
           ? quotes.map(q =>
