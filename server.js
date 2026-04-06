@@ -574,7 +574,7 @@ function normalizeYahooQuote(q = {}) {
 function buildFallbackQuote(symbol, chartMeta = {}, chartResult = {}) {
   const meta = chartMeta || {};
   const indicators = chartResult?.indicators?.quote?.[0] || {};
-  const closes = chartResult?.indicators?.adjclose?.[0]?.adjclose || [];
+  const closes = indicators?.close || chartResult?.indicators?.adjclose?.[0]?.adjclose || [];
   const volumes = indicators?.volume || [];
   const highs = indicators?.high || [];
   const lows = indicators?.low || [];
@@ -1082,6 +1082,80 @@ async function fetchIntradayForSymbols(symbols, interval = "5m", range = "1d", i
   return out;
 }
 
+function sendQuotesResponse(res, quotes) {
+  return res.json({
+    quoteResponse: {
+      result: quotes,
+      error: null
+    },
+    quotes,
+    data: quotes
+  });
+}
+
+function sendFundamentalsResponse(res, result) {
+  return res.json({
+    fundamentalsResponse: {
+      result,
+      error: null
+    },
+    fundamentals: result,
+    data: result
+  });
+}
+
+function sendIntradayResponse(res, result, interval, range, includePrePost) {
+  return res.json({
+    intradayResponse: {
+      result,
+      error: null,
+      interval,
+      range,
+      includePrePost
+    },
+    intraday: result,
+    data: result
+  });
+}
+
+function sendFearGreedResponse(res, score, rating) {
+  return res.json({
+    fear_and_greed: {
+      score,
+      rating
+    },
+    score,
+    rating
+  });
+}
+
+async function handleQuoteRequest(req, res) {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+
+    if (!symbols.length) {
+      return res.status(400).json({
+        error: "symbols query param gerekli",
+        example: "/api/quote?symbols=AAPL,TSLA,NVDA"
+      });
+    }
+
+    const quotes = await getQuotesWithFallback(symbols);
+    return sendQuotesResponse(res, quotes);
+  } catch (error) {
+    console.error("QUOTE ERROR:", error.message);
+    return res.status(500).json({
+      quoteResponse: {
+        result: [],
+        error: "Quote verisi alınamadı"
+      },
+      quotes: [],
+      data: [],
+      details: error.message
+    });
+  }
+}
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
@@ -1103,12 +1177,7 @@ app.get("/api/fundamentals", (req, res) => {
       ? getFundamentalsForSymbols(symbols)
       : Object.entries(FUNDAMENTAL_DB).map(([symbol, item]) => ({ symbol, ...item }));
 
-    return res.json({
-      fundamentalsResponse: {
-        result,
-        error: null
-      }
-    });
+    return sendFundamentalsResponse(res, result);
   } catch (error) {
     console.error("FUNDAMENTALS ERROR:", error.message);
     return res.status(500).json({
@@ -1116,48 +1185,30 @@ app.get("/api/fundamentals", (req, res) => {
         result: [],
         error: "Fundamental metadata alınamadı"
       },
+      fundamentals: [],
+      data: [],
       details: error.message
     });
   }
 });
 
-app.get("/api/quote", async (req, res) => {
-  try {
-    const symbols = parseSymbols(req.query.symbols);
-
-    if (!symbols.length) {
-      return res.status(400).json({
-        error: "symbols query param gerekli",
-        example: "/api/quote?symbols=AAPL,TSLA,NVDA"
-      });
-    }
-
-    const quotes = await getQuotesWithFallback(symbols);
-
-    return res.json({
-      quoteResponse: {
-        result: quotes,
-        error: null
-      }
-    });
-  } catch (error) {
-    console.error("QUOTE ERROR:", error.message);
-    return res.status(500).json({
-      quoteResponse: {
-        result: [],
-        error: "Quote verisi alınamadı"
-      },
-      details: error.message
-    });
-  }
-});
+app.get("/api/quote", handleQuoteRequest);
+app.get("/api/quotes", handleQuoteRequest);
+app.get("/quotes", handleQuoteRequest);
+app.get("/api/market/quotes", handleQuoteRequest);
+app.get("/market/quotes", handleQuoteRequest);
 
 app.get("/api/intraday", async (req, res) => {
   try {
     const symbols = parseSymbols(req.query.symbols);
     const interval = String(req.query.interval || "5m");
     const range = String(req.query.range || "1d");
-    const includePrePost = String(req.query.includePrePost || "true") !== "false";
+    const includePrePost =
+      String(
+        req.query.includePrePost ??
+        req.query.extended ??
+        "true"
+      ) !== "false";
 
     if (!symbols.length) {
       return res.status(400).json({
@@ -1167,16 +1218,7 @@ app.get("/api/intraday", async (req, res) => {
     }
 
     const result = await fetchIntradayForSymbols(symbols, interval, range, includePrePost);
-
-    return res.json({
-      intradayResponse: {
-        result,
-        error: null,
-        interval,
-        range,
-        includePrePost
-      }
-    });
+    return sendIntradayResponse(res, result, interval, range, includePrePost);
   } catch (error) {
     console.error("INTRADAY ERROR:", error.message);
     return res.status(500).json({
@@ -1184,6 +1226,8 @@ app.get("/api/intraday", async (req, res) => {
         result: [],
         error: "Intraday veri alınamadı"
       },
+      intraday: [],
+      data: [],
       details: error.message
     });
   }
@@ -1221,23 +1265,54 @@ app.get("/api/feargreed", async (req, res) => {
         data?.fear_and_greed_historical?.data?.[0]?.rating ||
         "neutral";
 
-      return res.json({
-        fear_and_greed: {
-          score,
-          rating
-        }
-      });
+      return sendFearGreedResponse(res, score, rating);
     } catch (error) {
       console.error("FEAR_GREED ERROR:", error.message);
     }
   }
 
-  return res.json({
-    fear_and_greed: {
-      score: 50,
-      rating: "neutral"
+  return sendFearGreedResponse(res, 50, "neutral");
+});
+
+app.get("/api/fear-greed", async (req, res) => {
+  const sources = [
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata",
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata/"
+  ];
+
+  for (const url of sources) {
+    try {
+      const data = await safeFetchJson(
+        url,
+        {
+          headers: {
+            "User-Agent": DEFAULT_HEADERS["User-Agent"],
+            Accept: "application/json,text/plain,*/*",
+            Referer: "https://www.cnn.com/markets/fear-and-greed",
+            Origin: "https://www.cnn.com"
+          }
+        },
+        1,
+        9000
+      );
+
+      const score =
+        toNumber(data?.fear_and_greed?.score, null) ??
+        toNumber(data?.fear_and_greed_historical?.data?.[0]?.score, null) ??
+        50;
+
+      const rating =
+        data?.fear_and_greed?.rating ||
+        data?.fear_and_greed_historical?.data?.[0]?.rating ||
+        "neutral";
+
+      return sendFearGreedResponse(res, score, rating);
+    } catch (error) {
+      console.error("FEAR_GREED ERROR:", error.message);
     }
-  });
+  }
+
+  return sendFearGreedResponse(res, 50, "neutral");
 });
 
 app.use((req, res) => {
