@@ -1119,3 +1119,798 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`TradeDesk backend running on port ${PORT}`);
 });
+async function safeFetchJson(url, options = {}, retries = 2, timeoutMs = 10000) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        method: options.method || "GET",
+        headers: options.headers || DEFAULT_HEADERS,
+        body: options.body,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(`HTTP ${response.status}${text ? ` - ${text}` : ""}`);
+      }
+
+      const text = await response.text();
+      return JSON.parse(text);
+    } catch (error) {
+      clearTimeout(timeout);
+      lastError = error;
+      if (attempt < retries) {
+        await sleep(500 * (attempt + 1));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+function normalizeQuoteShape(q = {}) {
+  const rawSymbol = q.symbol || "";
+  const shownSymbol = displaySymbol(rawSymbol);
+
+  return {
+    symbol: shownSymbol,
+    originalSymbol: rawSymbol,
+    shortName: q.shortName || q.longName || q.displayName || shownSymbol || rawSymbol || "",
+    longName: q.longName || q.shortName || q.displayName || shownSymbol || rawSymbol || "",
+    regularMarketPrice: toNumber(q.regularMarketPrice, null),
+    regularMarketChange: toNumber(q.regularMarketChange, 0),
+    regularMarketChangePercent: toNumber(q.regularMarketChangePercent, 0),
+    regularMarketOpen: toNumber(q.regularMarketOpen, null),
+    regularMarketDayHigh: toNumber(q.regularMarketDayHigh, null),
+    regularMarketDayLow: toNumber(q.regularMarketDayLow, null),
+    regularMarketPreviousClose: toNumber(q.regularMarketPreviousClose, null),
+    regularMarketVolume: toNumber(q.regularMarketVolume, 0),
+    averageVolume: toNumber(q.averageVolume, null),
+    averageDailyVolume3Month: toNumber(q.averageDailyVolume3Month, null),
+    marketCap: toNumber(q.marketCap, null),
+    fiftyTwoWeekHigh: toNumber(q.fiftyTwoWeekHigh, null),
+    fiftyTwoWeekLow: toNumber(q.fiftyTwoWeekLow, null),
+    trailingPE: toNumber(q.trailingPE, null),
+    forwardPE: toNumber(q.forwardPE, null),
+    bid: toNumber(q.bid, null),
+    ask: toNumber(q.ask, null),
+    preMarketPrice: toNumber(q.preMarketPrice, null),
+    preMarketChange: toNumber(q.preMarketChange, null),
+    preMarketChangePercent: toNumber(q.preMarketChangePercent, null),
+    postMarketPrice: toNumber(q.postMarketPrice, null),
+    postMarketChange: toNumber(q.postMarketChange, null),
+    postMarketChangePercent: toNumber(q.postMarketChangePercent, null),
+    shortNameSafe: q.shortNameSafe || q.shortName || q.longName || shownSymbol || rawSymbol || "",
+    exchange: q.exchange || "",
+    quoteType: q.quoteType || "",
+    currency: q.currency || "USD",
+    sourceInterval: q.sourceInterval || null,
+    region: q.region || "",
+    shortPercentOfFloat: toNumber(q.shortPercentOfFloat, null)
+  };
+}
+
+function normalizeYahooQuote(q = {}) {
+  return normalizeQuoteShape({
+    symbol: q.symbol || "",
+    shortName: q.shortName || q.longName || q.displayName || q.symbol || "",
+    longName: q.longName || q.shortName || q.displayName || q.symbol || "",
+    regularMarketPrice: q.regularMarketPrice,
+    regularMarketChange: q.regularMarketChange,
+    regularMarketChangePercent: q.regularMarketChangePercent,
+    regularMarketOpen: q.regularMarketOpen,
+    regularMarketDayHigh: q.regularMarketDayHigh,
+    regularMarketDayLow: q.regularMarketDayLow,
+    regularMarketPreviousClose: q.regularMarketPreviousClose,
+    regularMarketVolume: q.regularMarketVolume,
+    averageVolume: q.averageVolume,
+    averageDailyVolume3Month: q.averageDailyVolume3Month,
+    marketCap: q.marketCap,
+    fiftyTwoWeekHigh: q.fiftyTwoWeekHigh,
+    fiftyTwoWeekLow: q.fiftyTwoWeekLow,
+    trailingPE: q.trailingPE,
+    forwardPE: q.forwardPE,
+    bid: q.bid,
+    ask: q.ask,
+    preMarketPrice: q.preMarketPrice,
+    preMarketChange: q.preMarketChange,
+    preMarketChangePercent: q.preMarketChangePercent,
+    postMarketPrice: q.postMarketPrice,
+    postMarketChange: q.postMarketChange,
+    postMarketChangePercent: q.postMarketChangePercent,
+    shortNameSafe: q.shortName || q.longName || q.symbol || "",
+    exchange: q.fullExchangeName || q.exchange || "",
+    quoteType: q.quoteType || "",
+    currency: q.currency || "USD",
+    sourceInterval: q.sourceInterval || null,
+    region: q.region || "",
+    shortPercentOfFloat: q.shortPercentOfFloat
+  });
+}
+
+function buildFallbackQuote(symbol, chartMeta = {}, chartResult = {}) {
+  const meta = chartMeta || {};
+  const indicators = chartResult?.indicators?.quote?.[0] || {};
+  const closes = chartResult?.indicators?.adjclose?.[0]?.adjclose || [];
+  const volumes = indicators?.volume || [];
+  const highs = indicators?.high || [];
+  const lows = indicators?.low || [];
+  const opens = indicators?.open || [];
+
+  const validCloseSeries = closes.filter((x) => Number.isFinite(Number(x))).map(Number);
+  const validVolumeSeries = volumes.filter((x) => Number.isFinite(Number(x))).map(Number);
+  const validHighSeries = highs.filter((x) => Number.isFinite(Number(x))).map(Number);
+  const validLowSeries = lows.filter((x) => Number.isFinite(Number(x))).map(Number);
+  const validOpenSeries = opens.filter((x) => Number.isFinite(Number(x))).map(Number);
+
+  const price =
+    toNumber(meta.regularMarketPrice, null) ??
+    (validCloseSeries.length ? validCloseSeries[validCloseSeries.length - 1] : null);
+
+  const prevClose =
+    toNumber(meta.previousClose, null) ??
+    toNumber(meta.chartPreviousClose, null) ??
+    (validCloseSeries.length >= 2 ? validCloseSeries[validCloseSeries.length - 2] : null);
+
+  const change = price != null && prevClose != null ? price - prevClose : 0;
+  const changePercent =
+    price != null && prevClose != null && prevClose !== 0 ? (change / prevClose) * 100 : 0;
+
+  const avgVolume =
+    validVolumeSeries.length > 1
+      ? validVolumeSeries.reduce((a, b) => a + b, 0) / validVolumeSeries.length
+      : validVolumeSeries[0] || null;
+
+  return normalizeQuoteShape({
+    symbol,
+    shortName: displaySymbol(symbol),
+    longName: displaySymbol(symbol),
+    regularMarketPrice: price,
+    regularMarketChange: change,
+    regularMarketChangePercent: changePercent,
+    regularMarketOpen: toNumber(meta.regularMarketOpen, validOpenSeries[validOpenSeries.length - 1] || null),
+    regularMarketDayHigh: toNumber(meta.regularMarketDayHigh, validHighSeries[validHighSeries.length - 1] || null),
+    regularMarketDayLow: toNumber(meta.regularMarketDayLow, validLowSeries[validLowSeries.length - 1] || null),
+    regularMarketPreviousClose: prevClose,
+    regularMarketVolume: toNumber(meta.regularMarketVolume, validVolumeSeries[validVolumeSeries.length - 1] || 0),
+    averageVolume: avgVolume,
+    averageDailyVolume3Month: avgVolume,
+    marketCap: toNumber(meta.marketCap, null),
+    fiftyTwoWeekHigh: toNumber(meta.fiftyTwoWeekHigh, validHighSeries.length ? Math.max(...validHighSeries) : null),
+    fiftyTwoWeekLow: toNumber(meta.fiftyTwoWeekLow, validLowSeries.length ? Math.min(...validLowSeries) : null),
+    trailingPE: null,
+    forwardPE: null,
+    bid: null,
+    ask: null,
+    preMarketPrice: null,
+    preMarketChange: null,
+    preMarketChangePercent: null,
+    postMarketPrice: null,
+    postMarketChange: null,
+    postMarketChangePercent: null,
+    shortNameSafe: displaySymbol(symbol),
+    exchange: meta.exchangeName || "",
+    quoteType: meta.instrumentType || "",
+    currency: meta.currency || "USD",
+    sourceInterval: meta.dataGranularity || null,
+    region: "",
+    shortPercentOfFloat: null
+  });
+}
+
+function mapAlpacaBarsToQuote(symbol, bars = []) {
+  const validBars = Array.isArray(bars) ? bars : [];
+
+  if (!validBars.length) {
+    return normalizeQuoteShape({
+      symbol,
+      shortName: displaySymbol(symbol),
+      longName: displaySymbol(symbol),
+      regularMarketPrice: null,
+      regularMarketChange: 0,
+      regularMarketChangePercent: 0,
+      regularMarketOpen: null,
+      regularMarketDayHigh: null,
+      regularMarketDayLow: null,
+      regularMarketPreviousClose: null,
+      regularMarketVolume: 0,
+      averageVolume: null,
+      averageDailyVolume3Month: null,
+      marketCap: null,
+      fiftyTwoWeekHigh: null,
+      fiftyTwoWeekLow: null,
+      trailingPE: null,
+      forwardPE: null,
+      bid: null,
+      ask: null,
+      preMarketPrice: null,
+      preMarketChange: null,
+      preMarketChangePercent: null,
+      postMarketPrice: null,
+      postMarketChange: null,
+      postMarketChangePercent: null,
+      shortNameSafe: displaySymbol(symbol),
+      exchange: "Alpaca",
+      quoteType: "EQUITY",
+      currency: "USD",
+      sourceInterval: "1Day",
+      region: "US",
+      shortPercentOfFloat: null
+    });
+  }
+
+  const last = validBars[validBars.length - 1];
+  const prev = validBars.length >= 2 ? validBars[validBars.length - 2] : null;
+
+  const price = toNumber(last.c, null);
+  const open = toNumber(last.o, null);
+  const high = toNumber(last.h, null);
+  const low = toNumber(last.l, null);
+  const volume = toNumber(last.v, 0);
+  const prevClose = prev ? toNumber(prev.c, null) : open;
+
+  const change = price != null && prevClose != null ? price - prevClose : 0;
+  const changePercent =
+    price != null && prevClose != null && prevClose !== 0 ? (change / prevClose) * 100 : 0;
+
+  const volumes = validBars.map((b) => toNumber(b.v, 0)).filter((x) => Number.isFinite(x));
+  const avgVolume = volumes.length ? volumes.reduce((a, b) => a + b, 0) / volumes.length : null;
+
+  const highs = validBars.map((b) => toNumber(b.h, null)).filter((x) => x != null);
+  const lows = validBars.map((b) => toNumber(b.l, null)).filter((x) => x != null);
+
+  return normalizeQuoteShape({
+    symbol,
+    shortName: displaySymbol(symbol),
+    longName: displaySymbol(symbol),
+    regularMarketPrice: price,
+    regularMarketChange: change,
+    regularMarketChangePercent: changePercent,
+    regularMarketOpen: open,
+    regularMarketDayHigh: high,
+    regularMarketDayLow: low,
+    regularMarketPreviousClose: prevClose,
+    regularMarketVolume: volume,
+    averageVolume: avgVolume,
+    averageDailyVolume3Month: avgVolume,
+    marketCap: null,
+    fiftyTwoWeekHigh: highs.length ? Math.max(...highs) : null,
+    fiftyTwoWeekLow: lows.length ? Math.min(...lows) : null,
+    trailingPE: null,
+    forwardPE: null,
+    bid: null,
+    ask: null,
+    preMarketPrice: null,
+    preMarketChange: null,
+    preMarketChangePercent: null,
+    postMarketPrice: null,
+    postMarketChange: null,
+    postMarketChangePercent: null,
+    shortNameSafe: displaySymbol(symbol),
+    exchange: "Alpaca",
+    quoteType: "EQUITY",
+    currency: "USD",
+    sourceInterval: "1Day",
+    region: "US",
+    shortPercentOfFloat: null
+  });
+}
+
+function mapChartBars(symbol, result = {}) {
+  const meta = result?.meta || {};
+  const ts = Array.isArray(result?.timestamp) ? result.timestamp : [];
+  const quote = result?.indicators?.quote?.[0] || {};
+
+  const opens = quote.open || [];
+  const highs = quote.high || [];
+  const lows = quote.low || [];
+  const closes = quote.close || [];
+  const volumes = quote.volume || [];
+
+  const bars = [];
+
+  for (let i = 0; i < ts.length; i++) {
+    const bar = {
+      t: ts[i] ? new Date(ts[i] * 1000).toISOString() : null,
+      o: toNumber(opens[i], null),
+      h: toNumber(highs[i], null),
+      l: toNumber(lows[i], null),
+      c: toNumber(closes[i], null),
+      v: toNumber(volumes[i], 0)
+    };
+
+    if (bar.t && [bar.o, bar.h, bar.l, bar.c].some((x) => x != null)) {
+      bars.push(bar);
+    }
+  }
+
+  return {
+    symbol: displaySymbol(symbol),
+    originalSymbol: symbol,
+    meta: {
+      currency: meta.currency || "USD",
+      exchangeName: meta.exchangeName || "",
+      instrumentType: meta.instrumentType || "",
+      regularMarketPrice: toNumber(meta.regularMarketPrice, null),
+      previousClose: toNumber(meta.previousClose, null),
+      gmtoffset: meta.gmtoffset || null,
+      timezone: meta.timezone || "",
+      dataGranularity: meta.dataGranularity || ""
+    },
+    bars
+  };
+}
+
+async function fetchAlpacaBars(symbols) {
+  if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY || !symbols.length) return [];
+
+  const equitySymbols = symbols.filter((s) => !s.startsWith("^"));
+  if (!equitySymbols.length) return [];
+
+  const now = new Date();
+  const end = now.toISOString();
+  const start = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString();
+
+  const url =
+    `${ALPACA_BASE_URL}/stocks/bars?symbols=${encodeURIComponent(equitySymbols.join(","))}` +
+    `&timeframe=1Day&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` +
+    `&adjustment=raw&feed=iex&sort=asc&limit=15`;
+
+  const data = await safeFetchJson(
+    url,
+    {
+      headers: {
+        accept: "application/json",
+        "APCA-API-KEY-ID": ALPACA_API_KEY,
+        "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY
+      }
+    },
+    1,
+    12000
+  );
+
+  const barsMap = data?.bars || {};
+  return equitySymbols.map((symbol) => mapAlpacaBarsToQuote(symbol, barsMap[symbol] || []));
+}
+
+async function fetchYahooBatchQuotes(symbols) {
+  if (!symbols.length) return [];
+
+  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols.join(","))}`;
+  const data = await safeFetchJson(url, { headers: DEFAULT_HEADERS }, 1, 9000);
+  const results = data?.quoteResponse?.result || [];
+  return Array.isArray(results) ? results.map(normalizeYahooQuote) : [];
+}
+
+async function fetchYahooChartFallback(symbol) {
+  const intervals = [
+    { range: "5d", interval: "1d" },
+    { range: "1mo", interval: "1d" }
+  ];
+
+  for (const item of intervals) {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${item.range}&interval=${item.interval}&includePrePost=true`;
+      const data = await safeFetchJson(url, { headers: DEFAULT_HEADERS }, 1, 9000);
+      const result = data?.chart?.result?.[0];
+
+      if (result) {
+        const built = buildFallbackQuote(symbol, result.meta, result);
+        if (built && built.regularMarketPrice != null) return built;
+      }
+    } catch (error) {
+      console.error(`YAHOO FALLBACK ERROR [${symbol}]:`, error.message);
+    }
+  }
+
+  return normalizeQuoteShape({
+    symbol,
+    shortName: displaySymbol(symbol),
+    longName: displaySymbol(symbol),
+    regularMarketPrice: null,
+    regularMarketChange: 0,
+    regularMarketChangePercent: 0,
+    regularMarketOpen: null,
+    regularMarketDayHigh: null,
+    regularMarketDayLow: null,
+    regularMarketPreviousClose: null,
+    regularMarketVolume: 0,
+    averageVolume: null,
+    averageDailyVolume3Month: null,
+    marketCap: null,
+    fiftyTwoWeekHigh: null,
+    fiftyTwoWeekLow: null,
+    trailingPE: null,
+    forwardPE: null,
+    bid: null,
+    ask: null,
+    preMarketPrice: null,
+    preMarketChange: null,
+    preMarketChangePercent: null,
+    postMarketPrice: null,
+    postMarketChange: null,
+    postMarketChangePercent: null,
+    shortNameSafe: displaySymbol(symbol),
+    exchange: "",
+    quoteType: "",
+    currency: "USD",
+    sourceInterval: null,
+    region: "",
+    shortPercentOfFloat: null
+  });
+}
+async function fetchYahooQuotesWithFallback(symbols) {
+  const batchMap = new Map();
+
+  try {
+    const batchQuotes = await fetchYahooBatchQuotes(symbols);
+    for (const q of batchQuotes) {
+      if (q?.originalSymbol) batchMap.set(q.originalSymbol, q);
+      else if (q?.symbol) batchMap.set(q.symbol, q);
+    }
+  } catch (error) {
+    console.error("YAHOO BATCH ERROR:", error.message);
+  }
+
+  const finalResults = [];
+
+  for (const symbol of symbols) {
+    const existing = batchMap.get(symbol);
+
+    if (existing && existing.regularMarketPrice != null) {
+      finalResults.push(existing);
+      continue;
+    }
+
+    try {
+      const fallback = await fetchYahooChartFallback(symbol);
+      finalResults.push(fallback);
+    } catch (error) {
+      console.error(`YAHOO FINAL FALLBACK ERROR [${symbol}]:`, error.message);
+      finalResults.push(
+        normalizeQuoteShape({
+          symbol,
+          shortName: displaySymbol(symbol),
+          longName: displaySymbol(symbol),
+          regularMarketPrice: null,
+          regularMarketChange: 0,
+          regularMarketChangePercent: 0,
+          regularMarketOpen: null,
+          regularMarketDayHigh: null,
+          regularMarketDayLow: null,
+          regularMarketPreviousClose: null,
+          regularMarketVolume: 0,
+          averageVolume: null,
+          averageDailyVolume3Month: null,
+          marketCap: null,
+          fiftyTwoWeekHigh: null,
+          fiftyTwoWeekLow: null,
+          trailingPE: null,
+          forwardPE: null,
+          bid: null,
+          ask: null,
+          preMarketPrice: null,
+          preMarketChange: null,
+          preMarketChangePercent: null,
+          postMarketPrice: null,
+          postMarketChange: null,
+          postMarketChangePercent: null,
+          shortNameSafe: displaySymbol(symbol),
+          exchange: "",
+          quoteType: "",
+          currency: "USD",
+          sourceInterval: null,
+          region: "",
+          shortPercentOfFloat: null
+        })
+      );
+    }
+
+    await sleep(100);
+  }
+
+  return finalResults;
+}
+
+async function getQuotesWithFallback(symbols) {
+  let alpacaQuotes = [];
+
+  if (ALPACA_API_KEY && ALPACA_SECRET_KEY) {
+    try {
+      alpacaQuotes = await fetchAlpacaBars(symbols);
+    } catch (error) {
+      console.error("ALPACA ERROR:", error.message);
+    }
+  } else {
+    console.log("ALPACA keys not set, using Yahoo fallback only.");
+  }
+
+  const alpacaMap = new Map(
+    alpacaQuotes
+      .filter((q) => q && q.originalSymbol)
+      .map((q) => [q.originalSymbol, q])
+  );
+
+  const missingSymbols = symbols.filter((symbol) => {
+    const q = alpacaMap.get(symbol);
+    return !q || q.regularMarketPrice == null;
+  });
+
+  let yahooQuotes = [];
+  if (missingSymbols.length) {
+    yahooQuotes = await fetchYahooQuotesWithFallback(missingSymbols);
+  }
+
+  const yahooMap = new Map(
+    yahooQuotes
+      .filter((q) => q && q.originalSymbol)
+      .map((q) => [q.originalSymbol, q])
+  );
+
+  return symbols.map((symbol) => {
+    const alpaca = alpacaMap.get(symbol);
+    if (alpaca && alpaca.regularMarketPrice != null) return alpaca;
+
+    const yahoo = yahooMap.get(symbol);
+    if (yahoo) return yahoo;
+
+    return normalizeQuoteShape({
+      symbol,
+      shortName: displaySymbol(symbol),
+      longName: displaySymbol(symbol),
+      regularMarketPrice: null,
+      regularMarketChange: 0,
+      regularMarketChangePercent: 0,
+      regularMarketOpen: null,
+      regularMarketDayHigh: null,
+      regularMarketDayLow: null,
+      regularMarketPreviousClose: null,
+      regularMarketVolume: 0,
+      averageVolume: null,
+      averageDailyVolume3Month: null,
+      marketCap: null,
+      fiftyTwoWeekHigh: null,
+      fiftyTwoWeekLow: null,
+      trailingPE: null,
+      forwardPE: null,
+      bid: null,
+      ask: null,
+      preMarketPrice: null,
+      preMarketChange: null,
+      preMarketChangePercent: null,
+      postMarketPrice: null,
+      postMarketChange: null,
+      postMarketChangePercent: null,
+      shortNameSafe: displaySymbol(symbol),
+      exchange: "",
+      quoteType: "",
+      currency: "USD",
+      sourceInterval: null,
+      region: "",
+      shortPercentOfFloat: null
+    });
+  });
+}
+
+async function fetchYahooIntraday(symbol, interval = "5m", range = "1d", includePrePost = true) {
+  const safeInterval = ["1m", "2m", "5m", "15m", "30m", "60m"].includes(interval) ? interval : "5m";
+  const safeRange = ["1d", "5d", "1mo"].includes(range) ? range : "1d";
+
+  const url =
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
+    `?range=${encodeURIComponent(safeRange)}` +
+    `&interval=${encodeURIComponent(safeInterval)}` +
+    `&includePrePost=${includePrePost ? "true" : "false"}`;
+
+  const data = await safeFetchJson(url, { headers: DEFAULT_HEADERS }, 1, 10000);
+  const result = data?.chart?.result?.[0];
+
+  if (!result) {
+    return {
+      symbol: displaySymbol(symbol),
+      originalSymbol: symbol,
+      meta: {},
+      bars: []
+    };
+  }
+
+  return mapChartBars(symbol, result);
+}
+
+async function fetchIntradayForSymbols(symbols, interval = "5m", range = "1d", includePrePost = true) {
+  const out = [];
+
+  for (const symbol of symbols) {
+    try {
+      const data = await fetchYahooIntraday(symbol, interval, range, includePrePost);
+      out.push(data);
+    } catch (error) {
+      console.error(`INTRADAY ERROR [${symbol}]:`, error.message);
+      out.push({
+        symbol: displaySymbol(symbol),
+        originalSymbol: symbol,
+        meta: {},
+        bars: []
+      });
+    }
+
+    await sleep(80);
+  }
+
+  return out;
+}
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+    alpacaConfigured: Boolean(ALPACA_API_KEY && ALPACA_SECRET_KEY),
+    fundamentalsCount: Object.keys(FUNDAMENTAL_DB).length
+  });
+});
+
+app.get("/api/fundamentals", (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+    const result = symbols.length
+      ? getFundamentalsForSymbols(symbols)
+      : Object.entries(FUNDAMENTAL_DB).map(([symbol, item]) => ({ symbol, ...item }));
+
+    return res.json({
+      fundamentalsResponse: {
+        result,
+        error: null
+      }
+    });
+  } catch (error) {
+    console.error("FUNDAMENTALS ERROR:", error.message);
+    return res.status(500).json({
+      fundamentalsResponse: {
+        result: [],
+        error: "Fundamental metadata alınamadı"
+      },
+      details: error.message
+    });
+  }
+});
+
+app.get("/api/quote", async (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+
+    if (!symbols.length) {
+      return res.status(400).json({
+        error: "symbols query param gerekli",
+        example: "/api/quote?symbols=AAPL,TSLA,NVDA"
+      });
+    }
+
+    const quotes = await getQuotesWithFallback(symbols);
+
+    return res.json({
+      quoteResponse: {
+        result: quotes,
+        error: null
+      }
+    });
+  } catch (error) {
+    console.error("QUOTE ERROR:", error.message);
+    return res.status(500).json({
+      quoteResponse: {
+        result: [],
+        error: "Quote verisi alınamadı"
+      },
+      details: error.message
+    });
+  }
+});
+
+app.get("/api/intraday", async (req, res) => {
+  try {
+    const symbols = parseSymbols(req.query.symbols);
+    const interval = String(req.query.interval || "5m");
+    const range = String(req.query.range || "1d");
+    const includePrePost = String(req.query.includePrePost || "true") !== "false";
+
+    if (!symbols.length) {
+      return res.status(400).json({
+        error: "symbols query param gerekli",
+        example: "/api/intraday?symbols=AAPL,TSLA&interval=5m&range=1d&includePrePost=true"
+      });
+    }
+
+    const result = await fetchIntradayForSymbols(symbols, interval, range, includePrePost);
+
+    return res.json({
+      intradayResponse: {
+        result,
+        error: null,
+        interval,
+        range,
+        includePrePost
+      }
+    });
+  } catch (error) {
+    console.error("INTRADAY ERROR:", error.message);
+    return res.status(500).json({
+      intradayResponse: {
+        result: [],
+        error: "Intraday veri alınamadı"
+      },
+      details: error.message
+    });
+  }
+});
+
+app.get("/api/feargreed", async (req, res) => {
+  const sources = [
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata",
+    "https://production.dataviz.cnn.io/index/fearandgreed/graphdata/"
+  ];
+
+  for (const url of sources) {
+    try {
+      const data = await safeFetchJson(
+        url,
+        {
+          headers: {
+            "User-Agent": DEFAULT_HEADERS["User-Agent"],
+            Accept: "application/json,text/plain,*/*",
+            Referer: "https://www.cnn.com/markets/fear-and-greed",
+            Origin: "https://www.cnn.com"
+          }
+        },
+        1,
+        9000
+      );
+
+      const score =
+        toNumber(data?.fear_and_greed?.score, null) ??
+        toNumber(data?.fear_and_greed_historical?.data?.[0]?.score, null) ??
+        50;
+
+      const rating =
+        data?.fear_and_greed?.rating ||
+        data?.fear_and_greed_historical?.data?.[0]?.rating ||
+        "neutral";
+
+      return res.json({
+        fear_and_greed: {
+          score,
+          rating
+        }
+      });
+    } catch (error) {
+      console.error("FEAR_GREED ERROR:", error.message);
+    }
+  }
+
+  return res.json({
+    fear_and_greed: {
+      score: 50,
+      rating: "neutral"
+    }
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not found"
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`TradeDesk backend running on port ${PORT}`);
+});
