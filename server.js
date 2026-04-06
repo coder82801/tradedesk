@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY || "";
 const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY || "";
 const ALPACA_BASE_URL =
