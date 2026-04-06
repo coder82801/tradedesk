@@ -2588,7 +2588,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="detail-box">
             <div class="dk">Canlı Grafik</div>
             <div class="iframe-wrap" style="height:380px">
-              <iframe src="${buildTradingViewUrl(q.symbol, $("chartInterval")?.value || "5")}"></iframe>
+              <iframe id="selectedDetailFrame" src="about:blank"></iframe>
             </div>
           </div>
         `;
