@@ -1,20 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
-
 const PORT = process.env.PORT || 3000;
-
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY || "";
 const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY || "";
 const ALPACA_BASE_URL =
   process.env.ALPACA_BASE_URL || "https://data.alpaca.markets/v2";
-
 const DEFAULT_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -23,7 +18,6 @@ const DEFAULT_HEADERS = {
   Referer: "https://finance.yahoo.com/",
   Origin: "https://finance.yahoo.com"
 };
-
 const SYMBOL_MAP = {
   VIX: "^VIX",
   NASDAQ: "^IXIC",
