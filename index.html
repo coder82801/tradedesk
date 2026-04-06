@@ -2592,6 +2592,11 @@ document.addEventListener('DOMContentLoaded',()=>{
             </div>
           </div>
         `;
+        const selectedFrame = document.getElementById("selectedDetailFrame");
+        if (selectedFrame) {
+          const selectedInterval = $("chartInterval")?.value || "5";
+          selectedFrame.src = buildTradingViewUrl(q.symbol, selectedInterval);
+        }
       }
 
       function bindStockCardClicks() {
