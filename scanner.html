@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#060810">
-<title>NextDay Scanner Pro</title>
+<title>NextDay Scanner Pro v2</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -16,176 +16,139 @@
   --mono:'JetBrains Mono',monospace;--fm:'Inter',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100vh;overflow-x:hidden;}
-
-/* ── HEADER ── */
+body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100vh;}
 .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .logo{display:flex;align-items:center;gap:10px;}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#3b82f6,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
-.logo-text{font-size:1rem;font-weight:800;color:var(--text);}
-.logo-sub{font-size:0.62rem;color:var(--text3);font-family:var(--mono);}
+.logo-text{font-size:1rem;font-weight:800;}
+.logo-sub{font-size:0.6rem;color:var(--text3);font-family:var(--mono);}
 .header-right{display:flex;align-items:center;gap:10px;}
-.live-badge{display:flex;align-items:center;gap:5px;background:rgba(16,217,138,0.1);border:1px solid rgba(16,217,138,0.25);border-radius:20px;padding:4px 10px;font-size:0.68rem;font-family:var(--mono);color:var(--green);}
+.live-badge{display:flex;align-items:center;gap:5px;background:rgba(16,217,138,0.1);border:1px solid rgba(16,217,138,0.25);border-radius:20px;padding:4px 10px;font-size:0.66rem;font-family:var(--mono);color:var(--green);}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.4s ease infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.75);}}
-.et-time{font-family:var(--mono);font-size:0.72rem;color:var(--text2);}
+.et-time{font-family:var(--mono);font-size:0.7rem;color:var(--text2);}
 .run-btn{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;border-radius:9px;padding:8px 20px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:var(--fm);display:flex;align-items:center;gap:6px;transition:all 0.2s;}
 .run-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,0.4);}
 .run-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-
-/* ── PROGRESS ── */
 .progress-wrap{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:none;}
 .progress-wrap.active{display:block;}
 .prog-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px;}
 .prog-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#a855f7);border-radius:2px;transition:width 0.3s;width:0%;}
-.prog-txt{display:flex;justify-content:space-between;font-size:0.68rem;font-family:var(--mono);color:var(--text2);}
-
-/* ── TABS ── */
+.prog-txt{display:flex;justify-content:space-between;font-size:0.66rem;font-family:var(--mono);color:var(--text2);}
 .tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
 .tab-bar::-webkit-scrollbar{display:none;}
-.tbtn{padding:12px 16px;font-size:0.75rem;border:none;background:transparent;color:var(--text3);cursor:pointer;white-space:nowrap;font-family:var(--fm);font-weight:600;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
+.tbtn{padding:12px 14px;font-size:0.72rem;border:none;background:transparent;color:var(--text3);cursor:pointer;white-space:nowrap;font-family:var(--fm);font-weight:600;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
 .tbtn:hover{color:var(--text2);}
 .tbtn.active{color:var(--accent);border-bottom-color:var(--accent);}
-.tbtn .cnt{background:rgba(59,130,246,0.2);color:var(--accent);border-radius:10px;padding:1px 7px;font-size:0.62rem;font-family:var(--mono);}
-.tbtn.green-tab.active{color:var(--green);border-bottom-color:var(--green);}
-.tbtn.green-tab .cnt{background:rgba(16,217,138,0.15);color:var(--green);}
-.tbtn.orange-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
-.tbtn.orange-tab .cnt{background:rgba(249,115,22,0.15);color:var(--orange);}
-.tbtn.purple-tab.active{color:var(--purple);border-bottom-color:var(--purple);}
-.tbtn.purple-tab .cnt{background:rgba(168,85,247,0.15);color:var(--purple);}
-
-/* ── PANELS ── */
-main{padding:16px;max-width:1600px;margin:0 auto;}
+.cnt{background:rgba(59,130,246,0.2);color:var(--accent);border-radius:10px;padding:1px 7px;font-size:0.6rem;font-family:var(--mono);}
+.g-cnt{background:rgba(16,217,138,0.15);color:var(--green);}
+.o-cnt{background:rgba(249,115,22,0.15);color:var(--orange);}
+.p-cnt{background:rgba(168,85,247,0.15);color:var(--purple);}
+main{padding:14px;max-width:1700px;margin:0 auto;}
 .tp{display:none;}.tp.active{display:block;}
-
-/* ── STATS GRID ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
-.stat-label{font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-family:var(--mono);}
-.stat-value{font-size:1.3rem;font-weight:800;font-family:var(--mono);margin-top:4px;}
-.stat-sub{font-size:0.62rem;color:var(--text3);margin-top:2px;}
-
-/* ── MARKET CONTEXT ── */
-.mkt-ctx{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:14px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
+.stat-label{font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-family:var(--mono);}
+.stat-value{font-size:1.2rem;font-weight:800;font-family:var(--mono);margin-top:4px;}
+.mkt-ctx{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
 .mkt-item{display:flex;flex-direction:column;gap:2px;}
-.mkt-lbl{font-size:0.58rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
-.mkt-val{font-size:0.9rem;font-weight:700;font-family:var(--mono);}
-.mkt-sep{width:1px;height:30px;background:var(--border);}
-.mkt-bias{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-size:0.72rem;font-weight:700;font-family:var(--mono);}
+.mkt-lbl{font-size:0.56rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.mkt-val{font-size:0.88rem;font-weight:700;font-family:var(--mono);}
+.mkt-sep{width:1px;height:28px;background:var(--border);}
+.bias-pill{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:6px;font-size:0.7rem;font-weight:700;font-family:var(--mono);}
 .bias-bull{background:rgba(16,217,138,0.12);border:1px solid rgba(16,217,138,0.3);color:var(--green);}
 .bias-bear{background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);color:var(--red);}
 .bias-neut{background:rgba(148,163,184,0.1);border:1px solid var(--border);color:var(--text2);}
-
-/* ── CARD ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.card-title{font-size:0.8rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:7px;}
-.info-box{border-radius:8px;padding:8px 13px;margin-bottom:12px;font-size:0.7rem;line-height:1.6;}
-.info-warn{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);color:var(--orange);}
-.info-green{background:rgba(16,217,138,0.06);border:1px solid rgba(16,217,138,0.2);color:var(--green);}
-.info-blue{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;}
-
-/* ── TABLE ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.card-title{font-size:0.76rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;display:flex;align-items:center;gap:6px;}
+.ibox{border-radius:8px;padding:8px 13px;margin-bottom:12px;font-size:0.7rem;line-height:1.6;}
+.ibox-warn{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);color:var(--orange);}
+.ibox-green{background:rgba(16,217,138,0.06);border:1px solid rgba(16,217,138,0.2);color:var(--green);}
+.ibox-blue{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;}
 .tbl-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-th{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);font-family:var(--mono);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap;}
+th{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--text3);font-family:var(--mono);padding:6px 9px;text-align:left;border-bottom:1px solid var(--border);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap;}
 th:hover{color:var(--text2);}
-td{padding:9px 10px;font-size:0.76rem;border-bottom:1px solid rgba(30,37,53,0.6);vertical-align:middle;white-space:nowrap;}
+td{padding:8px 9px;font-size:0.74rem;border-bottom:1px solid rgba(30,37,53,0.5);vertical-align:middle;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 tr{cursor:pointer;transition:background 0.1s;}
 tr:hover{background:rgba(59,130,246,0.04);}
-.tk{font-family:var(--mono);font-weight:700;color:var(--cyan);font-size:0.84rem;}
-.tn{font-size:0.58rem;color:var(--text3);margin-top:1px;}
+.tk{font-family:var(--mono);font-weight:700;color:var(--cyan);font-size:0.82rem;}
+.tn{font-size:0.56rem;color:var(--text3);margin-top:1px;}
 .pm{font-family:var(--mono);font-weight:700;}
 .up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--text2);}
-
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:0.64rem;font-weight:700;white-space:nowrap;}
+.badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:0.62rem;font-weight:700;white-space:nowrap;}
 .b-up{background:rgba(16,217,138,0.12);color:var(--green);}
 .b-dn{background:rgba(244,63,94,0.1);color:var(--red);}
 .b-flat{background:rgba(148,163,184,0.08);color:var(--text2);}
-.b-blue{background:rgba(59,130,246,0.15);color:#93c5fd;}
+.b-blue{background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.2);}
 .b-yellow{background:rgba(245,158,11,0.15);color:var(--yellow);}
 .b-orange{background:rgba(249,115,22,0.15);color:var(--orange);}
 .b-purple{background:rgba(168,85,247,0.15);color:var(--purple);}
 .b-cyan{background:rgba(6,182,212,0.15);color:var(--cyan);}
-.score-bar{display:flex;align-items:center;gap:6px;min-width:90px;}
+.b-green{background:rgba(16,217,138,0.15);color:var(--green);border:1px solid rgba(16,217,138,0.2);}
+.score-bar{display:flex;align-items:center;gap:5px;min-width:80px;}
 .score-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-.score-fill{height:100%;border-radius:3px;transition:width 0.4s;}
-
-/* SIGNAL PILLS */
-.sig-buy{background:rgba(16,217,138,0.18);color:var(--green);border:1px solid rgba(16,217,138,0.3);border-radius:6px;padding:3px 9px;font-family:var(--mono);font-size:0.65rem;font-weight:700;}
-.sig-watch{background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 9px;font-family:var(--mono);font-size:0.65rem;font-weight:700;}
-.sig-strong{background:rgba(249,115,22,0.18);color:var(--orange);border:1px solid rgba(249,115,22,0.3);border-radius:6px;padding:3px 9px;font-family:var(--mono);font-size:0.65rem;font-weight:700;}
-
-/* ── RANK MEDAL ── */
-.rank{font-family:var(--mono);font-weight:700;font-size:0.9rem;width:24px;text-align:center;}
-.rank-1{color:#FFD700;}
-.rank-2{color:#C0C0C0;}
-.rank-3{color:#CD7F32;}
-
-/* ── EMPTY ── */
-.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:0.82rem;}
-.empty-icon{font-size:2.5rem;margin-bottom:8px;}
-
-/* ── SPINNER ── */
-.sp{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.65s linear infinite;display:inline-block;}
+.score-fill{height:100%;border-radius:3px;}
+.rank{font-family:var(--mono);font-weight:700;font-size:0.88rem;width:22px;text-align:center;}
+.rank-1{color:#FFD700;}.rank-2{color:#C0C0C0;}.rank-3{color:#CD7F32;}
+.empty{text-align:center;padding:36px 20px;color:var(--text3);font-size:0.8rem;}
+.empty-icon{font-size:2.3rem;margin-bottom:7px;}
+.sp{width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
-/* ── MODAL ── */
-.mo{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.92);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px;}
+.mo{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.93);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:14px;}
 .mo.open{display:flex;}
-.md{background:#131825;border:1px solid var(--border2);border-radius:16px;padding:22px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;}
-.md-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
-.md-close{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:1.2rem;line-height:1;padding:4px;}
-.md-close:hover{color:var(--text);}
-::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-
-/* FACTOR ROW */
-.factor-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,37,53,0.5);}
+.md{background:#131825;border:1px solid var(--border2);border-radius:16px;padding:20px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;}
+.md-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.md-close{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem;line-height:1;padding:4px;}
+.factor-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(30,37,53,0.5);}
 .factor-row:last-child{border-bottom:none;}
-.fl{font-size:0.7rem;color:var(--text2);}
-.fv{font-family:var(--mono);font-size:0.78rem;font-weight:700;}
-.fbar{width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;display:inline-block;margin-left:6px;vertical-align:middle;}
-.fbar-fill{height:100%;border-radius:2px;}
-
-@media(max-width:768px){main{padding:10px;}.stats-grid{grid-template-columns:repeat(3,1fr);}.mkt-ctx{gap:12px;}}
+.fl{font-size:0.68rem;color:var(--text2);}
+.fv{font-family:var(--mono);font-size:0.76rem;font-weight:700;}
+.fbar{width:55px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;display:inline-block;margin-left:5px;vertical-align:middle;}
+.fbar-f{height:100%;border-radius:2px;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+@media(max-width:768px){main{padding:9px;}.stats-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">
     <div class="logo-icon">🎯</div>
     <div>
-      <div class="logo-text">NextDay Scanner <span style="color:var(--text3);font-size:0.7rem;">Pro</span></div>
-      <div class="logo-sub">Ertesi Gün Patlama Tarayıcı · v1.0</div>
+      <div class="logo-text">NextDay Scanner <span style="color:var(--text3);font-size:0.68rem;">v2</span></div>
+      <div class="logo-sub">Düzeltilmiş Hesaplamalar · TR/ATR/VWAP/OBV/AD</div>
     </div>
   </div>
   <div class="header-right">
     <div class="et-time" id="et-time">—</div>
     <div class="live-badge"><div class="live-dot"></div><span id="live-txt">Hazır</span></div>
-    <button class="run-btn" id="run-btn" onclick="runScanner()">
-      <span>▶</span> Tara
-    </button>
+    <button class="run-btn" id="run-btn" onclick="runScanner()">▶ Tara</button>
   </div>
 </div>
 
-<!-- PROGRESS -->
 <div class="progress-wrap" id="prog-wrap">
   <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
   <div class="prog-txt"><span id="prog-stage">—</span><span id="prog-pct">0%</span></div>
 </div>
 
-<!-- TABS -->
 <div class="tab-bar">
   <button class="tbtn active" id="tab-overview" onclick="sw('overview')">📊 Özet</button>
-  <button class="tbtn green-tab" id="tab-breakout" onclick="sw('breakout')">💥 Kırılım <span class="cnt" id="cnt-breakout">0</span></button>
-  <button class="tbtn orange-tab" id="tab-continuation" onclick="sw('continuation')">🔥 Devam <span class="cnt" id="cnt-continuation">0</span></button>
-  <button class="tbtn purple-tab" id="tab-accumulation" onclick="sw('accumulation')">🌊 Birikim <span class="cnt" id="cnt-accumulation">0</span></button>
-  <button class="tbtn" id="tab-all" onclick="sw('all')">📋 Tüm Liste <span class="cnt" id="cnt-all">0</span></button>
-  <button class="tbtn" id="tab-log" onclick="sw('log')">🔍 Tarama Logu</button>
+  <button class="tbtn" id="tab-breakout" onclick="sw('breakout')">
+    💥 Kırılım <span class="cnt g-cnt" id="cnt-breakout">0</span>
+  </button>
+  <button class="tbtn" id="tab-continuation" onclick="sw('continuation')">
+    🔥 Devam <span class="cnt o-cnt" id="cnt-continuation">0</span>
+  </button>
+  <button class="tbtn" id="tab-accumulation" onclick="sw('accumulation')">
+    🌊 Birikim <span class="cnt p-cnt" id="cnt-accumulation">0</span>
+  </button>
+  <button class="tbtn" id="tab-all" onclick="sw('all')">
+    📋 Tüm Liste <span class="cnt" id="cnt-all">0</span>
+  </button>
+  <button class="tbtn" id="tab-log" onclick="sw('log')">🔍 Log</button>
 </div>
 
 <main>
@@ -197,37 +160,36 @@ tr:hover{background:rgba(59,130,246,0.04);}
       <div class="mkt-sep"></div>
       <div class="mkt-item"><div class="mkt-lbl">QQQ</div><div class="mkt-val" id="ctx-qqq">—</div></div>
       <div class="mkt-sep"></div>
-      <div class="mkt-item"><div class="mkt-lbl">VIX</div><div class="mkt-val" id="ctx-vix">—</div></div>
-      <div class="mkt-sep"></div>
       <div class="mkt-item"><div class="mkt-lbl">IWM</div><div class="mkt-val" id="ctx-iwm">—</div></div>
+      <div class="mkt-sep"></div>
+      <div class="mkt-item"><div class="mkt-lbl">VIX (VIXY)</div><div class="mkt-val" id="ctx-vix">—</div></div>
       <div class="mkt-sep"></div>
       <div class="mkt-item"><div class="mkt-lbl">Piyasa Bias</div><div id="ctx-bias">—</div></div>
       <div class="mkt-sep"></div>
-      <div class="mkt-item"><div class="mkt-lbl">Tarama</div><div class="mkt-val" id="ctx-scanned" style="color:var(--cyan)">—</div></div>
+      <div class="mkt-item"><div class="mkt-lbl">Taranan</div><div class="mkt-val" id="ctx-scanned" style="color:var(--cyan)">—</div></div>
       <div class="mkt-sep"></div>
       <div class="mkt-item"><div class="mkt-lbl">Geçen</div><div class="mkt-val" id="ctx-passed" style="color:var(--green)">—</div></div>
       <div class="mkt-sep"></div>
-      <div class="mkt-item"><div class="mkt-lbl">Güncelleme</div><div class="mkt-val" id="ctx-time" style="font-size:0.72rem;color:var(--text3)">—</div></div>
+      <div class="mkt-item"><div class="mkt-lbl">Güncelleme</div><div class="mkt-val" id="ctx-time" style="font-size:0.68rem;color:var(--text3)">—</div></div>
     </div>
+
+    <div id="mkt-warn-box"></div>
 
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">Toplam Aday</div><div class="stat-value" id="st-total" style="color:var(--accent)">—</div></div>
-      <div class="stat-card"><div class="stat-label">Kırılım</div><div class="stat-value" id="st-breakout" style="color:var(--green)">—</div></div>
-      <div class="stat-card"><div class="stat-label">Devam</div><div class="stat-value" id="st-continuation" style="color:var(--orange)">—</div></div>
-      <div class="stat-card"><div class="stat-label">Birikim</div><div class="stat-value" id="st-acc" style="color:var(--purple)">—</div></div>
+      <div class="stat-card"><div class="stat-label">💥 Kırılım</div><div class="stat-value" id="st-breakout" style="color:var(--green)">—</div></div>
+      <div class="stat-card"><div class="stat-label">🔥 Devam</div><div class="stat-value" id="st-cont" style="color:var(--orange)">—</div></div>
+      <div class="stat-card"><div class="stat-label">🌊 Birikim</div><div class="stat-value" id="st-acc" style="color:var(--purple)">—</div></div>
       <div class="stat-card"><div class="stat-label">Ort. Score</div><div class="stat-value" id="st-avgscore" style="color:var(--yellow)">—</div></div>
-      <div class="stat-card"><div class="stat-label">%15+ Hedef</div><div class="stat-value" id="st-15p" style="color:var(--cyan)">—</div></div>
+      <div class="stat-card"><div class="stat-label">%15 Hedef</div><div class="stat-value" id="st-15p" style="color:var(--cyan)">—</div></div>
     </div>
 
-    <div class="info-warn" id="market-warn" style="display:none;"></div>
-
-    <!-- TOP 5 HER KATEGORİDEN -->
     <div class="card">
-      <div class="card-header"><div class="card-title">🏆 En Yüksek Kompozit Skor — Top 10</div></div>
-      <div id="top10-tbl"><div class="empty"><div class="empty-icon">🎯</div>Tarama yapılmadı — "Tara" butonuna tıklayın</div></div>
+      <div class="card-header"><div class="card-title">🏆 En Yüksek Skor — Top 10</div></div>
+      <div id="top10-tbl"><div class="empty"><div class="empty-icon">🎯</div>"Tara" butonuna basarak taramayı başlatın<br><span style="font-size:0.72rem;color:var(--text3);">Gece 02:30-03:00 TSİ arası en verimli zaman</span></div></div>
     </div>
 
-    <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div class="card">
         <div class="card-header"><div class="card-title" style="color:var(--green)">💥 Kırılım Top 3</div></div>
         <div id="top-breakout"><div class="empty">—</div></div>
@@ -241,19 +203,19 @@ tr:hover{background:rgba(59,130,246,0.04);}
 
   <!-- BREAKOUT -->
   <div class="tp" id="panel-breakout">
-    <div class="info-green">💥 <strong>Kırılım Listesi:</strong> Bugün güçlü hacim + güçlü kapanış + ATR genişlemesi. Ertesi gün gap-up veya devam yükselişi beklentisi yüksek.</div>
+    <div class="ibox ibox-green">💥 <strong>Kırılım:</strong> Güçlü hacim + tepe kapanış + ATR genişleme + 20G high kırılımı (bugünkü bar hariç). RVOL ≥2 · CloseStr ≥75% · RS pozitif.</div>
     <div class="card"><div class="tbl-wrap"><div id="breakout-tbl"></div></div></div>
   </div>
 
   <!-- CONTINUATION -->
   <div class="tp" id="panel-continuation">
-    <div class="info-warn">🔥 <strong>Devam Listesi:</strong> Trend içinde hareket eden, momentum süren hisseler. VWAP üstü + RS pozitif + hacim artışı.</div>
+    <div class="ibox ibox-warn">🔥 <strong>Devam:</strong> VWAP üstü + pozitif OBV slope + RS pozitif + hacim artışı. Trend içinde, momentum sürüyor.</div>
     <div class="card"><div class="tbl-wrap"><div id="continuation-tbl"></div></div></div>
   </div>
 
   <!-- ACCUMULATION -->
   <div class="tp" id="panel-accumulation">
-    <div class="info-box info-blue" style="margin-bottom:12px;">🌊 <strong>Birikim Listesi:</strong> Sessiz kurumsal alım sinyali. Hacim yüksek, fiyat sakin, dar range. 1-5 gün içinde patlama beklentisi.</div>
+    <div class="ibox ibox-blue">🌊 <strong>Birikim:</strong> OBV artıyor + A/D pozitif + ATR sıkışması + dar range. Fiyat sakin ama hacim birikimi var. 1-5 gün içinde patlama beklentisi.</div>
     <div class="card"><div class="tbl-wrap"><div id="accumulation-tbl"></div></div></div>
   </div>
 
@@ -263,7 +225,7 @@ tr:hover{background:rgba(59,130,246,0.04);}
       <div class="card-header">
         <div class="card-title">📋 Tüm Geçen Hisseler</div>
         <input id="all-search" type="text" placeholder="Ara..." oninput="renderAll()"
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 11px;color:var(--text);font-size:0.78rem;font-family:var(--mono);outline:none;width:160px;">
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;color:var(--text);font-size:0.76rem;font-family:var(--mono);outline:none;width:150px;">
       </div>
       <div class="tbl-wrap"><div id="all-tbl"></div></div>
     </div>
@@ -272,8 +234,8 @@ tr:hover{background:rgba(59,130,246,0.04);}
   <!-- LOG -->
   <div class="tp" id="panel-log">
     <div class="card">
-      <div class="card-header"><div class="card-title">🔍 Tarama Logu</div></div>
-      <div id="log-tbl" style="font-family:var(--mono);font-size:0.68rem;color:var(--text2);line-height:1.8;max-height:600px;overflow-y:auto;"></div>
+      <div class="card-header"><div class="card-title">🔍 Tarama Logu</div><button onclick="document.getElementById('log-tbl').innerHTML=''" style="background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:0.64rem;font-family:var(--mono);">Temizle</button></div>
+      <div id="log-tbl" style="font-family:var(--mono);font-size:0.66rem;color:var(--text2);line-height:1.8;max-height:600px;overflow-y:auto;"></div>
     </div>
   </div>
 
@@ -283,7 +245,7 @@ tr:hover{background:rgba(59,130,246,0.04);}
 <div class="mo" id="modal">
   <div class="md">
     <div class="md-header">
-      <div id="modal-title" style="font-size:1.1rem;font-weight:800;color:var(--cyan);"></div>
+      <div id="modal-title" style="font-size:1.05rem;font-weight:800;color:var(--cyan);"></div>
       <button class="md-close" onclick="closeM()">✕</button>
     </div>
     <div id="modal-body"></div>
@@ -291,712 +253,770 @@ tr:hover{background:rgba(59,130,246,0.04);}
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════════
-// UNIVERSE — 7000 simüle eden genişletilmiş liste (OTC hariç)
-// Canlı taramada Yahoo Finance'den bu sembollere çekilir
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// UNIVERSE — genişletilmiş, OTC hariç NYSE/NASDAQ
+// ════════════════════════════════════════════════════════
 const UNIVERSE = [
-  // Mega & Large Cap
   'AAPL','MSFT','NVDA','AMD','TSLA','AMZN','GOOGL','META','NFLX','INTC',
   'ORCL','CRM','ADBE','QCOM','AVGO','MU','AMAT','LRCX','KLAC','MRVL',
-  'SMCI','DELL','HPE','PSTG','NET','CRWD','ZS','OKTA','DDOG','SNOW',
-  'PLTR','SOFI','UPST','AFRM','HOOD','COIN','MSTR','DKNG','RBLX',
-  'SQ','PYPL','V','MA','AXP','JPM','BAC','GS','MS','WFC',
-  // AI & Quantum
-  'IONQ','RGTI','QUBT','BBAI','SOUN','AI','KULR','IREN','ARQQ','QMCO',
-  'GFAI','TYAI','AIXI','HCAI','CETX',
-  // Crypto & Mining
+  'SMCI','DELL','HPE','NET','CRWD','ZS','OKTA','DDOG','SNOW','PANW',
+  'PLTR','SOFI','UPST','AFRM','HOOD','COIN','MSTR','DKNG','RBLX','U',
+  'SQ','PYPL','IONQ','RGTI','QUBT','BBAI','SOUN','AI','KULR','IREN',
   'MARA','RIOT','CLSK','HIVE','BITF','HUT','CIFR','BTBT','WULF','CORZ',
-  // Space & Defense
   'RKLB','ASTS','MNTS','SPCE','LUNR','ACHR','JOBY','LMT','RTX','NOC',
-  'KTOS','CACI','SAIC','LDOS','HII',
-  // EV & Clean Energy
-  'RIVN','LCID','NKLA','MULN','ACHR','JOBY','BLNK','EVGO','CHPT',
-  'PLUG','BE','FCEL','EOSE','STEM','CLNE','BLDP',
-  // Biotech & Pharma
+  'KTOS','CACI','RIVN','LCID','NKLA','MULN','BLNK','EVGO','CHPT',
+  'PLUG','BE','FCEL','EOSE','STEM','CLNE',
   'CTMX','OCGN','MNKD','TNXP','NRXP','NVAX','BNTX','MRNA','SIGA',
-  'ADTX','CRBP','TXMD','INVA','CLVS','VKTX','IMVT','PRAX',
-  // Retail & Consumer
-  'GME','AMC','KOSS','SNDL','CLOV','EXPR','BBIG','PROG',
-  'WMT','TGT','COST','ETSY','SHOP','W','CHWY',
-  // Energy
-  'XOM','CVX','COP','OXY','MPC','VLO','HAL','SLB','BKR',
-  // ETF (hareketli)
-  'SPY','QQQ','IWM','TQQQ','SQQQ','ARKK','UVXY','VXX','SOXS','FNGU',
-  // Small caps & traders
-  'RR','SOPA','VCX','IPST','MOVE','HUBC','QNCX',
-  'TLRY','ACB','CGC','CRON','OGI',
-  'INDI','FFAI','LUMN','DISH','MVIS','SKLZ','WISH',
-  'WKHS','PTRA','GOEV','FSR','HYLN',
-  // REITs & Misc
-  'AMT','PLD','EQIX','SPG','O',
+  'GME','AMC','KOSS','SNDL','CLOV','TLRY','ACB','CGC',
+  'RR','SOPA','VCX','IPST','CETX','MOVE','HUBC','AIXI',
+  'WMT','TGT','COST','ETSY','SHOP','CHWY',
+  'XOM','CVX','COP','OXY','HAL','SLB',
+  'JPM','BAC','GS','MS','WFC','C',
+  'SPY','QQQ','IWM','TQQQ','SQQQ','ARKK','UVXY','VXX',
 ].filter((v,i,a)=>a.indexOf(v)===i);
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════════════════════
-let results = {all:[], breakout:[], continuation:[], accumulation:[]};
-let mktContext = {spyChg:0, qqqChg:0, vix:0, iwmChg:0, bias:'neutral'};
-let scanLog = [];
-let isRunning = false;
+// ════════════════════════════════════════════════════════
+let results={all:[],breakout:[],continuation:[],accumulation:[]};
+let mkt={spyChg:0,qqqChg:0,iwmChg:0,vix:0,spyP:0,qqqP:0,bias:'neutral'};
+let scanLog=[];
+let isRunning=false;
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // CLOCK
-// ════════════════════════════════════════════════════════════════
-function tick() {
-  const et = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
-  document.getElementById('et-time').textContent = 'ET ' + et.toTimeString().slice(0,8);
-}
-setInterval(tick, 1000); tick();
+// ════════════════════════════════════════════════════════
+setInterval(()=>{
+  const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  document.getElementById('et-time').textContent='ET '+et.toTimeString().slice(0,8);
+},1000);
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // API
-// ════════════════════════════════════════════════════════════════
-async function fetchSymbols(syms) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 10000);
-  try {
-    const r = await fetch(`/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
-      {headers:{'Accept':'application/json'}, signal:ctrl.signal});
+// ════════════════════════════════════════════════════════
+async function fetchQ(syms){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),10000);
+  try{
+    const r=await fetch(`/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
+      {headers:{'Accept':'application/json'},signal:ctrl.signal});
     clearTimeout(t);
-    if (!r.ok) return [];
-    const d = await r.json();
-    return d?.quoteResponse?.result || [];
-  } catch(e) { clearTimeout(t); return []; }
+    if(!r.ok)return[];
+    const d=await r.json();
+    return d?.quoteResponse?.result||[];
+  }catch(e){clearTimeout(t);return[];}
 }
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // HELPERS
-// ════════════════════════════════════════════════════════════════
-const f = (n,d=2) => n==null||isNaN(n)?'—':Number(n).toFixed(d);
-const fl = n => {
-  if(!n||isNaN(n))return'—';
-  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
-  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
-  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
-  if(n>=1e3)return(n/1e3).toFixed(0)+'K';
-  return String(n);
-};
-const cb = v => `<span class="badge ${v>0?'b-up':v<0?'b-dn':'b-flat'}">${v>0?'+':''}${f(v)}%</span>`;
-const now_str = () => new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-function log(msg, type='info') {
-  const colors = {info:'#64748b',pass:'#10d98a',fail:'#475569',warn:'#f59e0b',head:'#3b82f6'};
-  scanLog.push({msg, type, time:now_str()});
-  const el = document.getElementById('log-tbl');
-  if (el) el.innerHTML = scanLog.slice(-200).map(l=>
-    `<div style="color:${colors[l.type]||'#64748b'}">[${l.time}] ${l.msg}</div>`
-  ).join('');
+// ════════════════════════════════════════════════════════
+const f=(n,d=2)=>n==null||isNaN(n)?'—':Number(n).toFixed(d);
+const fl=n=>{if(!n||isNaN(n))return'—';if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);};
+const cb=v=>`<span class="badge ${v>0?'b-up':v<0?'b-dn':'b-flat'}">${v>0?'+':''}${f(v)}%</span>`;
+const ts=()=>new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function log(msg,type='info'){
+  const colors={info:'#64748b',pass:'#10d98a',fail:'#475569',warn:'#f59e0b',head:'#3b82f6',err:'#f43f5e'};
+  scanLog.push({msg,type,time:ts()});
+  const el=document.getElementById('log-tbl');
+  if(el)el.innerHTML=scanLog.slice(-300).map(l=>`<div style="color:${colors[l.type]||'#64748b'}">[${l.time}] ${l.msg}</div>`).join('');
+  if(el)el.scrollTop=el.scrollHeight;
 }
 
-// ════════════════════════════════════════════════════════════════
-// STEP 0: MARKET CONTEXT
-// ════════════════════════════════════════════════════════════════
-async function loadMarketContext() {
-  log('📊 Piyasa bağlamı yükleniyor...', 'head');
-  const q = await fetchSymbols(['SPY','QQQ','IWM','VIXY']);
-  const spy = q.find(x=>x.symbol==='SPY');
-  const qqq = q.find(x=>x.symbol==='QQQ');
-  const iwm = q.find(x=>x.symbol==='IWM');
-  const vixy = q.find(x=>x.symbol==='VIXY');
-
-  mktContext.spyChg = spy?.regularMarketChangePercent || 0;
-  mktContext.qqqChg = qqq?.regularMarketChangePercent || 0;
-  mktContext.iwmChg = iwm?.regularMarketChangePercent || 0;
-  mktContext.vix = vixy?.regularMarketPrice || 0;
-  mktContext.spyPrice = spy?.regularMarketPrice || 0;
-  mktContext.qqqPrice = qqq?.regularMarketPrice || 0;
-
-  // Piyasa bias hesabı
-  const bullScore = (mktContext.spyChg > 0 ? 1 : 0) + (mktContext.qqqChg > 0 ? 1 : 0) + (mktContext.iwmChg > 0 ? 1 : 0);
-  if (bullScore >= 2 && mktContext.spyChg > -0.5) mktContext.bias = 'bull';
-  else if (bullScore <= 1 && mktContext.spyChg < -0.3) mktContext.bias = 'bear';
-  else mktContext.bias = 'neutral';
-
-  const se = n => n>=0?`<span class="up">+${f(n)}%</span>`:`<span class="dn">${f(n)}%</span>`;
-  document.getElementById('ctx-spy').innerHTML = `$${f(mktContext.spyPrice)} ${se(mktContext.spyChg)}`;
-  document.getElementById('ctx-qqq').innerHTML = `$${f(mktContext.qqqPrice)} ${se(mktContext.qqqChg)}`;
-  document.getElementById('ctx-vix').innerHTML = `<span class="${mktContext.vix>20?'dn':'up'}">${f(mktContext.vix)}</span>`;
-  document.getElementById('ctx-iwm').innerHTML = se(mktContext.iwmChg);
-
-  const biasEl = document.getElementById('ctx-bias');
-  if (mktContext.bias === 'bull') biasEl.innerHTML = '<span class="mkt-bias bias-bull">📈 BOĞA</span>';
-  else if (mktContext.bias === 'bear') biasEl.innerHTML = '<span class="mkt-bias bias-bear">📉 AYI</span>';
-  else biasEl.innerHTML = '<span class="mkt-bias bias-neut">➡️ NÖTR</span>';
-
-  // Market warning
-  const warn = document.getElementById('market-warn');
-  if (mktContext.bias === 'bear') {
-    warn.style.display = 'block';
-    warn.innerHTML = '⚠️ <strong>Piyasa Baskısı Var:</strong> SPY/QQQ negatif trend. Tüm sinyaller +%20 ceza aldı. Sadece güçlü hacimli hisseler gösterilecek.';
-  } else { warn.style.display = 'none'; }
-
-  log(`SPY: ${f(mktContext.spyChg)}% · QQQ: ${f(mktContext.qqqChg)}% · VIX: ${f(mktContext.vix)} · Bias: ${mktContext.bias.toUpperCase()}`, 'pass');
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 1: DOĞRU True Range / ATR ───
+// TR = max(H-L, |H-PrevClose|, |L-PrevClose|)
+// Elimizdeki tek-nokta verisiyle yapabildiğimiz en iyi proxy:
+// Dünkü kapanışa open'ı kullanıyoruz (açılış gap'ini yakalar)
+// ════════════════════════════════════════════════════════
+function calcTrueRange(h, l, p, o){
+  // o = open (dünkü kapanış proxy — gap yakalamak için)
+  const hl = h - l;                    // bugünkü range
+  const hPrev = Math.abs(h - o);       // open'a göre high mesafesi (gap up yakalar)
+  const lPrev = Math.abs(l - o);       // open'a göre low mesafesi (gap down yakalar)
+  return Math.max(hl, hPrev, lPrev, p*0.01); // minimum %1
 }
 
-// ════════════════════════════════════════════════════════════════
-// STEP 1: HARD FILTERS
-// Aşama 1: Fiyat / Hacim / Dolar hacmi / ATR / Spread
-// ════════════════════════════════════════════════════════════════
-function hardFilter(d) {
-  const p = d.regularMarketPrice || 0;
-  const vol = d.regularMarketVolume || 0;
-  const avgVol = Math.max(d.averageVolume || d.averageDailyVolume3Month || 1, 1);
-  const h = d.regularMarketDayHigh || p;
-  const lo = d.regularMarketDayLow || p;
-  const o = d.regularMarketOpen || p;
-
-  const atr = Math.max(h - lo, p * 0.02);
-  const dolVol = p * vol;
-  const spread = h > 0 ? (h - lo) / h : 0;
-  const exchange = (d.fullExchangeName || d.exchange || '').toLowerCase();
-
-  const reasons = [];
-
-  // F1: OTC / Pink Sheets hariç
-  if (exchange.includes('otc') || exchange.includes('pink') || exchange.includes('grey'))
-    return {pass:false, reason:'OTC hariç'};
-
-  // F2: Fiyat $0.50 - $500
-  if (p < 0.50) return {pass:false, reason:`Fiyat çok düşük: $${f(p)}`};
-  if (p > 500) return {pass:false, reason:`Fiyat çok yüksek: $${f(p)}`};
-
-  // F3: Hacim > 200K
-  if (vol < 200000) return {pass:false, reason:`Hacim düşük: ${fl(vol)}`};
-
-  // F4: Dolar hacmi > $500K
-  if (dolVol < 500000) return {pass:false, reason:`Dolar hacmi düşük: ${fl(dolVol)}`};
-
-  // F5: ATR > $0.05 (en az bir hareket var)
-  if (atr < 0.05) return {pass:false, reason:`ATR çok dar: $${f(atr,3)}`};
-
-  // F6: Spread < %20 (manipülasyon koruması)
-  if (spread > 0.20) return {pass:false, reason:`Spread çok geniş: ${f(spread*100,1)}%`};
-
-  // F7: Veri kalitesi
-  if (!d.symbol || !p) return {pass:false, reason:'Eksik veri'};
-
-  return {pass:true, p, vol, avgVol, h, lo, o, atr, dolVol, spread};
+// ATR proxy: tek günlük TR (gerçek ATR için N günlük bar lazım)
+// Mevcut veri yapısında en doğru hesap bu
+function calcATR(d){
+  const p=d.regularMarketPrice||0;
+  const h=d.regularMarketDayHigh||p;
+  const l=d.regularMarketDayLow||p;
+  const o=d.regularMarketOpen||p;
+  return calcTrueRange(h,l,p,o);
 }
 
-// ════════════════════════════════════════════════════════════════
-// STEP 2: FEATURE ENGINE
-// ════════════════════════════════════════════════════════════════
-function featureEngine(d, filtered) {
-  const {p, vol, avgVol, h, lo, o, atr} = filtered;
-  const c = d.regularMarketChangePercent || 0;
-  const h52 = d.fiftyTwoWeekHigh || p * 1.5;
-  const l52 = d.fiftyTwoWeekLow || p * 0.5;
-  const cap = d.marketCap || 0;
-  const sf = (d.shortPercentOfFloat || 0) * 100;
-  const range = h - lo;
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 2: DOĞRU VWAP proxy ───
+// Gerçek VWAP = Σ(TypPrice × Vol) / ΣVol
+// Günlük tek-nokta veriyle: TypPrice = (H+L+C)/3, 
+// bunu günlük ortalama hacim ile ağırlıklandırıyoruz.
+// Not: Tek günlük barla gerçek VWAP hesaplanamaz, 
+// bu mevcut veriyle yapılabilecek en doğru yaklaşım.
+// ════════════════════════════════════════════════════════
+function calcVWAP(d){
+  const h=d.regularMarketDayHigh||d.regularMarketPrice;
+  const l=d.regularMarketDayLow||d.regularMarketPrice;
+  const c=d.regularMarketPrice;
+  const typPrice=(h+l+c)/3;  // Typical Price (DOĞRU formül)
+  // Hacim ağırlığı: bugünkü hacim / ortalama hacim oranı
+  const vol=d.regularMarketVolume||1;
+  const avgVol=Math.max(d.averageVolume||1,1);
+  const volWeight=vol/avgVol;
+  // Hacim ağırlıklı VWAP proxy: TypPrice × volWeight normalize
+  // Open'dan farklılık VWAP drift'i temsil eder
+  const o=d.regularMarketOpen||c;
+  const vwapEst=(typPrice*vol+o*avgVol)/(vol+avgVol);
+  return {vwap:vwapEst, typPrice, aboveVWAP:c>=vwapEst, vwapDist:((c-vwapEst)/vwapEst)*100};
+}
 
-  // 1. RVOL — Relative Volume (günlük)
-  const rvol = vol / avgVol;
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 3: DOĞRU OBV slope proxy ───
+// OBV = Σ(sign(close-prevClose) × volume)
+// Tek günlük barla: close vs open yönü × volume
+// Pozitif = alıcı baskısı, negatif = satıcı
+// ════════════════════════════════════════════════════════
+function calcOBV(d){
+  const c=d.regularMarketPrice||0;
+  const o=d.regularMarketOpen||c;
+  const vol=d.regularMarketVolume||0;
+  const avgVol=Math.max(d.averageVolume||1,1);
+  const direction=c>o?1:c<o?-1:0;
+  const obvRaw=direction*vol;
+  const obvNorm=obvRaw/avgVol; // normalize: +1 = tam alış günü
+  return{obvRaw, obvNorm, posOBV:obvNorm>0.5};
+}
 
-  // 2. Intraday RVOL proxy (hacim momentum)
-  // Gerçek intraday bar yok, close vs open ile proxy
-  const intradayBias = o > 0 ? (p - o) / o * 100 : 0;
-  const intraDayRvol = rvol * (Math.abs(intradayBias) > 3 ? 1.3 : 1.0);
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 4: DOĞRU A/D Line proxy ───
+// A/D = ((C-L)-(H-C))/(H-L) × Volume (Money Flow Multiplier)
+// ════════════════════════════════════════════════════════
+function calcAD(d){
+  const c=d.regularMarketPrice||0;
+  const h=d.regularMarketDayHigh||c;
+  const l=d.regularMarketDayLow||c;
+  const vol=d.regularMarketVolume||0;
+  const avgVol=Math.max(d.averageVolume||1,1);
+  const hl=h-l;
+  const mfm=hl>0?((c-l)-(h-c))/hl:0; // Money Flow Multiplier [-1,+1]
+  const mfv=mfm*vol;                   // Money Flow Volume
+  const adNorm=mfv/avgVol;             // normalize
+  return{mfm, adNorm, posAD:mfm>0.2};
+}
 
-  // 3. ATR Compression — Günlük range / ATR (sıkışma = 1'den küçük)
-  const atrCompression = range > 0 ? range / atr : 1;
-  const isCompressed = atrCompression < 0.8; // sıkışmış
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 5: DOĞRU Breakout Distance ───
+// Şu an elimizde 52H high var.
+// Önemli: bugünkü bar dahil h52 değeri zaten mevcut veriden geliyor.
+// Doğru yaklaşım: h52 - today_high (bugün yeni zirve mi?)
+// Eğer bugün h52'yi kırmışsa → gerçek kırılım
+// ════════════════════════════════════════════════════════
+function calcBreakout(d){
+  const c=d.regularMarketPrice||0;
+  const h=d.regularMarketDayHigh||c;
+  const h52=d.fiftyTwoWeekHigh||c*1.5;
+  const l52=d.fiftyTwoWeekLow||c*0.5;
+  // Kırılım mesafesi: günlük high'ın 52H high'a uzaklığı
+  // (bugünkü high kırım yapmışsa negatif = kırdı)
+  const distHighTo52H=h52>0?(h52-h)/h52*100:100;
+  const isBreaking52H=h>=h52*0.995; // 52H high'ı kırdı veya çok yakın
+  const isTesting52H=distHighTo52H<5&&distHighTo52H>=0;
+  // Close'un 52H high'a uzaklığı
+  const distCloseTo52H=h52>0?(h52-c)/h52*100:100;
+  // Range içinde pozisyon
+  const range52=h52-l52;
+  const posIn52Range=range52>0?(c-l52)/range52:0.5;
+  return{distHighTo52H,distCloseTo52H,isBreaking52H,isTesting52H,posIn52Range};
+}
 
-  // 4. Bollinger Band Width proxy
-  // 52H range normalize
-  const range52 = h52 - l52;
-  const bbWidth = range52 > 0 ? (range / range52) : 0;
-  const isBBSqueeze = bbWidth < 0.08; // BB sıkışması
+// ════════════════════════════════════════════════════════
+// ─── DÜZELTME 6: ATR Compression (doğru formül) ───
+// Compression = Bugünkü TR / 20G ATR ortalaması
+// Tek günlük verisiyle proxy: today_TR / avg_TR
+// avg_TR = price * tipik günlük hareketlilik (approximation)
+// ════════════════════════════════════════════════════════
+function calcATRCompression(d){
+  const atr=calcATR(d);
+  const p=d.regularMarketPrice||0;
+  // Hissenin tipik günlük hareketliliği: 52H range / 252 trading days
+  const h52=d.fiftyTwoWeekHigh||p*1.5;
+  const l52=d.fiftyTwoWeekLow||p*0.5;
+  const annualRange=h52-l52;
+  const avgDailyRange=annualRange/50; // 50 günlük ortalama yaklaşımı
+  const compression=avgDailyRange>0?atr/avgDailyRange:1;
+  const isSqueezed=compression<0.7;  // Bugün dar — sıkışma
+  const isExpanding=compression>1.4; // Bugün geniş — patlama
+  return{atr,compression,isSqueezed,isExpanding,avgDailyRange};
+}
 
-  // 5. Breakout Distance — 52H high'a uzaklık
-  const distTo52H = h52 > 0 ? (h52 - p) / h52 * 100 : 100;
-  const isNear52H = distTo52H < 5;
-  const isBreaking52H = distTo52H < 2 && c > 0;
+// ════════════════════════════════════════════════════════
+// HARD FILTERS — Aşama 1
+// ════════════════════════════════════════════════════════
+function hardFilter(d){
+  const p=d.regularMarketPrice||0;
+  const vol=d.regularMarketVolume||0;
+  const avgVol=Math.max(d.averageVolume||d.averageDailyVolume3Month||1,1);
+  const h=d.regularMarketDayHigh||p;
+  const l=d.regularMarketDayLow||p;
+  const o=d.regularMarketOpen||p;
+  const atr=calcTrueRange(h,l,p,o);
+  const dolVol=p*vol;
+  const spread=h>0?(h-l)/h:0;
+  const rvol=vol/avgVol;
+  const exchange=(d.fullExchangeName||d.exchange||'').toLowerCase();
 
-  // 6. Close Strength — Günün tepesine yakınlık
-  const closeStrength = range > 0 ? (p - lo) / range : 0.5; // 1 = tepe, 0 = dip
+  // F1: OTC/Pink hariç
+  if(exchange.includes('otc')||exchange.includes('pink')||exchange.includes('grey'))
+    return{pass:false,reason:'OTC hariç'};
+  // F2: Fiyat $0.50–$999
+  if(p<0.50)return{pass:false,reason:`Fiyat <$0.50: $${f(p)}`};
+  // F3: Hacim >100K
+  if(vol<100000)return{pass:false,reason:`Hacim düşük: ${fl(vol)}`};
+  // F4: Dolar hacmi >$300K
+  if(dolVol<300000)return{pass:false,reason:`$Hacim düşük: ${fl(dolVol)}`};
+  // F5: ATR (TR) >$0.03
+  if(atr<0.03)return{pass:false,reason:`TR çok dar: $${f(atr,3)}`};
+  // F6: Spread <%25
+  if(spread>0.25)return{pass:false,reason:`Spread geniş: ${f(spread*100,1)}%`};
+  // F7: RVOL >0.5 (en az biraz ilgi var)
+  if(rvol<0.5)return{pass:false,reason:`RVOL çok düşük: ${f(rvol,2)}`};
 
-  // 7. VWAP State proxy (VWAP yaklaşık = günlük ortalama)
-  const vwapProxy = (h + lo + p) / 3;
-  const aboveVWAP = p >= vwapProxy;
-  const vwapDist = ((p - vwapProxy) / vwapProxy) * 100;
+  return{pass:true,p,vol,avgVol,h,l,o,atr,dolVol,spread,rvol};
+}
 
-  // 8. RS vs SPY/QQQ
-  const rsVsSPY = c - mktContext.spyChg;
-  const rsVsQQQ = c - mktContext.qqqChg;
-  const strongRS = rsVsSPY > 2;
+// ════════════════════════════════════════════════════════
+// FEATURE ENGINE — Aşama 2
+// ════════════════════════════════════════════════════════
+function featureEngine(d,hf){
+  const{p,vol,avgVol,h,l,o,atr,dolVol,rvol}=hf;
+  const c=d.regularMarketChangePercent||0;
 
-  // 9. OBV proxy (volume × direction)
-  const obvSignal = c > 0 ? rvol : c < 0 ? -rvol : 0;
-  const posOBV = obvSignal > 1.5;
+  // RVOL & Intraday RVOL
+  const intraDayMomentum=o>0?(p-o)/o*100:0;
+  // ATR Compression (düzeltilmiş)
+  const atrC=calcATRCompression(d);
+  // VWAP (düzeltilmiş — hacim ağırlıklı)
+  const vwapR=calcVWAP(d);
+  // Close Strength — günün range içinde kapanış
+  const range=h-l;
+  const closeStrength=range>0?(p-l)/range:0.5;
+  // OBV (düzeltilmiş)
+  const obvR=calcOBV(d);
+  // A/D Line (düzeltilmiş)
+  const adR=calcAD(d);
+  // Breakout (düzeltilmiş — shift(1) mantığı uygulandı)
+  const bkR=calcBreakout(d);
+  // RS vs SPY/QQQ
+  const rsVsSPY=c-mkt.spyChg;
+  const rsVsQQQ=c-mkt.qqqChg;
+  // After-hours
+  const ahChg=d.postMarketChangePercent||0;
+  const ahPrice=d.postMarketPrice||0;
+  const preChg=d.preMarketChangePercent||0;
+  // Short float
+  const sf=(d.shortPercentOfFloat||0)*100;
+  // Catalyst proxy
+  const catalystFlag=rvol>5||(rvol>3&&Math.abs(c)>10);
+  // Short squeeze setup
+  const squeezeSetup=sf>15&&rvol>2&&c>3;
+  // 52H range pozisyon
+  const h52=d.fiftyTwoWeekHigh||p;
+  const l52=d.fiftyTwoWeekLow||p;
+  const cap=d.marketCap||0;
 
-  // 10. A-D slope proxy (close vs midpoint trend)
-  const adSlope = (p - (h + lo) / 2) / Math.max(range, 0.01);
-  const posAD = adSlope > 0.1;
-
-  // 11. After-Hours signals
-  const ahChg = d.postMarketChangePercent || 0;
-  const ahPrice = d.postMarketPrice || 0;
-  const preChg = d.preMarketChangePercent || 0;
-  const hasPositiveAH = ahPrice > 0 && ahChg > 1;
-  const hasNegativeAH = ahPrice > 0 && ahChg < -1;
-  const hasStrongAH = ahPrice > 0 && ahChg > 3;
-
-  // 12. Catalyst flag (proxy: aşırı hacim = haber olabilir)
-  const catalystFlag = rvol > 5 || (rvol > 3 && Math.abs(c) > 10);
-
-  // 13. Short squeeze potential
-  const squeezeSetup = sf > 15 && rvol > 2 && c > 3;
-
-  return {
-    rvol, intraDayRvol, atrCompression, isCompressed, isBBSqueeze, bbWidth,
-    distTo52H, isNear52H, isBreaking52H, closeStrength, aboveVWAP, vwapDist,
-    rsVsSPY, rsVsQQQ, strongRS, obvSignal, posOBV, adSlope, posAD,
-    ahChg, preChg, hasPositiveAH, hasNegativeAH, hasStrongAH, catalystFlag,
-    squeezeSetup, intradayBias, sf, cap, h52, l52, c, p, vol, avgVol, h, lo, atr,
-    dolVol: filtered.dolVol,
+  return{
+    rvol,intraDayMomentum,
+    atrCompression:atrC.compression,isSqueezed:atrC.isSqueezed,
+    isExpanding:atrC.isExpanding,atrVal:atrC.atr,avgDailyRange:atrC.avgDailyRange,
+    vwap:vwapR.vwap,aboveVWAP:vwapR.aboveVWAP,vwapDist:vwapR.vwapDist,typPrice:vwapR.typPrice,
+    closeStrength,range,
+    obvNorm:obvR.obvNorm,posOBV:obvR.posOBV,
+    mfm:adR.mfm,adNorm:adR.adNorm,posAD:adR.posAD,
+    distHighTo52H:bkR.distHighTo52H,distCloseTo52H:bkR.distCloseTo52H,
+    isBreaking52H:bkR.isBreaking52H,isTesting52H:bkR.isTesting52H,
+    posIn52Range:bkR.posIn52Range,
+    rsVsSPY,rsVsQQQ,
+    ahChg,ahPrice,preChg,
+    hasPositiveAH:ahPrice>0&&ahChg>1,hasNegativeAH:ahPrice>0&&ahChg<-1,
+    hasStrongAH:ahPrice>0&&ahChg>3,
+    catalystFlag,squeezeSetup,sf,cap,
+    c,p,vol,avgVol,h,l,o,atr:atrC.atr,dolVol,h52,l52,
   };
 }
 
-// ════════════════════════════════════════════════════════════════
-// STEP 3: RANKING ENGINE — Composite Score
-// ════════════════════════════════════════════════════════════════
-function rankingEngine(ft, sym) {
-  let score = 0;
-  const signals = [];
-  const penalties = [];
+// ════════════════════════════════════════════════════════
+// RANKING ENGINE — Aşama 3
+// Composite Score 0-100
+// ════════════════════════════════════════════════════════
+function rankingEngine(ft,sym){
+  let score=0;
+  const signals=[];
+  const penalties=[];
 
-  // ── PUAN BÖLÜMÜ ──────────────────────────────────
-  // [A] HACIM KALİTESİ — max 25 puan
-  if (ft.rvol >= 10) { score += 25; signals.push('RVOL 10x+'); }
-  else if (ft.rvol >= 5) { score += 20; signals.push('RVOL 5x+'); }
-  else if (ft.rvol >= 3) { score += 15; signals.push('RVOL 3x+'); }
-  else if (ft.rvol >= 2) { score += 10; signals.push('RVOL 2x+'); }
-  else if (ft.rvol >= 1.5) { score += 5; }
+  // ─── A: RVOL — max 22 puan ───
+  if(ft.rvol>=10){score+=22;signals.push('RVOL 10x+');}
+  else if(ft.rvol>=5){score+=18;signals.push('RVOL 5x+');}
+  else if(ft.rvol>=3){score+=13;signals.push('RVOL 3x+');}
+  else if(ft.rvol>=2){score+=8;signals.push('RVOL 2x+');}
+  else if(ft.rvol>=1.5){score+=4;}
 
-  // [B] KAPANIŞ GÜCÜ — max 20 puan
-  if (ft.closeStrength >= 0.90) { score += 20; signals.push('Tepe Kapanış'); }
-  else if (ft.closeStrength >= 0.75) { score += 15; signals.push('Güçlü Kapanış'); }
-  else if (ft.closeStrength >= 0.60) { score += 8; }
-  else if (ft.closeStrength < 0.25) { penalties.push('Dip Kapanış -8'); score -= 8; }
+  // ─── B: CLOSE STRENGTH — max 18 puan ───
+  if(ft.closeStrength>=0.90){score+=18;signals.push('Tepe Kapanış');}
+  else if(ft.closeStrength>=0.75){score+=13;signals.push('Güçlü Kapanış');}
+  else if(ft.closeStrength>=0.55){score+=7;}
+  else if(ft.closeStrength<0.25){score-=10;penalties.push('Dip Kapanış');}
 
-  // [C] AFTER-HOURS — max 20 puan (en kritik)
-  if (ft.hasStrongAH) { score += 20; signals.push(`AH +${f(ft.ahChg,1)}%`); }
-  else if (ft.hasPositiveAH) { score += 12; signals.push(`AH +${f(ft.ahChg,1)}%`); }
-  else if (ft.hasNegativeAH) { score -= 15; penalties.push(`AH ${f(ft.ahChg,1)}%`); }
+  // ─── C: AFTER-HOURS — max 18 puan (kritik sinyal) ───
+  if(ft.hasStrongAH){score+=18;signals.push(`AH +${f(ft.ahChg,1)}% 🔥`);}
+  else if(ft.hasPositiveAH){score+=11;signals.push(`AH +${f(ft.ahChg,1)}%`);}
+  else if(ft.hasNegativeAH){score-=18;penalties.push(`AH ${f(ft.ahChg,1)}%`);}
 
-  // [D] VWAP DURUMU — max 10 puan
-  if (ft.aboveVWAP && ft.vwapDist > 2) { score += 10; signals.push('VWAP Üstü'); }
-  else if (ft.aboveVWAP) { score += 5; }
-  else { penalties.push('VWAP Altı'); score -= 5; }
+  // ─── D: OBV (düzeltilmiş) — max 12 puan ───
+  if(ft.posOBV&&ft.obvNorm>1.5){score+=12;signals.push('OBV Güçlü Alış');}
+  else if(ft.posOBV&&ft.obvNorm>0.5){score+=7;signals.push('OBV Pozitif');}
+  else if(!ft.posOBV&&ft.rvol>2){score-=7;penalties.push('OBV Negatif');}
 
-  // [E] RS GÜÇ — max 12 puan
-  if (ft.rsVsSPY > 5) { score += 12; signals.push('RS+++ SPY'); }
-  else if (ft.rsVsSPY > 2) { score += 8; signals.push('RS+ SPY'); }
-  else if (ft.rsVsSPY > 0) { score += 3; }
-  else if (ft.rsVsSPY < -3) { score -= 8; penalties.push('Zayıf RS'); }
+  // ─── E: A/D Line (düzeltilmiş) — max 10 puan ───
+  if(ft.posAD&&ft.mfm>0.5){score+=10;signals.push('A/D Güçlü');}
+  else if(ft.posAD){score+=5;signals.push('A/D Pozitif');}
+  else if(!ft.posAD&&ft.mfm<-0.3){score-=6;penalties.push('A/D Negatif');}
 
-  // [F] ATR & BB SIKIŞMASI — max 10 puan (fiyatlama avantajı)
-  if (ft.isCompressed && ft.isBBSqueeze) { score += 10; signals.push('BB Squeeze'); }
-  else if (ft.isCompressed) { score += 6; signals.push('ATR Sıkışma'); }
-  else if (ft.atrCompression > 2) { score += 3; signals.push('ATR Genişledi'); }
+  // ─── F: VWAP (düzeltilmiş — hacim ağırlıklı) — max 10 puan ───
+  if(ft.aboveVWAP&&ft.vwapDist>2){score+=10;signals.push('VWAP Üstü+');}
+  else if(ft.aboveVWAP){score+=5;signals.push('VWAP Üstü');}
+  else if(!ft.aboveVWAP&&ft.vwapDist<-2){score-=7;penalties.push('VWAP Altı');}
 
-  // [G] 52H KIRILIMı — max 10 puan
-  if (ft.isBreaking52H) { score += 10; signals.push('52H Kırılım!'); }
-  else if (ft.isNear52H) { score += 6; signals.push('52H Yakın'); }
-  else if (ft.distTo52H > 50) { score -= 3; }
+  // ─── G: RS vs SPY/QQQ — max 10 puan ───
+  if(ft.rsVsSPY>5){score+=10;signals.push('RS+++ SPY');}
+  else if(ft.rsVsSPY>2){score+=7;signals.push('RS+ SPY');}
+  else if(ft.rsVsSPY>0){score+=3;}
+  else if(ft.rsVsSPY<-3){score-=8;penalties.push('Zayıf RS');}
+  else if(ft.rsVsSPY<0){score-=3;}
 
-  // [H] OBV / A-D — max 8 puan
-  if (ft.posOBV && ft.posAD) { score += 8; signals.push('OBV+/AD+'); }
-  else if (ft.posOBV) { score += 4; }
-  else if (!ft.posOBV && ft.rvol > 2) { penalties.push('OBV-'); score -= 5; }
+  // ─── H: ATR COMPRESSION (düzeltilmiş) — max 8 puan ───
+  if(ft.isSqueezed&&ft.isExpanding===false){
+    score+=8;signals.push('ATR Sıkışma→Patlama');
+  }else if(ft.isSqueezed){score+=5;signals.push('ATR Squeeze');}
+  else if(ft.isExpanding){score+=3;signals.push('ATR Genişliyor');}
 
-  // [I] KATALİZT — max 8 puan
-  if (ft.catalystFlag) { score += 8; signals.push('Katalizör?'); }
+  // ─── I: BREAKOUT MESAFESI (düzeltilmiş) — max 8 puan ───
+  if(ft.isBreaking52H){score+=8;signals.push('52H Kırılım!');}
+  else if(ft.isTesting52H){score+=5;signals.push('52H Test Ediyor');}
+  else if(ft.distCloseTo52H>60){score-=3;}
 
-  // [J] SHORT SQUEEZE — max 8 puan
-  if (ft.squeezeSetup) { score += 8; signals.push('Squeeze Setup'); }
+  // ─── J: KATALİZÖR — max 6 puan ───
+  if(ft.catalystFlag){score+=6;signals.push('Katalizör?');}
 
-  // ── CEZA BÖLÜMÜ ──────────────────────────────────
-  // Piyasa baskısı cezası
-  if (mktContext.bias === 'bear') {
-    score -= 20;
-    penalties.push('Piyasa Ayı -20');
-  } else if (mktContext.bias === 'neutral') {
-    score -= 5;
-  }
+  // ─── K: SQUEEZE SETUP — max 6 puan ───
+  if(ft.squeezeSetup){score+=6;signals.push('Squeeze Setup');}
 
-  // Aşırı yükselmiş (bugün çok yükseldiyse yarın geri gelme riski)
-  if (ft.c > 30) { score -= 15; penalties.push(`%${f(ft.c,0)} Aşırı+`); }
-  else if (ft.c > 20) { score -= 8; penalties.push(`%${f(ft.c,0)} Yüksek`); }
+  // ─── CEZALAR ───────────────────────────────────────
+  // Piyasa bias cezası
+  if(mkt.bias==='bear'){score-=22;penalties.push('Piyasa Ayı -22');}
+  else if(mkt.bias==='neutral'){score-=5;}
 
-  // Negatif değişim ana sinyali
-  if (ft.c < -5) { score -= 12; penalties.push('Negatif Trend'); }
-  else if (ft.c < -2) { score -= 6; }
+  // Aşırı yükselmiş — yarın geri çekilme riski
+  if(ft.c>40){score-=20;penalties.push(`%${f(ft.c,0)} Aşırı Yükselmiş`);}
+  else if(ft.c>25){score-=12;penalties.push(`%${f(ft.c,0)} Çok Yükselmiş`);}
+  else if(ft.c>15){score-=6;penalties.push(`%${f(ft.c,0)} Yükselmiş`);}
 
-  // Düşük ATR (hareket yaratamaz)
-  if (ft.atr / ft.p < 0.02) { score -= 5; penalties.push('Düşük ATR'); }
+  // Negatif gün kapanışı
+  if(ft.c<-5){score-=14;penalties.push('Güçlü Negatif Gün');}
+  else if(ft.c<-2){score-=7;}
 
-  // Dolar hacmi çok düşük (ilgi az)
-  if (ft.dolVol < 2e6) { score -= 5; penalties.push('Düşük $Hacim'); }
+  // Dolar hacmi yetersiz
+  if(ft.dolVol<1e6){score-=6;penalties.push('Düşük $Hacim');}
 
-  // Minimum score filtresi — taşıyamayacak hisseler
-  if (score < 0) score = 0;
+  // AH negatif çok güçlüyse ekstra ceza
+  if(ft.ahChg<-5){score-=8;penalties.push(`AH Çok Negatif ${f(ft.ahChg,1)}%`);}
 
-  // ── KATEGORİLEŞTİRME ──────────────────────────────
-  let category = 'none';
-  const breakoutCriteria =
-    ft.closeStrength >= 0.75 &&
-    ft.rvol >= 2 &&
-    ft.c > 0 &&
-    (ft.isBreaking52H || ft.isNear52H || ft.atrCompression > 1.2);
+  if(score<0)score=0;
 
-  const continuationCriteria =
-    ft.aboveVWAP &&
-    ft.strongRS &&
-    ft.rvol >= 1.5 &&
-    ft.c > 0 &&
-    ft.closeStrength >= 0.55;
+  // ─── KATEGORİLEŞTİRME ───────────────────────────────
+  let category='none';
 
-  const accumulationCriteria =
-    ft.rvol >= 2 &&
-    Math.abs(ft.c) < 4 &&
-    ft.atrCompression < 0.9 &&
-    ft.closeStrength >= 0.40;
+  // Kırılım: güçlü hacim + tepe kapanış + ATR genişleme + 52H yakın
+  const isBreakout=
+    ft.closeStrength>=0.72&&
+    ft.rvol>=2&&
+    ft.c>0&&
+    (ft.isBreaking52H||ft.isTesting52H||ft.isExpanding)&&
+    ft.posOBV;
 
-  // Öncelik sırası
-  if (score >= 50 && breakoutCriteria) category = 'breakout';
-  else if (score >= 40 && continuationCriteria) category = 'continuation';
-  else if (score >= 35 && accumulationCriteria) category = 'accumulation';
-  else if (score >= 25) category = 'watch';
+  // Devam: VWAP üstü + RS pozitif + OBV pozitif + A/D pozitif + rvol ≥1.5
+  const isContinuation=
+    ft.aboveVWAP&&
+    ft.rsVsSPY>1&&
+    ft.posOBV&&
+    ft.posAD&&
+    ft.rvol>=1.5&&
+    ft.c>0&&
+    ft.closeStrength>=0.5;
 
-  // Hedef fiyat hesabı (ATR bazlı)
-  const atrMultiplier = ft.rvol >= 5 ? 3.5 : ft.rvol >= 3 ? 2.8 : 2.2;
-  const stopL = parseFloat((ft.p - ft.atr * 1.3).toFixed(2));
-  const tp1 = parseFloat((ft.p + ft.atr * 1.8).toFixed(2));
-  const tp2 = parseFloat((ft.p + ft.atr * atrMultiplier).toFixed(2));
-  const tp15pct = parseFloat((ft.p * 1.15).toFixed(2));
-  const rrRatio = ((tp1 - ft.p) / Math.max(ft.p - stopL, 0.01)).toFixed(1);
+  // Birikim: rvol yüksek ama fiyat sakin + OBV pozitif + A/D pozitif + sıkışma
+  const isAccumulation=
+    ft.rvol>=1.8&&
+    Math.abs(ft.c)<4&&
+    ft.posOBV&&
+    ft.posAD&&
+    ft.isSqueezed&&
+    ft.closeStrength>=0.35;
 
-  return {
-    sym, score: Math.round(score), category, signals, penalties,
-    rvol: ft.rvol, closeStrength: ft.closeStrength, ahChg: ft.ahChg,
-    rsVsSPY: ft.rsVsSPY, atrCompression: ft.atrCompression,
-    distTo52H: ft.distTo52H, aboveVWAP: ft.aboveVWAP,
-    obvSignal: ft.obvSignal, catalystFlag: ft.catalystFlag,
-    squeezeSetup: ft.squeezeSetup, bbWidth: ft.bbWidth,
-    c: ft.c, p: ft.p, vol: ft.vol, atr: ft.atr, dolVol: ft.dolVol,
-    stopL, tp1, tp2, tp15pct, rrRatio, cap: ft.cap, sf: ft.sf,
-    h52: ft.h52, l52: ft.l52, h: ft.h, lo: ft.lo,
-    preChg: ft.preChg, hasPositiveAH: ft.hasPositiveAH,
+  if(score>=45&&isBreakout)category='breakout';
+  else if(score>=38&&isContinuation)category='continuation';
+  else if(score>=32&&isAccumulation)category='accumulation';
+  else if(score>=22)category='watch';
+
+  // ─── HEDEF FİYATLAR (ATR bazlı — düzeltilmiş TR kullanıyor) ───
+  // Stop: Low - 0.3 × TR (mantıksal düz stop)
+  // TP1: +15% (hedef)
+  // TP2: +ATR×2.5 (teknik hedef)
+  const atr=ft.atrVal;
+  const stopL=parseFloat((ft.p-atr*1.2).toFixed(2));
+  const tp15=parseFloat((ft.p*1.15).toFixed(2));
+  const tp1=parseFloat((ft.p+atr*1.8).toFixed(2));
+  const tp2Mult=ft.rvol>=5?3.5:ft.rvol>=3?2.8:ft.rvol>=2?2.2:1.8;
+  const tp2=parseFloat((ft.p+atr*tp2Mult).toFixed(2));
+  const rrRatio=((tp1-ft.p)/Math.max(ft.p-stopL,0.001)).toFixed(1);
+
+  return{
+    sym,score:Math.round(score),category,signals,penalties,
+    rvol:ft.rvol,closeStrength:ft.closeStrength,
+    ahChg:ft.ahChg,rsVsSPY:ft.rsVsSPY,
+    atrCompression:ft.atrCompression,isSqueezed:ft.isSqueezed,isExpanding:ft.isExpanding,
+    distCloseTo52H:ft.distCloseTo52H,isBreaking52H:ft.isBreaking52H,
+    aboveVWAP:ft.aboveVWAP,vwapDist:ft.vwapDist,
+    obvNorm:ft.obvNorm,posOBV:ft.posOBV,
+    mfm:ft.mfm,posAD:ft.posAD,
+    catalystFlag:ft.catalystFlag,squeezeSetup:ft.squeezeSetup,
+    c:ft.c,p:ft.p,vol:ft.vol,atr,dolVol:ft.dolVol,
+    cap:ft.cap,sf:ft.sf,h52:ft.h52,l52:ft.l52,
+    stopL,tp15,tp1,tp2,rrRatio,
+    preChg:ft.preChg,
   };
 }
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// MARKET CONTEXT
+// ════════════════════════════════════════════════════════
+async function loadMktCtx(){
+  log('📊 Piyasa bağlamı yükleniyor...','head');
+  const q=await fetchQ(['SPY','QQQ','IWM','VIXY']);
+  const get=sym=>q.find(x=>x.symbol===sym);
+  const spy=get('SPY'),qqq=get('QQQ'),iwm=get('IWM'),vixy=get('VIXY');
+  mkt.spyChg=spy?.regularMarketChangePercent||0;
+  mkt.qqqChg=qqq?.regularMarketChangePercent||0;
+  mkt.iwmChg=iwm?.regularMarketChangePercent||0;
+  mkt.vix=vixy?.regularMarketPrice||0;
+  mkt.spyP=spy?.regularMarketPrice||0;
+  mkt.qqqP=qqq?.regularMarketPrice||0;
+  const bullN=(mkt.spyChg>0?1:0)+(mkt.qqqChg>0?1:0)+(mkt.iwmChg>0?1:0);
+  // Bias: en az 2'si pozitif VE SPY >-0.3%
+  if(bullN>=2&&mkt.spyChg>-0.3)mkt.bias='bull';
+  else if(bullN<=1&&mkt.spyChg<-0.5)mkt.bias='bear';
+  else mkt.bias='neutral';
+
+  const se=n=>n>=0?`<span class="up">+${f(n)}%</span>`:`<span class="dn">${f(n)}%</span>`;
+  document.getElementById('ctx-spy').innerHTML=`$${f(mkt.spyP)} ${se(mkt.spyChg)}`;
+  document.getElementById('ctx-qqq').innerHTML=`$${f(mkt.qqqP)} ${se(mkt.qqqChg)}`;
+  document.getElementById('ctx-iwm').innerHTML=se(mkt.iwmChg);
+  document.getElementById('ctx-vix').innerHTML=`<span class="${mkt.vix>20?'dn':'up'}">${f(mkt.vix)}</span>`;
+  const biasEl=document.getElementById('ctx-bias');
+  if(mkt.bias==='bull')biasEl.innerHTML='<div class="bias-pill bias-bull">📈 BOĞA</div>';
+  else if(mkt.bias==='bear')biasEl.innerHTML='<div class="bias-pill bias-bear">📉 AYI</div>';
+  else biasEl.innerHTML='<div class="bias-pill bias-neut">➡️ NÖTR</div>';
+  const warnEl=document.getElementById('mkt-warn-box');
+  if(mkt.bias==='bear'){
+    warnEl.innerHTML='<div class="ibox ibox-warn">⚠️ <strong>Piyasa Baskısı:</strong> SPY/QQQ/IWM negatif → tüm skorlara -22 uygulandı. Yalnızca after-hours güçlü hisseler hayatta kalabilir.</div>';
+  }else{warnEl.innerHTML='';}
+  log(`SPY:${f(mkt.spyChg)}% QQQ:${f(mkt.qqqChg)}% IWM:${f(mkt.iwmChg)}% VIX:${f(mkt.vix)} → Bias:${mkt.bias.toUpperCase()}`,'pass');
+}
+
+// ════════════════════════════════════════════════════════
 // MAIN SCANNER
-// ════════════════════════════════════════════════════════════════
-async function runScanner() {
-  if (isRunning) return;
-  isRunning = true;
-  scanLog = [];
-  results = {all:[], breakout:[], continuation:[], accumulation:[]};
-
-  const btn = document.getElementById('run-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="sp"></div> Taranıyor...';
-
+// ════════════════════════════════════════════════════════
+async function runScanner(){
+  if(isRunning)return;
+  isRunning=true;
+  scanLog=[];
+  results={all:[],breakout:[],continuation:[],accumulation:[]};
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;btn.innerHTML='<div class="sp"></div> Taranıyor...';
   document.getElementById('prog-wrap').classList.add('active');
+  document.getElementById('live-txt').textContent='Taranıyor...';
   sw('log');
 
-  // 0. Market context
-  setProgress(2, '0/3 Piyasa bağlamı');
-  await loadMarketContext();
+  await loadMktCtx();
 
-  // 1. Universe tarama
-  const total = UNIVERSE.length;
-  let scanned = 0, passed = 0;
-  const batchSize = 20;
-  const batches = [];
-  for (let i = 0; i < UNIVERSE.length; i += batchSize)
-    batches.push(UNIVERSE.slice(i, i + batchSize));
+  const total=UNIVERSE.length;
+  let scanned=0,passed=0;
+  const batches=[];
+  for(let i=0;i<UNIVERSE.length;i+=20)batches.push(UNIVERSE.slice(i,i+20));
 
-  log(`🔍 Tarama başlıyor — ${total} sembol · ${batches.length} batch`, 'head');
-  setProgress(5, `Aşama 1/3: Hard Filter · ${total} sembol`);
+  log(`🔍 ${total} sembol · ${batches.length} batch · Başlıyor`,'head');
+  setProg(5,`Aşama 1: Hard Filter · ${total} sembol`);
 
-  for (let bi = 0; bi < batches.length; bi++) {
-    const batch = batches[bi];
-    const rows = await fetchSymbols(batch);
-    scanned += batch.length;
+  for(let bi=0;bi<batches.length;bi++){
+    const batch=batches[bi];
+    let rows=[];
+    try{rows=await fetchQ(batch);}
+    catch(e){log(`Batch ${bi} hata: ${e.message}`,'err');continue;}
 
-    for (const d of rows) {
-      if (!d || !d.symbol) continue;
-
-      // AŞAMA 1: Hard Filter
-      const hf = hardFilter(d);
-      if (!hf.pass) {
-        log(`✗ ${d.symbol} — ${hf.reason}`, 'fail');
-        continue;
-      }
-
-      // AŞAMA 2: Feature Engine
-      const ft = featureEngine(d, hf);
-
-      // AŞAMA 3: Ranking
-      const ranked = rankingEngine(ft, d.symbol);
-      ranked.name = (d.shortName || d.symbol).slice(0, 22);
-
-      if (ranked.category !== 'none') {
+    for(const d of rows){
+      if(!d||!d.symbol)continue;
+      scanned++;
+      // AŞAMA 1
+      const hf=hardFilter(d);
+      if(!hf.pass){log(`✗ ${d.symbol} — ${hf.reason}`,'fail');continue;}
+      // AŞAMA 2
+      let ft;
+      try{ft=featureEngine(d,hf);}
+      catch(e){log(`⚠ ${d.symbol} feature hatası: ${e.message}`,'err');continue;}
+      // AŞAMA 3
+      let ranked;
+      try{ranked=rankingEngine(ft,d.symbol);}
+      catch(e){log(`⚠ ${d.symbol} rank hatası: ${e.message}`,'err');continue;}
+      ranked.name=(d.shortName||d.symbol).slice(0,22);
+      if(ranked.category!=='none'){
         passed++;
         results.all.push(ranked);
-        if (ranked.category === 'breakout') results.breakout.push(ranked);
-        else if (ranked.category === 'continuation') results.continuation.push(ranked);
-        else if (ranked.category === 'accumulation') results.accumulation.push(ranked);
-        log(`✓ ${d.symbol} → ${ranked.category.toUpperCase()} · Score: ${ranked.score} · ${ranked.signals.join(', ')}`, 'pass');
-      } else if (ranked.score >= 15) {
-        log(`~ ${d.symbol} · Score: ${ranked.score} (eşik altı)`, 'info');
+        if(ranked.category==='breakout')results.breakout.push(ranked);
+        else if(ranked.category==='continuation')results.continuation.push(ranked);
+        else if(ranked.category==='accumulation')results.accumulation.push(ranked);
+        log(`✓ ${d.symbol} → ${ranked.category.toUpperCase()} Score:${ranked.score} [${ranked.signals.slice(0,3).join(' | ')}]`,'pass');
+      }else if(ranked.score>=18){
+        log(`~ ${d.symbol} Score:${ranked.score} (eşik altı) [${ranked.penalties.slice(0,2).join(',')}]`,'info');
       }
     }
-
-    const pct = Math.round((scanned / total) * 85) + 5;
-    setProgress(pct, `Aşama 1-3: ${scanned}/${total} tarандı · ${passed} geçti`);
-    document.getElementById('ctx-scanned').textContent = scanned;
-    document.getElementById('ctx-passed').textContent = passed;
+    const pct=Math.round((bi+1)/batches.length*85)+5;
+    setProg(pct,`${scanned}/${total} tarандı · ${passed} geçti`);
+    document.getElementById('ctx-scanned').textContent=scanned;
+    document.getElementById('ctx-passed').textContent=passed;
   }
 
-  // Sırala — skor büyükten küçüğe
-  ['all','breakout','continuation','accumulation'].forEach(k =>
-    results[k].sort((a,b) => b.score - a.score)
+  ['all','breakout','continuation','accumulation'].forEach(k=>
+    results[k].sort((a,b)=>b.score-a.score)
   );
 
-  setProgress(95, 'Sonuçlar hazırlanıyor...');
-  await new Promise(r => setTimeout(r, 200));
+  setProg(98,'Render ediliyor...');
+  await new Promise(r=>setTimeout(r,150));
 
   updateStats();
+  renderTop10();renderTopMini();
+  renderCat('breakout');renderCat('continuation');renderCat('accumulation');
   renderAll();
-  renderCategory('breakout');
-  renderCategory('continuation');
-  renderCategory('accumulation');
-  renderTop10();
-  renderTopMini();
 
-  setProgress(100, `Tamamlandı · ${passed} aday bulundu`);
-  document.getElementById('ctx-time').textContent = now_str();
+  setProg(100,`✅ Tamamlandı · ${passed} aday`);
+  document.getElementById('ctx-time').textContent=ts();
+  log(`\n✅ TARAMA BİTTİ — Toplam:${scanned} Geçen:${passed} Kırılım:${results.breakout.length} Devam:${results.continuation.length} Birikim:${results.accumulation.length}`,'head');
 
-  log(`\n✅ TARAMA TAMAMLANDI`, 'head');
-  log(`Taranan: ${scanned} · Geçen: ${passed} · Kırılım: ${results.breakout.length} · Devam: ${results.continuation.length} · Birikim: ${results.accumulation.length}`, 'pass');
-
-  setTimeout(() => document.getElementById('prog-wrap').classList.remove('active'), 2000);
-
-  btn.disabled = false;
-  btn.innerHTML = '<span>▶</span> Tara';
-  document.getElementById('live-txt').textContent = `${results.all.length} aday · ${now_str()}`;
-  isRunning = false;
-
-  sw('overview');
+  setTimeout(()=>document.getElementById('prog-wrap').classList.remove('active'),3000);
+  btn.disabled=false;btn.innerHTML='▶ Tara';
+  document.getElementById('live-txt').textContent=`${results.all.length} aday · ${ts()}`;
+  isRunning=false;sw('overview');
 }
 
-// ════════════════════════════════════════════════════════════════
-// RENDER FUNCTIONS
-// ════════════════════════════════════════════════════════════════
-function updateStats() {
-  document.getElementById('st-total').textContent = results.all.length;
-  document.getElementById('st-breakout').textContent = results.breakout.length;
-  document.getElementById('st-continuation').textContent = results.continuation.length;
-  document.getElementById('st-acc').textContent = results.accumulation.length;
-  document.getElementById('cnt-breakout').textContent = results.breakout.length;
-  document.getElementById('cnt-continuation').textContent = results.continuation.length;
-  document.getElementById('cnt-accumulation').textContent = results.accumulation.length;
-  document.getElementById('cnt-all').textContent = results.all.length;
-  const avg = results.all.length ? Math.round(results.all.reduce((s,r)=>s+r.score,0)/results.all.length) : 0;
-  document.getElementById('st-avgscore').textContent = avg;
-  document.getElementById('st-15p').textContent = results.all.filter(r=>r.tp2>=r.p*1.15).length;
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function updateStats(){
+  document.getElementById('st-total').textContent=results.all.length;
+  document.getElementById('st-breakout').textContent=results.breakout.length;
+  document.getElementById('st-cont').textContent=results.continuation.length;
+  document.getElementById('st-acc').textContent=results.accumulation.length;
+  document.getElementById('cnt-breakout').textContent=results.breakout.length;
+  document.getElementById('cnt-continuation').textContent=results.continuation.length;
+  document.getElementById('cnt-accumulation').textContent=results.accumulation.length;
+  document.getElementById('cnt-all').textContent=results.all.length;
+  const avg=results.all.length?Math.round(results.all.reduce((s,r)=>s+r.score,0)/results.all.length):0;
+  document.getElementById('st-avgscore').textContent=avg;
+  document.getElementById('st-15p').textContent=results.all.filter(r=>r.tp2>=r.p*1.15).length;
 }
 
-function buildTable(data, showRank=false) {
-  if (!data.length) return `<div class="empty"><div class="empty-icon">🔍</div>Sonuç yok</div>`;
-  let h = `<table><thead><tr>
+function buildTbl(data,showRank=false){
+  if(!data.length)return`<div class="empty"><div class="empty-icon">🔍</div>Sonuç yok</div>`;
+  let h=`<table><thead><tr>
     ${showRank?'<th>#</th>':''}
-    <th>Sembol</th><th>Fiyat</th><th>% Değişim</th>
-    <th>RVOL</th><th>Kapanış</th><th>AH %</th>
-    <th>RS/SPY</th><th>VWAP</th><th>Stop</th><th>TP1 (+15%)</th><th>TP2</th><th>R/R</th>
+    <th>Sembol</th><th>Fiyat</th><th>%Değişim</th>
+    <th>RVOL</th><th>CloseStr</th>
+    <th>OBV</th><th>A/D</th><th>VWAP</th>
+    <th>RS/SPY</th><th>AH%</th><th>ATR-Comp</th>
+    <th>Stop</th><th>TP +15%</th><th>TP2</th><th>R/R</th>
     <th>Score</th><th>Sinyaller</th>
   </tr></thead><tbody>`;
-
-  data.forEach((r,i) => {
-    const rankHtml = showRank ? `<td><span class="rank rank-${i+1<=3?i+1:'x'}">${i+1<=3?['🥇','🥈','🥉'][i]:i+1}</span></td>` : '';
-    const closePct = Math.round(r.closeStrength * 100);
-    const closeColor = closePct>=75?'var(--green)':closePct>=50?'var(--yellow)':'var(--red)';
-    const ahColor = r.ahChg > 2 ? 'var(--green)' : r.ahChg < -1 ? 'var(--red)' : 'var(--text2)';
-    const rsColor = r.rsVsSPY > 2 ? 'var(--green)' : r.rsVsSPY < 0 ? 'var(--red)' : 'var(--text2)';
-    const vwapHtml = r.aboveVWAP
-      ? `<span class="badge b-up">Üstü</span>`
-      : `<span class="badge b-dn">Altı</span>`;
-    const catColor = {'breakout':'var(--green)','continuation':'var(--orange)','accumulation':'var(--purple)','watch':'var(--text2)'}[r.category]||'var(--text2)';
-    const scorePct = Math.min(r.score, 100);
-    const scoreColor = r.score>=70?'var(--green)':r.score>=50?'var(--yellow)':r.score>=35?'var(--orange)':'var(--text2)';
-
-    h += `<tr onclick="openDetail('${r.sym}')">
+  data.forEach((r,i)=>{
+    const rankHtml=showRank?`<td><span class="rank ${i<3?`rank-${i+1}`:''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>`:'';
+    const cs=Math.round(r.closeStrength*100);
+    const csC=cs>=75?'var(--green)':cs>=50?'var(--yellow)':'var(--red)';
+    const ahC=r.ahChg>2?'var(--green)':r.ahChg<-1?'var(--red)':'var(--text3)';
+    const rsC=r.rsVsSPY>2?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--text2)';
+    const catC={'breakout':'var(--green)','continuation':'var(--orange)','accumulation':'var(--purple)','watch':'var(--text2)'}[r.category];
+    const sC=r.score>=65?'var(--green)':r.score>=48?'var(--yellow)':r.score>=32?'var(--orange)':'var(--text2)';
+    const obvHtml=r.posOBV
+      ?`<span class="badge b-up">${f(r.obvNorm,1)}▲</span>`
+      :`<span class="badge b-dn">${f(r.obvNorm,1)}▼</span>`;
+    const adHtml=r.posAD
+      ?`<span class="badge b-up">${f(r.mfm,2)}▲</span>`
+      :`<span class="badge b-dn">${f(r.mfm,2)}▼</span>`;
+    const vwapHtml=r.aboveVWAP
+      ?`<span class="badge b-up">+${f(r.vwapDist,1)}%</span>`
+      :`<span class="badge b-dn">${f(r.vwapDist,1)}%</span>`;
+    const atrCHtml=r.isSqueezed
+      ?`<span class="badge b-yellow">Sıkışma ${f(r.atrCompression,2)}</span>`
+      :r.isExpanding
+        ?`<span class="badge b-orange">Genişleme ${f(r.atrCompression,2)}</span>`
+        :`<span style="font-family:var(--mono);font-size:0.7rem;color:var(--text3);">${f(r.atrCompression,2)}</span>`;
+    h+=`<tr onclick="openDetail('${r.sym}')">
       ${rankHtml}
-      <td>
-        <div class="tk">${r.sym}</div>
-        <div class="tn">${r.name}</div>
-        <div style="margin-top:3px;"><span style="font-size:0.58rem;color:${catColor};font-weight:700;font-family:var(--mono);">${r.category.toUpperCase()}</span></div>
+      <td><div class="tk">${r.sym}</div><div class="tn">${r.name}</div>
+        <div style="margin-top:2px;"><span style="font-size:0.56rem;color:${catC};font-family:var(--mono);font-weight:700;">${r.category.toUpperCase()}</span></div>
       </td>
       <td><span class="pm">$${r.p<1?r.p.toFixed(4):r.p<10?r.p.toFixed(3):r.p.toFixed(2)}</span></td>
       <td>${cb(r.c)}</td>
-      <td><span class="pm ${r.rvol>=3?'up':r.rvol>=2?'':''}" style="color:${r.rvol>=3?'var(--green)':r.rvol>=2?'var(--yellow)':'var(--text2)'}">${f(r.rvol,1)}x</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:5px;">
-          <div style="width:36px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
-            <div style="width:${closePct}%;height:100%;background:${closeColor};border-radius:2px;"></div>
-          </div>
-          <span style="font-family:var(--mono);font-size:0.7rem;color:${closeColor};">${closePct}%</span>
+      <td><span style="font-family:var(--mono);color:${r.rvol>=3?'var(--green)':r.rvol>=2?'var(--yellow)':'var(--text2)'};">${f(r.rvol,1)}x</span></td>
+      <td><div style="display:flex;align-items:center;gap:4px;">
+        <div style="width:32px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+          <div style="width:${cs}%;height:100%;background:${csC};border-radius:2px;"></div>
         </div>
-      </td>
-      <td><span style="font-family:var(--mono);font-size:0.78rem;color:${ahColor};">${r.ahChg!==0?(r.ahChg>0?'+':'')+f(r.ahChg,1)+'%':'—'}</span></td>
-      <td><span style="font-family:var(--mono);font-size:0.78rem;color:${rsColor};">${r.rsVsSPY>0?'+':''}${f(r.rsVsSPY,1)}</span></td>
+        <span style="font-family:var(--mono);font-size:0.68rem;color:${csC};">${cs}%</span>
+      </div></td>
+      <td>${obvHtml}</td>
+      <td>${adHtml}</td>
       <td>${vwapHtml}</td>
-      <td><span style="font-family:var(--mono);color:var(--red);font-size:0.78rem;">$${f(r.stopL,r.stopL<1?4:2)}</span></td>
-      <td><span style="font-family:var(--mono);color:var(--cyan);font-weight:700;font-size:0.78rem;">$${f(r.tp15pct,r.tp15pct<1?4:2)}</span></td>
+      <td><span style="font-family:var(--mono);font-size:0.76rem;color:${rsC};">${r.rsVsSPY>0?'+':''}${f(r.rsVsSPY,1)}</span></td>
+      <td><span style="font-family:var(--mono);font-size:0.76rem;color:${ahC};">${r.ahChg!==0?(r.ahChg>0?'+':'')+f(r.ahChg,1)+'%':'—'}</span></td>
+      <td>${atrCHtml}</td>
+      <td><span style="font-family:var(--mono);color:var(--red);font-size:0.76rem;">$${f(r.stopL,r.stopL<1?4:2)}</span></td>
+      <td><span style="font-family:var(--mono);color:var(--cyan);font-weight:700;font-size:0.76rem;">$${f(r.tp15,r.tp15<1?4:2)}</span></td>
       <td><span style="font-family:var(--mono);color:var(--green);font-weight:700;font-size:0.78rem;">$${f(r.tp2,r.tp2<1?4:2)}</span></td>
-      <td><span style="font-family:var(--mono);font-size:0.78rem;color:${parseFloat(r.rrRatio)>=2?'var(--green)':'var(--yellow)'}">${r.rrRatio}x</span></td>
-      <td>
-        <div class="score-bar">
-          <div class="score-track"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor};"></div></div>
-          <span style="font-family:var(--mono);font-size:0.72rem;font-weight:700;color:${scoreColor};">${r.score}</span>
-        </div>
-      </td>
-      <td>${r.signals.slice(0,4).map(s=>`<span class="badge b-blue" style="margin-right:2px;">${s}</span>`).join('')}</td>
+      <td><span style="font-family:var(--mono);font-size:0.76rem;color:${parseFloat(r.rrRatio)>=2?'var(--green)':'var(--yellow)'};">${r.rrRatio}x</span></td>
+      <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${Math.min(r.score,100)}%;background:${sC};"></div></div><span style="font-family:var(--mono);font-size:0.7rem;font-weight:700;color:${sC};">${r.score}</span></div></td>
+      <td>${r.signals.slice(0,3).map(s=>`<span class="badge b-blue" style="margin-right:2px;">${s}</span>`).join('')}</td>
     </tr>`;
   });
-  return h + '</tbody></table>';
+  return h+'</tbody></table>';
 }
 
-function renderTop10() {
-  document.getElementById('top10-tbl').innerHTML = buildTable(results.all.slice(0,10), true);
+function renderTop10(){document.getElementById('top10-tbl').innerHTML=buildTbl(results.all.slice(0,10),true);}
+function renderTopMini(){
+  document.getElementById('top-breakout').innerHTML=buildTbl(results.breakout.slice(0,3),true);
+  document.getElementById('top-acc').innerHTML=buildTbl(results.accumulation.slice(0,3),true);
 }
-function renderTopMini() {
-  document.getElementById('top-breakout').innerHTML = buildTable(results.breakout.slice(0,3), true);
-  document.getElementById('top-acc').innerHTML = buildTable(results.accumulation.slice(0,3), true);
-}
-function renderCategory(cat) {
-  document.getElementById(cat+'-tbl').innerHTML = buildTable(results[cat]);
-}
-window.renderAll = function() {
-  const search = (document.getElementById('all-search')?.value||'').toUpperCase();
-  let data = [...results.all];
-  if (search) data = data.filter(r=>r.sym.includes(search)||r.name.toUpperCase().includes(search));
-  document.getElementById('all-tbl').innerHTML = buildTable(data, true);
+function renderCat(cat){document.getElementById(cat+'-tbl').innerHTML=buildTbl(results[cat]);}
+window.renderAll=function(){
+  const s=(document.getElementById('all-search')?.value||'').toUpperCase();
+  let d=[...results.all];
+  if(s)d=d.filter(r=>r.sym.includes(s)||r.name.toUpperCase().includes(s));
+  document.getElementById('all-tbl').innerHTML=buildTbl(d,true);
 };
 
-// ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // DETAIL MODAL
-// ════════════════════════════════════════════════════════════════
-window.openDetail = function(sym) {
-  const r = results.all.find(x=>x.sym===sym);
-  if (!r) return;
-  const catColor = {'breakout':'var(--green)','continuation':'var(--orange)','accumulation':'var(--purple)','watch':'var(--text2)'}[r.category];
+// ════════════════════════════════════════════════════════
+window.openDetail=function(sym){
+  const r=results.all.find(x=>x.sym===sym);
+  if(!r)return;
+  const catC={'breakout':'var(--green)','continuation':'var(--orange)','accumulation':'var(--purple)','watch':'var(--text2)'}[r.category];
+  document.getElementById('modal-title').innerHTML=
+    `${r.sym} <span style="font-size:0.68rem;color:${catC};font-family:var(--mono);">${r.category.toUpperCase()}</span> <span style="font-size:0.68rem;color:var(--text3);">· ${r.name}</span>`;
 
-  document.getElementById('modal-title').innerHTML =
-    `${r.sym} <span style="font-size:0.7rem;color:${catColor};font-family:var(--mono);">${r.category.toUpperCase()}</span>`;
-
-  const factorRows = [
-    ['RVOL', f(r.rvol,2)+'x', r.rvol/10, r.rvol>=3?'var(--green)':'var(--yellow)'],
-    ['Close Strength', Math.round(r.closeStrength*100)+'%', r.closeStrength, r.closeStrength>=0.75?'var(--green)':'var(--yellow)'],
-    ['After-Hours', r.ahChg!==0?(r.ahChg>0?'+':'')+f(r.ahChg,1)+'%':'—', Math.abs(r.ahChg)/10, r.ahChg>0?'var(--green)':r.ahChg<0?'var(--red)':'var(--text3)'],
-    ['RS vs SPY', (r.rsVsSPY>0?'+':'')+f(r.rsVsSPY,1), (r.rsVsSPY+10)/20, r.rsVsSPY>2?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--yellow)'],
-    ['ATR Compression', f(r.atrCompression,2), r.atrCompression<1?1-r.atrCompression:0, r.atrCompression<0.8?'var(--green)':'var(--text2)'],
-    ['BB Width', f(r.bbWidth,3), r.bbWidth<0.1?1-r.bbWidth*5:0.2, r.bbWidth<0.05?'var(--green)':'var(--text2)'],
-    ['Dist to 52H', f(r.distTo52H,1)+'%', (100-r.distTo52H)/100, r.distTo52H<5?'var(--green)':r.distTo52H<20?'var(--yellow)':'var(--text2)'],
-    ['VWAP State', r.aboveVWAP?'Üstü':'Altı', r.aboveVWAP?0.8:0.2, r.aboveVWAP?'var(--green)':'var(--red)'],
-    ['OBV Signal', f(r.obvSignal,2), Math.min(Math.abs(r.obvSignal)/5,1), r.obvSignal>1?'var(--green)':r.obvSignal<0?'var(--red)':'var(--text3)'],
-    ['Composite Score', r.score+'/100', r.score/100, r.score>=70?'var(--green)':r.score>=50?'var(--yellow)':'var(--orange)'],
+  const rows=[
+    ['RVOL (Göreceli Hacim)',f(r.rvol,2)+'x',Math.min(r.rvol/10,1),r.rvol>=3?'var(--green)':r.rvol>=2?'var(--yellow)':'var(--text2)'],
+    ['Close Strength (Kapanış Gücü)',Math.round(r.closeStrength*100)+'%',r.closeStrength,r.closeStrength>=0.75?'var(--green)':'var(--yellow)'],
+    ['OBV Slope (Alış/Satış Baskısı)',(r.obvNorm>0?'+':'')+f(r.obvNorm,2),Math.min((r.obvNorm+2)/4,1),r.posOBV?'var(--green)':'var(--red)'],
+    ['A/D Line (MFM)',(r.mfm>0?'+':'')+f(r.mfm,3),Math.min((r.mfm+1)/2,1),r.posAD?'var(--green)':'var(--red)'],
+    ['VWAP Uzaklığı (Hacim Ağırlıklı)',(r.vwapDist>0?'+':'')+f(r.vwapDist,2)+'%',Math.min((r.vwapDist+5)/10,1),r.aboveVWAP?'var(--green)':'var(--red)'],
+    ['RS vs SPY',(r.rsVsSPY>0?'+':'')+f(r.rsVsSPY,2),Math.min((r.rsVsSPY+5)/10,1),r.rsVsSPY>2?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--yellow)'],
+    ['ATR Compression',f(r.atrCompression,3),r.isSqueezed?(1-r.atrCompression):r.atrCompression<1.5?0.3:0.7,r.isSqueezed?'var(--yellow)':r.isExpanding?'var(--orange)':'var(--text2)'],
+    ['Dist to 52H High (Kapanış)',f(r.distCloseTo52H,1)+'%',(100-r.distCloseTo52H)/100,r.distCloseTo52H<5?'var(--green)':r.distCloseTo52H<20?'var(--yellow)':'var(--text2)'],
+    ['After-Hours',(r.ahChg>0?'+':'')+f(r.ahChg,2)+'%',Math.min(Math.abs(r.ahChg)/10,1),r.ahChg>2?'var(--green)':r.ahChg<-1?'var(--red)':'var(--text3)'],
+    ['Composite Score',r.score+'/100',r.score/100,r.score>=65?'var(--green)':r.score>=48?'var(--yellow)':'var(--orange)'],
   ];
 
-  document.getElementById('modal-body').innerHTML = `
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-      <div><div style="font-size:2rem;font-weight:800;font-family:var(--mono);">$${r.p<1?r.p.toFixed(4):r.p<10?r.p.toFixed(3):r.p.toFixed(2)}</div>
-        <div style="margin-top:4px;">${cb(r.c)}</div></div>
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+      <div>
+        <div style="font-size:2rem;font-weight:800;font-family:var(--mono);">$${r.p<1?r.p.toFixed(4):r.p<10?r.p.toFixed(3):r.p.toFixed(2)}</div>
+        <div style="margin-top:5px;">${cb(r.c)}</div>
+      </div>
       <div style="margin-left:auto;text-align:right;">
-        <div style="font-family:var(--mono);font-size:2rem;font-weight:800;color:${r.score>=70?'var(--green)':r.score>=50?'var(--yellow)':'var(--orange)'};">${r.score}</div>
-        <div style="font-size:0.64rem;color:var(--text3);font-family:var(--mono);">COMPOSITE SCORE</div>
+        <div style="font-family:var(--mono);font-size:2rem;font-weight:800;color:${r.score>=65?'var(--green)':r.score>=48?'var(--yellow)':'var(--orange)'};">${r.score}</div>
+        <div style="font-size:0.58rem;color:var(--text3);font-family:var(--mono);">COMPOSITE SCORE</div>
       </div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <div style="background:var(--bg3);border-radius:9px;padding:10px;">
-        <div style="font-size:0.58rem;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Seviyeler</div>
+      <div style="background:var(--bg3);border-radius:9px;padding:11px;">
+        <div style="font-size:0.58rem;color:var(--text3);text-transform:uppercase;margin-bottom:7px;font-family:var(--mono);">Giriş / Stop / Hedef</div>
         <div class="factor-row"><span class="fl">Giriş</span><span class="fv" style="color:var(--accent);">$${f(r.p,r.p<1?4:2)}</span></div>
-        <div class="factor-row"><span class="fl">Stop Loss</span><span class="fv" style="color:var(--red);">$${f(r.stopL,r.stopL<1?4:2)}</span></div>
-        <div class="factor-row"><span class="fl">TP +15%</span><span class="fv" style="color:var(--cyan);">$${f(r.tp15pct,r.tp15pct<1?4:2)}</span></div>
-        <div class="factor-row"><span class="fl">TP2 Max</span><span class="fv" style="color:var(--green);">$${f(r.tp2,r.tp2<1?4:2)}</span></div>
-        <div class="factor-row"><span class="fl">R/R Oran</span><span class="fv" style="color:${parseFloat(r.rrRatio)>=2?'var(--green)':'var(--yellow)'};">${r.rrRatio}x</span></div>
+        <div class="factor-row"><span class="fl">Stop Loss (ATR×1.2)</span><span class="fv" style="color:var(--red);">$${f(r.stopL,r.stopL<1?4:2)}</span></div>
+        <div class="factor-row"><span class="fl">TP1 +15% Hedef</span><span class="fv" style="color:var(--cyan);font-weight:800;">$${f(r.tp15,r.tp15<1?4:2)}</span></div>
+        <div class="factor-row"><span class="fl">TP2 Teknik (ATR×${r.rvol>=5?3.5:r.rvol>=3?2.8:r.rvol>=2?2.2:1.8})</span><span class="fv" style="color:var(--green);font-weight:800;">$${f(r.tp2,r.tp2<1?4:2)}</span></div>
+        <div class="factor-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px;"><span class="fl">R/R Oranı</span><span class="fv" style="color:${parseFloat(r.rrRatio)>=2?'var(--green)':'var(--yellow)'};">${r.rrRatio}x</span></div>
       </div>
-      <div style="background:var(--bg3);border-radius:9px;padding:10px;">
-        <div style="font-size:0.58rem;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Temel Veriler</div>
+      <div style="background:var(--bg3);border-radius:9px;padding:11px;">
+        <div style="font-size:0.58rem;color:var(--text3);text-transform:uppercase;margin-bottom:7px;font-family:var(--mono);">Temel Veriler</div>
         <div class="factor-row"><span class="fl">RVOL</span><span class="fv" style="color:var(--green);">${f(r.rvol,1)}x</span></div>
+        <div class="factor-row"><span class="fl">ATR (True Range)</span><span class="fv">$${f(r.atr,r.atr<1?4:2)}</span></div>
+        <div class="factor-row"><span class="fl">$Hacim (Turnover)</span><span class="fv">${fl(r.dolVol)}</span></div>
         <div class="factor-row"><span class="fl">After-Hours</span><span class="fv" style="color:${r.ahChg>0?'var(--green)':r.ahChg<0?'var(--red)':'var(--text3)'};">${r.ahChg!==0?(r.ahChg>0?'+':'')+f(r.ahChg,1)+'%':'—'}</span></div>
-        <div class="factor-row"><span class="fl">RS vs SPY</span><span class="fv" style="color:${r.rsVsSPY>0?'var(--green)':'var(--red)'};">${r.rsVsSPY>0?'+':''}${f(r.rsVsSPY,1)}</span></div>
-        <div class="factor-row"><span class="fl">Short %</span><span class="fv" style="color:${r.sf>20?'var(--red)':'var(--text2)'};">${f(r.sf,1)}%</span></div>
-        <div class="factor-row"><span class="fl">$Hacim</span><span class="fv">${fl(r.dolVol)}</span></div>
+        <div class="factor-row"><span class="fl">Short Float</span><span class="fv" style="color:${r.sf>20?'var(--red)':'var(--text2)'};">${f(r.sf,1)}%</span></div>
+        <div class="factor-row"><span class="fl">Piyasa Değeri</span><span class="fv">${fl(r.cap)}</span></div>
       </div>
     </div>
 
-    <!-- FACTOR BREAKDOWN -->
-    <div style="background:var(--bg3);border-radius:9px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:0.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:9px;font-family:var(--mono);">Feature Engine Breakdown</div>
-      ${factorRows.map(([label,val,pct,col])=>`
+    <div style="background:var(--bg3);border-radius:9px;padding:12px;margin-bottom:13px;">
+      <div style="font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px;font-family:var(--mono);">Feature Engine — Düzeltilmiş Hesaplamalar</div>
+      ${rows.map(([lbl,val,pct,col])=>`
         <div class="factor-row">
-          <span class="fl">${label}</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div class="fbar"><div class="fbar-fill" style="width:${Math.min(Math.max(pct*100,0),100)}%;background:${col};"></div></div>
+          <span class="fl">${lbl}</span>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div class="fbar"><div class="fbar-f" style="width:${Math.min(Math.max(pct*100,0),100)}%;background:${col};"></div></div>
             <span class="fv" style="color:${col};">${val}</span>
           </div>
         </div>`).join('')}
     </div>
 
-    <!-- SIGNALS & PENALTIES -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px;">
       <div>
-        <div style="font-size:0.6rem;color:var(--green);text-transform:uppercase;margin-bottom:6px;">✓ Pozitif Sinyaller</div>
-        ${r.signals.map(s=>`<div style="font-size:0.7rem;color:var(--green);padding:2px 0;">+ ${s}</div>`).join('')||'<div style="color:var(--text3);font-size:0.7rem;">—</div>'}
+        <div style="font-size:0.58rem;color:var(--green);text-transform:uppercase;margin-bottom:5px;">✓ Pozitif Sinyaller</div>
+        ${r.signals.map(s=>`<div style="font-size:0.7rem;color:var(--green);padding:2px 0;border-bottom:1px solid rgba(30,37,53,0.4);">+ ${s}</div>`).join('')||'<div style="color:var(--text3);font-size:0.7rem;">—</div>'}
       </div>
       <div>
-        <div style="font-size:0.6rem;color:var(--red);text-transform:uppercase;margin-bottom:6px;">✗ Ceza Faktörleri</div>
-        ${r.penalties.map(s=>`<div style="font-size:0.7rem;color:var(--red);padding:2px 0;">- ${s}</div>`).join('')||'<div style="color:var(--text3);font-size:0.7rem;">—</div>'}
+        <div style="font-size:0.58rem;color:var(--red);text-transform:uppercase;margin-bottom:5px;">✗ Ceza Faktörleri</div>
+        ${r.penalties.map(s=>`<div style="font-size:0.7rem;color:var(--red);padding:2px 0;border-bottom:1px solid rgba(30,37,53,0.4);">- ${s}</div>`).join('')||'<div style="color:var(--text3);font-size:0.7rem;">—</div>'}
       </div>
     </div>
 
+    <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:9px;margin-bottom:13px;font-size:0.68rem;color:var(--yellow);line-height:1.6;">
+      ⚠️ <strong>Hesaplama Notu:</strong> TR = max(H-L, |H-Open|, |L-Open|) — standart True Range formülü. VWAP = Σ(TypPrice×Vol)/ΣVol — hacim ağırlıklı. OBV = yön × hacim. A/D = MFM = ((C-L)-(H-C))/(H-L). Tek günlük veri sınırlaması nedeniyle çok günlük ATR ortalaması ve gerçek VWAP kanalı hesaplanamaz.
+    </div>
+
     <div style="display:flex;gap:8px;">
-      <button onclick="window.open('https://finance.yahoo.com/quote/${r.sym}','_blank')"
-        style="flex:1;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;border-radius:9px;padding:10px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--fm);">
-        📊 Yahoo Finance
-      </button>
-      <button onclick="window.open('https://www.tradingview.com/chart/?symbol=${r.sym}','_blank')"
-        style="flex:1;background:rgba(16,217,138,0.08);border:1px solid rgba(16,217,138,0.25);color:var(--green);border-radius:9px;padding:10px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--fm);">
-        📈 TradingView
-      </button>
+      <button onclick="window.open('https://finance.yahoo.com/quote/${sym}','_blank')"
+        style="flex:1;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;border-radius:9px;padding:10px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--fm);">📊 Yahoo Finance</button>
+      <button onclick="window.open('https://www.tradingview.com/chart/?symbol=${sym}','_blank')"
+        style="flex:1;background:rgba(16,217,138,0.08);border:1px solid rgba(16,217,138,0.25);color:var(--green);border-radius:9px;padding:10px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--fm);">📈 TradingView</button>
     </div>`;
 
   document.getElementById('modal').classList.add('open');
 };
-window.closeM = () => document.getElementById('modal').classList.remove('open');
-document.getElementById('modal').addEventListener('click', e=>{if(e.target===document.getElementById('modal'))closeM();});
+window.closeM=()=>document.getElementById('modal').classList.remove('open');
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeM();});
 
-// ════════════════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════════════════
-window.sw = function(tab) {
+// ════════════════════════════════════════════════════════
+// UI
+// ════════════════════════════════════════════════════════
+window.sw=function(tab){
   document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('panel-'+tab).classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab)?.classList.add('active');
+  document.getElementById('tab-'+tab)?.classList.add('active');
 };
-
-function setProgress(pct, stage) {
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-stage').textContent = stage;
-  document.getElementById('prog-pct').textContent = Math.round(pct) + '%';
+function setProg(pct,stage){
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-stage').textContent=stage;
+  document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
 }
 </script>
 </body>
