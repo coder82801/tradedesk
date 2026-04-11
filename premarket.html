@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#05070f">
+<title>Pre-Market Breakout Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070f;--bg2:#090c18;--bg3:#0e1220;--card:#121826;
+  --border:#1a2338;--border2:#202d45;
+  --green:#00e88a;--red:#ff3355;--yellow:#ffb800;
+  --orange:#ff6b00;--purple:#9b5cff;--cyan:#00cfff;
+  --blue:#3b82f6;--text:#dde8ff;--text2:#7b92bb;--text3:#3d5070;
+  --mono:'JetBrains Mono',monospace;--fm:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100vh;}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 18px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-ic{width:30px;height:30px;background:linear-gradient(135deg,#ffb800,#ff6b00);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;}
+.logo-tx{font-size:0.95rem;font-weight:800;}
+.logo-sx{font-size:0.58rem;color:var(--text3);font-family:var(--mono);}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.time-badge{font-family:var(--mono);font-size:0.68rem;color:var(--text2);}
+.live-pill{display:flex;align-items:center;gap:4px;background:rgba(0,232,138,0.1);border:1px solid rgba(0,232,138,0.2);border-radius:16px;padding:3px 9px;font-size:0.64rem;font-family:var(--mono);color:var(--green);}
+.ld{width:5px;height:5px;border-radius:50%;background:var(--green);animation:p 1.4s ease infinite;}
+@keyframes p{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.scan-btn{background:linear-gradient(135deg,#ffb800,#ff6b00);color:#000;border:none;border-radius:8px;padding:7px 18px;font-size:0.78rem;font-weight:800;cursor:pointer;font-family:var(--fm);display:flex;align-items:center;gap:5px;transition:all 0.2s;}
+.scan-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(255,184,0,0.35);}
+.scan-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 18px;display:none;}
+.prog-wrap.on{display:block;}
+.prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#ffb800,#ff6b00);border-radius:2px;transition:width 0.3s;width:0%;}
+.prog-txt{display:flex;justify-content:space-between;font-size:0.62rem;font-family:var(--mono);color:var(--text2);}
+
+/* ── MARKET CONTEXT ── */
+.mctx{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.mi{display:flex;flex-direction:column;gap:1px;}
+.ml{font-size:0.54rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.mv{font-size:0.82rem;font-weight:700;font-family:var(--mono);}
+.ms{width:1px;height:24px;background:var(--border);}
+.sess-badge{font-family:var(--mono);font-size:0.66rem;padding:3px 9px;border-radius:5px;font-weight:700;}
+.sess-pre{background:rgba(255,184,0,0.12);border:1px solid rgba(255,184,0,0.25);color:var(--yellow);}
+.sess-open{background:rgba(0,232,138,0.1);border:1px solid rgba(0,232,138,0.2);color:var(--green);}
+.sess-after{background:rgba(255,107,0,0.1);border:1px solid rgba(255,107,0,0.2);color:var(--orange);}
+.sess-closed{background:rgba(61,80,112,0.3);border:1px solid var(--border);color:var(--text3);}
+
+/* ── INFO BAR ── */
+.info-bar{background:rgba(255,184,0,0.06);border-bottom:1px solid rgba(255,184,0,0.15);padding:8px 18px;font-size:0.68rem;color:var(--yellow);line-height:1.6;}
+
+/* ── MAIN ── */
+main{padding:14px;max-width:1500px;margin:0 auto;}
+
+/* ── STATS ── */
+.stats-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 13px;flex:1;min-width:100px;}
+.sc-lbl{font-size:0.56rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--mono);}
+.sc-val{font-size:1.2rem;font-weight:800;font-family:var(--mono);margin-top:3px;}
+
+/* ── CANDIDATE CARDS ── */
+.candidates{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.cand-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
+.cand-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px;}
+.cand-card.tier-A::before{background:linear-gradient(180deg,#00e88a,#00cfff);}
+.cand-card.tier-B::before{background:linear-gradient(180deg,#ffb800,#ff6b00);}
+.cand-card.tier-C::before{background:linear-gradient(180deg,#9b5cff,#3b82f6);}
+.cand-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.cc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.cc-left{display:flex;align-items:center;gap:12px;}
+.rank-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.rb-A{background:rgba(0,232,138,0.15);border:1px solid rgba(0,232,138,0.3);}
+.rb-B{background:rgba(255,184,0,0.12);border:1px solid rgba(255,184,0,0.25);}
+.rb-C{background:rgba(155,92,255,0.12);border:1px solid rgba(155,92,255,0.25);}
+.cc-sym{font-size:1.2rem;font-weight:800;color:var(--cyan);font-family:var(--mono);}
+.cc-name{font-size:0.66rem;color:var(--text3);margin-top:1px;}
+.cc-price{text-align:right;}
+.cc-pm{font-size:0.64rem;color:var(--text2);font-family:var(--mono);}
+.cc-curt{font-size:1.1rem;font-weight:800;font-family:var(--mono);}
+.cc-pmchg{font-size:0.72rem;font-family:var(--mono);margin-top:1px;}
+/* PROBABILITY METER */
+.prob-wrap{margin-bottom:10px;}
+.prob-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.prob-lbl{font-size:0.62rem;color:var(--text2);font-family:var(--mono);}
+.prob-val{font-size:1.1rem;font-weight:800;font-family:var(--mono);}
+.prob-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.prob-fill{height:100%;border-radius:4px;transition:width 0.6s ease;}
+.prob-A{background:linear-gradient(90deg,#00e88a,#00cfff);}
+.prob-B{background:linear-gradient(90deg,#ffb800,#ff6b00);}
+.prob-C{background:linear-gradient(90deg,#9b5cff,#3b82f6);}
+/* METRICS ROW */
+.metrics{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.metric{background:var(--bg3);border-radius:6px;padding:5px 9px;display:flex;flex-direction:column;gap:1px;}
+.m-lbl{font-size:0.54rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.m-val{font-size:0.8rem;font-weight:700;font-family:var(--mono);}
+/* SIGNALS */
+.sigs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.sig{padding:2px 7px;border-radius:4px;font-size:0.6rem;font-weight:700;font-family:var(--mono);white-space:nowrap;}
+.sig-pos{background:rgba(0,232,138,0.12);color:var(--green);border:1px solid rgba(0,232,138,0.2);}
+.sig-neu{background:rgba(0,207,255,0.1);color:var(--cyan);border:1px solid rgba(0,207,255,0.15);}
+.sig-warn{background:rgba(255,184,0,0.12);color:var(--yellow);border:1px solid rgba(255,184,0,0.2);}
+.sig-neg{background:rgba(255,51,85,0.1);color:var(--red);border:1px solid rgba(255,51,85,0.15);}
+/* LEVELS */
+.levels{background:var(--bg3);border-radius:8px;padding:10px 12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.lv{display:flex;flex-direction:column;gap:1px;}
+.lv-lbl{font-size:0.54rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.lv-val{font-size:0.82rem;font-weight:700;font-family:var(--mono);}
+.lv-sep{width:1px;height:28px;background:var(--border);}
+/* TIER LABEL */
+.tier-label{position:absolute;top:12px;right:14px;font-size:0.58rem;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px;}
+.tier-A-lbl{background:rgba(0,232,138,0.12);color:var(--green);}
+.tier-B-lbl{background:rgba(255,184,0,0.12);color:var(--yellow);}
+.tier-C-lbl{background:rgba(155,92,255,0.12);color:var(--purple);}
+/* WATCHLIST */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.card-title{font-size:0.74rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.6px;color:var(--text3);font-family:var(--mono);padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;}
+td{padding:7px 8px;font-size:0.72rem;border-bottom:1px solid rgba(26,35,56,0.5);vertical-align:middle;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr{cursor:pointer;transition:background 0.1s;}
+tr:hover{background:rgba(0,207,255,0.03);}
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:0.8rem;}
+.empty-ic{font-size:2.2rem;margin-bottom:8px;}
+/* SPINNER */
+.sp{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--yellow);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* UP/DN */
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--text2);}
+/* PATTERN GUIDE */
+.pattern-guide{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.pg-title{font-size:0.74rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;}
+.pg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.pg-item{background:var(--bg3);border-radius:8px;padding:10px 12px;}
+.pg-sym{font-size:0.8rem;font-weight:700;color:var(--cyan);font-family:var(--mono);}
+.pg-path{font-size:0.68rem;color:var(--text2);margin-top:3px;font-family:var(--mono);}
+.pg-why{font-size:0.66rem;color:var(--text3);margin-top:5px;line-height:1.5;}
+@media(max-width:768px){main{padding:9px;}.metrics{gap:5px;}.levels{gap:8px;}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-ic">🌅</div>
+    <div>
+      <div class="logo-tx">Pre-Market Breakout Scanner</div>
+      <div class="logo-sx">ZNTL/RAYA/CURE pattern · Gece 02:30-03:00 TSİ · v1.0</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div class="time-badge" id="et-time">—</div>
+    <div class="live-pill"><div class="ld"></div><span id="live-txt">Hazır</span></div>
+    <button class="scan-btn" id="scan-btn" onclick="runScan()">🔍 Tara</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap" id="prog-wrap">
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+  <div class="prog-txt"><span id="prog-stage">—</span><span id="prog-pct">0%</span></div>
+</div>
+
+<!-- MARKET CONTEXT -->
+<div class="mctx" id="mctx">
+  <div class="mi"><div class="ml">Seans</div><div class="mv" id="ctx-sess">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">ET Saati</div><div class="mv" id="ctx-et" style="font-size:0.76rem;color:var(--text2)">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">SPY</div><div class="mv" id="ctx-spy">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">QQQ</div><div class="mv" id="ctx-qqq">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">VIX (VIXY)</div><div class="mv" id="ctx-vix">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Piyasa Bias</div><div id="ctx-bias">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Taranan</div><div class="mv" id="ctx-scanned" style="color:var(--cyan)">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Aday</div><div class="mv" id="ctx-passed" style="color:var(--green)">—</div></div>
+</div>
+
+<!-- INFO BAR -->
+<div class="info-bar">
+  ⚡ <strong>Nasıl kullanılır:</strong>
+  Bu tarayıcı ZNTL (pre $4→açılış $4.52→peak $6.95), RAYA (pre $0.60→$0.70→$1.10), CURE (pre $0.30→$0.29→$0.67) gibi pre-market'te biriken,
+  açılışta breakout yapan hisseleri tespit eder.
+  En iyi sonuç için <strong>04:00-09:00 ET (11:00-16:00 TSİ)</strong> arasında çalıştırın.
+  Pre-market saatlerinde aktif data olmadığında "Intraday Hazırlık" modu devreye girer.
+</div>
+
+<main>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="sc"><div class="sc-lbl">Taranan</div><div class="sc-val" id="st-total" style="color:var(--cyan)">—</div></div>
+    <div class="sc"><div class="sc-lbl">Filtre Geçen</div><div class="sc-val" id="st-pass" style="color:var(--green)">—</div></div>
+    <div class="sc"><div class="sc-lbl">A Tier (%75+)</div><div class="sc-val" id="st-a" style="color:var(--green)">—</div></div>
+    <div class="sc"><div class="sc-lbl">B Tier (%60+)</div><div class="sc-val" id="st-b" style="color:var(--yellow)">—</div></div>
+    <div class="sc"><div class="sc-lbl">C Tier (%50+)</div><div class="sc-val" id="st-c" style="color:var(--purple)">—</div></div>
+    <div class="sc"><div class="sc-lbl">Ort. Olasılık</div><div class="sc-val" id="st-avg" style="color:var(--orange)">—</div></div>
+  </div>
+
+  <!-- PATTERN REFERENCE -->
+  <div class="pattern-guide">
+    <div class="pg-title">📚 Referans Patternler — Model Bu Yapıları Arıyor</div>
+    <div class="pg-grid">
+      <div class="pg-item">
+        <div class="pg-sym">ZNTL · 4 Nisan</div>
+        <div class="pg-path">Pre: $4.00 → Açılış: $4.52 → Peak: $6.95</div>
+        <div class="pg-why">✓ Pre-market RVOL aşırı yüksek · Fiyat $5 altı · Gap-up açılış · Düşük float · Gece haberi kataliz</div>
+      </div>
+      <div class="pg-item">
+        <div class="pg-sym">RAYA · 4 Nisan</div>
+        <div class="pg-path">Pre: $0.60 → Açılış: $0.70 → Peak: $1.10</div>
+        <div class="pg-why">✓ Sub-dollar hisse · Pre hacim 10x+ · %17 gap · Penny breakout pattern</div>
+      </div>
+      <div class="pg-item">
+        <div class="pg-sym">CURE · 4 Nisan</div>
+        <div class="pg-path">Pre: $0.30 → Açılış: $0.29 → Peak: $0.67</div>
+        <div class="pg-why">✓ En uçlak örnek · Açılış gap-down ama gün içi +131% · Pre birikim çok güçlüydü</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANDIDATES -->
+  <div id="candidates-wrap">
+    <div class="empty"><div class="empty-ic">🌅</div>"Tara" butonuna basın — Pre-market breakout adayları hesaplanacak<br><span style="font-size:0.7rem;color:var(--text3);">04:00-09:00 ET arası en verimli zaman</span></div>
+  </div>
+
+  <!-- ALL TABLE -->
+  <div class="card" id="all-card" style="display:none;">
+    <div class="card-title">📋 Tüm Geçen Hisseler — Detay Tablo</div>
+    <div style="overflow-x:auto;"><div id="all-tbl"></div></div>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════
+// UNIVERSE — Pre-market breakout için uygun hisseler
+// Düşük fiyat / yüksek beta / düşük float tercihli
+// ════════════════════════════════════════════════════════
+const UNIVERSE = [
+  // AI & Quantum — volatil
+  'IONQ','RGTI','QUBT','BBAI','SOUN','AI','KULR','IREN','ARQQ',
+  // Crypto miners — çok volatil
+  'MARA','RIOT','CLSK','HIVE','BITF','HUT','CIFR','BTBT','WULF','CORZ',
+  // Space & eVTOL
+  'RKLB','ASTS','MNTS','SPCE','LUNR','ACHR','JOBY','LILM',
+  // EV & Clean energy
+  'RIVN','LCID','NKLA','MULN','FFIE','BLNK','EVGO','CHPT',
+  'PLUG','BE','FCEL','EOSE','STEM','CLNE','BLDP',
+  // Biotech — haber riski yüksek
+  'CTMX','OCGN','MNKD','TNXP','NRXP','NVAX','SIGA','ADTX',
+  'VMAR','ENVB','ZNTL','RAYA','CURE','AIXI','HCAI','QNCX',
+  'IPST','CETX','MOVE','HUBC','LPCN','TNXP','PRAX','IMVT',
+  // Meme & retail favorites
+  'GME','AMC','KOSS','SNDL','CLOV','TLRY','ACB','CGC',
+  // Fintech small
+  'SOFI','UPST','AFRM','HOOD',
+  // Other volatile small caps
+  'RR','SOPA','VCX','MVIS','SKLZ','WISH',
+  'PLTR','COIN','MSTR','HOOD',
+  // Tech movers
+  'SMCI','NVDA','AMD','TSLA',
+].filter((v,i,a)=>a.indexOf(v)===i);
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let candidates = [];
+let mkt = {spyChg:0,qqqChg:0,vix:0,bias:'neutral'};
+let isRunning = false;
+
+// ════════════════════════════════════════════════════════
+// CLOCK & SESSION
+// ════════════════════════════════════════════════════════
+function getSession(){
+  const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  const h=et.getHours(),m=et.getMinutes(),d=et.getDay(),t=h*60+m;
+  if(d===0||d===6)return{sess:'weekend',label:'Hafta Sonu',cls:'sess-closed'};
+  if(t>=240&&t<570)return{sess:'pre',label:'🌅 Pre-Market (04:00-09:30)',cls:'sess-pre'};
+  if(t>=570&&t<960)return{sess:'open',label:'✅ Piyasa Açık',cls:'sess-open'};
+  if(t>=960&&t<1200)return{sess:'after',label:'🌙 After-Hours',cls:'sess-after'};
+  return{sess:'closed',label:'Kapalı',cls:'sess-closed'};
+}
+setInterval(()=>{
+  const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  document.getElementById('et-time').textContent='ET '+et.toTimeString().slice(0,8);
+  document.getElementById('ctx-et').textContent=et.toTimeString().slice(0,8)+' ET';
+  const s=getSession();
+  const el=document.getElementById('ctx-sess');
+  el.innerHTML=`<span class="sess-badge ${s.cls}">${s.label}</span>`;
+},1000);
+
+// ════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════
+async function fetchQ(syms){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),10000);
+  try{
+    const r=await fetch(`/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
+      {headers:{'Accept':'application/json'},signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return[];
+    const d=await r.json();
+    return d?.quoteResponse?.result||[];
+  }catch(e){clearTimeout(t);return[];}
+}
+
+const f=(n,d=2)=>n==null||isNaN(n)?'—':Number(n).toFixed(d);
+const fl=n=>{if(!n||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);};
+
+// ════════════════════════════════════════════════════════
+// MARKET CONTEXT
+// ════════════════════════════════════════════════════════
+async function loadMkt(){
+  const q=await fetchQ(['SPY','QQQ','VIXY']);
+  const get=s=>q.find(x=>x.symbol===s);
+  const spy=get('SPY'),qqq=get('QQQ'),vixy=get('VIXY');
+  mkt.spyChg=spy?.regularMarketChangePercent||0;
+  mkt.qqqChg=qqq?.regularMarketChangePercent||0;
+  mkt.spyPre=spy?.preMarketChangePercent||0;
+  mkt.qqqPre=qqq?.preMarketChangePercent||0;
+  mkt.vix=vixy?.regularMarketPrice||0;
+  // Pre-market saatinde pre değişimi kullan
+  const s=getSession();
+  const spyEff=s.sess==='pre'?mkt.spyPre:mkt.spyChg;
+  const qqqEff=s.sess==='pre'?mkt.qqqPre:mkt.qqqChg;
+  const bullN=(spyEff>0?1:0)+(qqqEff>0?1:0);
+  mkt.bias=bullN>=2&&spyEff>-0.5?'bull':bullN<=0&&spyEff<-0.5?'bear':'neutral';
+  mkt.spyEff=spyEff;mkt.qqqEff=qqqEff;
+
+  const se=n=>`<span class="${n>=0?'up':'dn'}">${n>=0?'+':''}${f(n)}%</span>`;
+  document.getElementById('ctx-spy').innerHTML=`$${f(spy?.regularMarketPrice||0)} ${se(mkt.spyEff)}`;
+  document.getElementById('ctx-qqq').innerHTML=`$${f(qqq?.regularMarketPrice||0)} ${se(mkt.qqqEff)}`;
+  document.getElementById('ctx-vix').innerHTML=`<span class="${mkt.vix>20?'dn':'up'}">${f(mkt.vix)}</span>`;
+  const biasEl=document.getElementById('ctx-bias');
+  if(mkt.bias==='bull')biasEl.innerHTML='<span class="sess-badge sess-open">📈 BOĞA</span>';
+  else if(mkt.bias==='bear')biasEl.innerHTML='<span class="sess-badge sess-after">📉 AYI</span>';
+  else biasEl.innerHTML='<span class="sess-badge sess-closed">➡️ NÖTR</span>';
+}
+
+// ════════════════════════════════════════════════════════
+// CORE: PRE-MARKET BREAKOUT SCORING
+// ZNTL / RAYA / CURE pattern modellemesi
+// ════════════════════════════════════════════════════════
+function scoreStock(d){
+  if(!d||!d.symbol)return null;
+
+  const sym=d.symbol;
+  const p=d.regularMarketPrice||0;       // Şu anki/kapanış fiyatı
+  const vol=d.regularMarketVolume||0;
+  const avgVol=Math.max(d.averageVolume||1,1);
+  const h=d.regularMarketDayHigh||p;
+  const l=d.regularMarketDayLow||p;
+  const o=d.regularMarketOpen||p;
+  const chg=d.regularMarketChangePercent||0;
+  const cap=d.marketCap||0;
+  const sf=(d.shortPercentOfFloat||0)*100;
+  const h52=d.fiftyTwoWeekHigh||p;
+  const l52=d.fiftyTwoWeekLow||p;
+
+  // Pre-market veriler (varsa)
+  const preP=d.preMarketPrice||0;
+  const preChg=d.preMarketChangePercent||0;
+  const postP=d.postMarketPrice||0;
+  const postChg=d.postMarketChangePercent||0;
+
+  // Seans tespiti
+  const sess=getSession().sess;
+
+  // Pre-market fiyatı mevcut mu?
+  const hasPreData=preP>0&&Math.abs(preChg)>0;
+  const hasPostData=postP>0&&Math.abs(postChg)>0;
+
+  // Aktif fiyat: pre > post > regular (seans sırasına göre)
+  const activeP=sess==='pre'&&hasPreData?preP:
+                sess==='after'&&hasPostData?postP:p;
+  const activeChg=sess==='pre'&&hasPreData?preChg:
+                  sess==='after'&&hasPostData?postChg:chg;
+
+  // Exchange kontrolü — OTC hariç
+  const ex=(d.fullExchangeName||d.exchange||'').toLowerCase();
+  if(ex.includes('otc')||ex.includes('pink')||ex.includes('grey'))return null;
+
+  // Minimum fiyat $0.10 (penny breakout da dahil)
+  if(p<0.10||p>50)return null;
+  // Minimum hacim
+  if(vol<50000&&avgVol<50000)return null;
+
+  // ── RVOL Hesabı ──
+  const rvol=vol/avgVol;
+
+  // ── True Range / ATR ──
+  const tr=Math.max(h-l,Math.abs(h-o),Math.abs(l-o),p*0.02);
+  // ATR% = TR / fiyat → hissenin günlük hareketliliği
+  const atrPct=(tr/p)*100;
+
+  // ── Gap Analizi ──
+  // Gap up: pre fiyatı veya açılış önceki kapanıştan yüksek
+  const prevClose=h52>0?Math.min(p,h52):p; // proxy
+  const gapPct=o>0&&p>0?((o-p)/p)*100:0; // açılışın kapanışa farkı proxy
+  const preGapPct=hasPreData&&p>0?preChg:0;
+
+  // ── Float proxy ──
+  // Düşük piyasa değeri = düşük float = daha volatil
+  const isLowCap=cap>0&&cap<500e6;
+  const isMicroCap=cap>0&&cap<100e6;
+  const isSubDollar=p<1;
+  const isLowPrice=p<5;
+
+  // ── 52H pozisyon ──
+  const range52=h52-l52;
+  const pos52=range52>0?(p-l52)/range52:0.5;
+  const nearL52=(l52>0&&(p-l52)/l52<0.15); // 52H düşüğüne yakın
+  const nearH52=(h52>0&&(h52-p)/h52<0.10); // 52H yüksek yakını
+
+  // ── Close Strength ──
+  const range=h-l;
+  const closeStr=range>0?(p-l)/range:0.5;
+
+  // ── OBV proxy ──
+  const obvDir=chg>0?1:chg<0?-1:0;
+  const obvStr=Math.abs(obvDir*rvol);
+
+  // ── A/D (Money Flow) ──
+  const mfm=range>0?((p-l)-(h-p))/range:0;
+
+  // ════════════════════════════════════════
+  // BREAKOUT OLASILIĞI HESABI
+  // ZNTL/RAYA/CURE patternine göre ağırlıklar
+  // ════════════════════════════════════════
+  let score=0;
+  const signals=[];
+  const negatives=[];
+
+  // ── [1] PRE-MARKET AKTİVİTESİ — En kritik kriter, max 30 ──
+  if(hasPreData){
+    if(preChg>20){score+=30;signals.push(`Pre +${f(preChg,1)}% 🔥🔥`);}
+    else if(preChg>10){score+=25;signals.push(`Pre +${f(preChg,1)}% 🔥`);}
+    else if(preChg>5){score+=18;signals.push(`Pre +${f(preChg,1)}%`);}
+    else if(preChg>2){score+=10;signals.push(`Pre +${f(preChg,1)}%`);}
+    else if(preChg>0){score+=4;}
+    else if(preChg<-5){score-=15;negatives.push(`Pre ${f(preChg,1)}%`);}
+    else if(preChg<0){score-=5;}
+  }else if(hasPostData){
+    // After-hours → ertesi gün pre-market proxy
+    if(postChg>10){score+=22;signals.push(`AH +${f(postChg,1)}% → Yarın Pre`);}
+    else if(postChg>5){score+=15;signals.push(`AH +${f(postChg,1)}%`);}
+    else if(postChg>2){score+=8;signals.push(`AH +${f(postChg,1)}%`);}
+    else if(postChg<-5){score-=12;negatives.push(`AH ${f(postChg,1)}%`);}
+  }
+
+  // ── [2] RVOL (Hacim Anomalisi) — max 22 ──
+  // ZNTL/RAYA/CURE'de RVOL 5x-20x arası
+  if(rvol>=20){score+=22;signals.push('RVOL 20x+ 🔥🔥');}
+  else if(rvol>=10){score+=18;signals.push('RVOL 10x+');}
+  else if(rvol>=5){score+=14;signals.push('RVOL 5x+');}
+  else if(rvol>=3){score+=9;signals.push('RVOL 3x+');}
+  else if(rvol>=2){score+=5;signals.push('RVOL 2x+');}
+  else if(rvol>=1.5){score+=2;}
+  else{negatives.push('RVOL Düşük');}
+
+  // ── [3] FİYAT BANDI — max 18 ──
+  // Sub-dollar ve $0.5-$5 arası hisseler çok daha sert hareket eder
+  if(isSubDollar){score+=18;signals.push('Sub-$1 Penny');}
+  else if(p<2){score+=15;signals.push('$1-2 Band');}
+  else if(p<5){score+=12;signals.push('$2-5 Band');}
+  else if(p<10){score+=7;signals.push('$5-10 Band');}
+  else if(p<20){score+=4;}
+  else{score+=1;}
+
+  // ── [4] DÜŞÜK FLOAT / MARKET CAP — max 14 ──
+  if(isMicroCap){score+=14;signals.push('Micro Cap');}
+  else if(isLowCap){score+=9;signals.push('Small Cap');}
+  else if(cap<2e9){score+=4;}
+  else if(cap>10e9){negatives.push('Large Cap (-6)');score-=6;}
+
+  // ── [5] KAPANIŞ GÜCÜ — max 10 ──
+  if(closeStr>=0.90){score+=10;signals.push('Tepe Kapanış');}
+  else if(closeStr>=0.75){score+=7;signals.push('Güçlü Kapanış');}
+  else if(closeStr>=0.55){score+=4;}
+  else if(closeStr<0.20){negatives.push('Dip Kapanış');score-=8;}
+
+  // ── [6] ATR GENİŞLEMESİ — max 8 ──
+  // Volatil hisse daha fazla hareket eder
+  if(atrPct>15){score+=8;signals.push(`ATR ${f(atrPct,0)}% Yüksek`);}
+  else if(atrPct>8){score+=5;signals.push(`ATR ${f(atrPct,0)}%`);}
+  else if(atrPct>4){score+=2;}
+  else{negatives.push('Dar ATR');}
+
+  // ── [7] 52H KONUMU — max 8 ──
+  if(nearH52){score+=8;signals.push('52H Yakını');}
+  else if(pos52>0.7){score+=5;signals.push('Üst Bant');}
+  else if(nearL52&&rvol>3){score+=6;signals.push('Dip→Patlama');}// dip reversal
+
+  // ── [8] OBV & A/D — max 7 ──
+  if(mfm>0.5&&rvol>2){score+=7;signals.push('OBV/AD Güçlü');}
+  else if(mfm>0.2){score+=4;}
+  else if(mfm<-0.3&&rvol>2){negatives.push('OBV Negatif');score-=6;}
+
+  // ── [9] SHORT FLOAT — max 7 ──
+  if(sf>30&&rvol>3){score+=7;signals.push(`Short ${f(sf,0)}% Squeeze`);}
+  else if(sf>20){score+=4;signals.push(`Short ${f(sf,0)}%`);}
+  else if(sf>10){score+=2;}
+
+  // ── [10] PIYASA BAĞLAMI — max 6 ──
+  if(mkt.bias==='bull'){score+=6;signals.push('Piyasa Boğa');}
+  else if(mkt.bias==='bear'){score-=12;negatives.push('Piyasa Ayı -12');}
+  else{score-=2;}
+
+  // ── CEZALAR ──
+  // Çok yükselmiş — sat baskısı riski
+  if(chg>50){score-=18;negatives.push(`%${f(chg,0)} Aşırı Yükselmiş`);}
+  else if(chg>30){score-=10;negatives.push(`%${f(chg,0)} Çok Yükselmiş`);}
+  else if(chg>20){score-=5;}
+
+  // Pre-market negatif ise ekstra ceza
+  if(preChg<-10){score-=10;negatives.push(`Pre ${f(preChg,1)}% Çok Negatif`);}
+
+  if(score<0)score=0;
+  const finalScore=Math.min(score,100);
+
+  // ── BREAKOUT OLASILIGI ──
+  // Score → olasılık dönüşümü (sigmoid benzeri, max %92)
+  // 100 puan = %92 (hiçbir şey %100 değil)
+  const rawProb=0.20+(finalScore/100)*0.72;
+  const prob=Math.round(rawProb*100);
+
+  // Minimum eşik: %45 altı gösterme
+  if(prob<45)return null;
+
+  // ── TIER ──
+  const tier=prob>=75?'A':prob>=60?'B':'C';
+
+  // ── HEDEF FİYATLAR ──
+  // Stop: ATR × 1.3 altı (True Range bazlı)
+  const stopL=parseFloat((activeP-tr*1.3).toFixed(activeP<1?4:2));
+  // TP1: pre-market fiyatının +15% veya ATR×2 (hangisi büyükse)
+  const tp15=parseFloat((activeP*1.15).toFixed(activeP<1?4:2));
+  const tp1=parseFloat((activeP+tr*2).toFixed(activeP<1?4:2));
+  const tp1Final=Math.max(tp15,tp1);
+  // TP2: ATR × 3.5 (agresif hedef)
+  const tp2=parseFloat((activeP+tr*3.5).toFixed(activeP<1?4:2));
+  // Gap hedef: referans patternlerden ortalama %60 yükseliş (ZNTL %54, RAYA %57, CURE %131)
+  const gapTarget=parseFloat((activeP*1.60).toFixed(activeP<1?4:2));
+  const rrRatio=((tp1Final-activeP)/Math.max(activeP-stopL,0.001)).toFixed(1);
+
+  return{
+    sym,name:(d.shortName||sym).slice(0,20),
+    p,activeP,preP,preChg,postP,postChg,chg,vol,avgVol,rvol,
+    atrPct:parseFloat(atrPct.toFixed(1)),tr,cap,sf,
+    closeStr,mfm,obvStr,pos52,nearH52,nearL52,
+    score:finalScore,prob,tier,signals,negatives,
+    stopL,tp15,tp1:tp1Final,tp2,gapTarget,rrRatio,
+    sess,hasPreData,hasPostData,
+    h52,l52,h,l,dolVol:p*vol,
+  };
+}
+
+// ════════════════════════════════════════════════════════
+// MAIN SCAN
+// ════════════════════════════════════════════════════════
+async function runScan(){
+  if(isRunning)return;
+  isRunning=true;
+  candidates=[];
+  const btn=document.getElementById('scan-btn');
+  btn.disabled=true;btn.innerHTML='<div class="sp"></div> Taranıyor...';
+  document.getElementById('prog-wrap').classList.add('on');
+  document.getElementById('live-txt').textContent='Taranıyor...';
+  document.getElementById('candidates-wrap').innerHTML=
+    '<div class="empty"><div class="empty-ic">⏳</div>Tarama devam ediyor...</div>';
+
+  await loadMkt();
+  setProg(8,'Piyasa bağlamı yüklendi');
+
+  const total=UNIVERSE.length;
+  let scanned=0;
+  const batches=[];
+  for(let i=0;i<UNIVERSE.length;i+=20)batches.push(UNIVERSE.slice(i,i+20));
+
+  for(let bi=0;bi<batches.length;bi++){
+    const rows=await fetchQ(batches[bi]);
+    for(const d of rows){
+      const result=scoreStock(d);
+      scanned++;
+      if(result)candidates.push(result);
+    }
+    const pct=Math.round((bi+1)/batches.length*88)+8;
+    setProg(pct,`${scanned}/${total} tarандı · ${candidates.length} aday`);
+    document.getElementById('ctx-scanned').textContent=scanned;
+    document.getElementById('ctx-passed').textContent=candidates.length;
+  }
+
+  // Sırala — prob büyükten küçüğe, aynı prob'da rvol'e göre
+  candidates.sort((a,b)=>b.prob-a.prob||b.rvol-a.rvol);
+
+  // Max 8 aday göster
+  const shown=candidates.slice(0,8);
+
+  setProg(98,'Render ediliyor...');
+  await new Promise(r=>setTimeout(r,100));
+
+  updateStats(shown);
+  renderCandidates(shown);
+  renderAllTable(candidates);
+  document.getElementById('all-card').style.display=candidates.length?'block':'none';
+
+  setProg(100,`✅ Tamamlandı · ${candidates.length} aday · En iyi ${shown.length} gösteriliyor`);
+  setTimeout(()=>document.getElementById('prog-wrap').classList.remove('on'),3000);
+
+  btn.disabled=false;btn.innerHTML='🔍 Tara';
+  document.getElementById('live-txt').textContent=`${candidates.length} aday · ${new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}`;
+  isRunning=false;
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function updateStats(shown){
+  const all=candidates;
+  document.getElementById('st-total').textContent=all.length;
+  document.getElementById('st-pass').textContent=all.length;
+  document.getElementById('st-a').textContent=all.filter(r=>r.tier==='A').length;
+  document.getElementById('st-b').textContent=all.filter(r=>r.tier==='B').length;
+  document.getElementById('st-c').textContent=all.filter(r=>r.tier==='C').length;
+  const avg=all.length?Math.round(all.reduce((s,r)=>s+r.prob,0)/all.length):0;
+  document.getElementById('st-avg').textContent=avg+'%';
+}
+
+function renderCandidates(data){
+  const el=document.getElementById('candidates-wrap');
+  if(!data.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">🌅</div>Pre-market breakout adayı bulunamadı<br><span style="font-size:0.7rem;color:var(--text3);">Pre-market saatlerinde (04:00-09:30 ET) çalıştırın</span></div>';
+    return;
+  }
+  const probColor=p=>p>=75?'var(--green)':p>=60?'var(--yellow)':'var(--purple)';
+  const probFillClass=t=>t==='A'?'prob-A':t==='B'?'prob-B':'prob-C';
+  const tierEmoji=t=>t==='A'?'🥇':t==='B'?'🥈':'🥉';
+  const rankClass=t=>t==='A'?'rb-A':t==='B'?'rb-B':'rb-C';
+
+  el.innerHTML='<div class="candidates">'+data.map((r,i)=>`
+    <div class="cand-card tier-${r.tier}" onclick="openDetail(${i})">
+      <span class="tier-label tier-${r.tier}-lbl">TIER ${r.tier}</span>
+
+      <div class="cc-top">
+        <div class="cc-left">
+          <div class="rank-badge ${rankClass(r.tier)}">${tierEmoji(r.tier)}</div>
+          <div>
+            <div class="cc-sym">${r.sym}</div>
+            <div class="cc-name">${r.name}</div>
+          </div>
+        </div>
+        <div class="cc-price">
+          <div class="cc-pm">${r.hasPreData?'Pre-Market':r.hasPostData?'After-Hours':'Son Kapanış'}</div>
+          <div class="cc-curt">$${r.activeP<1?r.activeP.toFixed(4):r.activeP<10?r.activeP.toFixed(3):r.activeP.toFixed(2)}</div>
+          <div class="cc-pmchg ${r.hasPreData?(r.preChg>=0?'up':'dn'):r.hasPostData?(r.postChg>=0?'up':'dn'):(r.chg>=0?'up':'dn')}">
+            ${r.hasPreData?(r.preChg>=0?'+':'')+f(r.preChg,1)+'% Pre':r.hasPostData?(r.postChg>=0?'+':'')+f(r.postChg,1)+'% AH':(r.chg>=0?'+':'')+f(r.chg,1)+'%'}
+          </div>
+        </div>
+      </div>
+
+      <div class="prob-wrap">
+        <div class="prob-header">
+          <span class="prob-lbl">Breakout Olasılığı (ZNTL/RAYA/CURE pattern)</span>
+          <span class="prob-val" style="color:${probColor(r.prob)};">${r.prob}%</span>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill ${probFillClass(r.tier)}" style="width:${r.prob}%;"></div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="m-lbl">RVOL</div><div class="m-val" style="color:${r.rvol>=5?'var(--green)':r.rvol>=2?'var(--yellow)':'var(--text2)'};">${f(r.rvol,1)}x</div></div>
+        <div class="metric"><div class="m-lbl">ATR%</div><div class="m-val">${r.atrPct}%</div></div>
+        <div class="metric"><div class="m-lbl">CloseStr</div><div class="m-val" style="color:${r.closeStr>=0.75?'var(--green)':r.closeStr>=0.5?'var(--yellow)':'var(--red)'};">${Math.round(r.closeStr*100)}%</div></div>
+        <div class="metric"><div class="m-lbl">A/D (MFM)</div><div class="m-val" style="color:${r.mfm>0.2?'var(--green)':r.mfm<-0.2?'var(--red)':'var(--text2)'};">${f(r.mfm,2)}</div></div>
+        <div class="metric"><div class="m-lbl">Short%</div><div class="m-val" style="color:${r.sf>20?'var(--orange)':'var(--text2)'};">${f(r.sf,1)}%</div></div>
+        <div class="metric"><div class="m-lbl">Mkt Cap</div><div class="m-val">${fl(r.cap)}</div></div>
+        <div class="metric"><div class="m-lbl">$Hacim</div><div class="m-val">${fl(r.dolVol)}</div></div>
+      </div>
+
+      <div class="sigs">
+        ${r.signals.map(s=>`<span class="sig sig-pos">${s}</span>`).join('')}
+        ${r.negatives.slice(0,2).map(s=>`<span class="sig sig-neg">${s}</span>`).join('')}
+      </div>
+
+      <div class="levels">
+        <div class="lv"><div class="lv-lbl">Giriş Zone</div><div class="lv-val" style="color:var(--cyan);">$${f(r.activeP,r.activeP<1?4:2)}</div></div>
+        <div class="lv-sep"></div>
+        <div class="lv"><div class="lv-lbl">Stop Loss</div><div class="lv-val" style="color:var(--red);">$${f(r.stopL,r.stopL<1?4:2)}</div></div>
+        <div class="lv-sep"></div>
+        <div class="lv"><div class="lv-lbl">TP1 (+15%)</div><div class="lv-val" style="color:var(--green);">$${f(r.tp1,r.tp1<1?4:2)}</div></div>
+        <div class="lv-sep"></div>
+        <div class="lv"><div class="lv-lbl">TP2 (Teknik)</div><div class="lv-val" style="color:var(--green);font-weight:800;">$${f(r.tp2,r.tp2<1?4:2)}</div></div>
+        <div class="lv-sep"></div>
+        <div class="lv"><div class="lv-lbl">Gap Hedef (~x1.6)</div><div class="lv-val" style="color:var(--orange);font-weight:800;">$${f(r.gapTarget,r.gapTarget<1?4:2)}</div></div>
+        <div class="lv-sep"></div>
+        <div class="lv"><div class="lv-lbl">R/R</div><div class="lv-val" style="color:${parseFloat(r.rrRatio)>=2?'var(--green)':'var(--yellow)'};">${r.rrRatio}x</div></div>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+function renderAllTable(data){
+  if(!data.length)return;
+  let h=`<table><thead><tr>
+    <th>#</th><th>Sembol</th><th>Fiyat</th><th>Pre/AH %</th>
+    <th>RVOL</th><th>ATR%</th><th>CloseStr</th><th>A/D</th>
+    <th>Cap</th><th>Short%</th><th>Stop</th><th>TP1</th><th>Gap Hedef</th>
+    <th>Olasılık</th><th>Tier</th>
+  </tr></thead><tbody>`;
+  data.forEach((r,i)=>{
+    const pc=r.hasPreData?r.preChg:r.hasPostData?r.postChg:r.chg;
+    const pcHtml=`<span style="color:${pc>=0?'var(--green)':'var(--red)'};font-family:var(--mono);">${pc>=0?'+':''}${f(pc,1)}%</span>`;
+    const tierC={'A':'var(--green)','B':'var(--yellow)','C':'var(--purple)'}[r.tier];
+    h+=`<tr>
+      <td><span style="font-family:var(--mono);font-size:0.8rem;">${i+1}</span></td>
+      <td><div style="font-family:var(--mono);font-weight:700;color:var(--cyan);">${r.sym}</div><div style="font-size:0.56rem;color:var(--text3);">${r.name}</div></td>
+      <td><span style="font-family:var(--mono);font-weight:700;">$${f(r.activeP,r.activeP<1?4:2)}</span></td>
+      <td>${pcHtml}</td>
+      <td><span style="font-family:var(--mono);color:${r.rvol>=5?'var(--green)':r.rvol>=2?'var(--yellow)':'var(--text2)'};">${f(r.rvol,1)}x</span></td>
+      <td><span style="font-family:var(--mono);">${r.atrPct}%</span></td>
+      <td><span style="font-family:var(--mono);color:${r.closeStr>=0.75?'var(--green)':'var(--yellow)'};">${Math.round(r.closeStr*100)}%</span></td>
+      <td><span style="font-family:var(--mono);color:${r.mfm>0.2?'var(--green)':r.mfm<-0.2?'var(--red)':'var(--text2)'};">${f(r.mfm,2)}</span></td>
+      <td><span style="font-family:var(--mono);font-size:0.7rem;">${fl(r.cap)}</span></td>
+      <td><span style="font-family:var(--mono);color:${r.sf>20?'var(--orange)':'var(--text2)'};">${f(r.sf,1)}%</span></td>
+      <td><span style="font-family:var(--mono);color:var(--red);">$${f(r.stopL,r.stopL<1?4:2)}</span></td>
+      <td><span style="font-family:var(--mono);color:var(--green);font-weight:700;">$${f(r.tp1,r.tp1<1?4:2)}</span></td>
+      <td><span style="font-family:var(--mono);color:var(--orange);font-weight:700;">$${f(r.gapTarget,r.gapTarget<1?4:2)}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:40px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+            <div style="width:${r.prob}%;height:100%;background:${tierC};border-radius:2px;"></div>
+          </div>
+          <span style="font-family:var(--mono);font-weight:700;color:${tierC};">${r.prob}%</span>
+        </div>
+      </td>
+      <td><span style="font-family:var(--mono);font-weight:700;color:${tierC};">TIER ${r.tier}</span></td>
+    </tr>`;
+  });
+  document.getElementById('all-tbl').innerHTML=h+'</tbody></table>';
+}
+
+// ════════════════════════════════════════════════════════
+// DETAIL MODAL — popup yerine inline expand
+// ════════════════════════════════════════════════════════
+window.openDetail=function(idx){
+  const r=candidates[idx];if(!r)return;
+  window.open(`https://finance.yahoo.com/quote/${r.sym}`,'_blank');
+};
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function setProg(pct,stage){
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-stage').textContent=stage;
+  document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
+}
+</script>
+</body>
+</html>
