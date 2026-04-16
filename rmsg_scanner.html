@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#030508">
+<title>RMSG Pattern Scanner — Nano Cap Catalyst</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030508;--bg2:#060910;--bg3:#0a0e18;--card:#0e1420;
+  --border:#141e30;--border2:#1c2a40;
+  --green:#00ff88;--red:#ff2050;--yellow:#ffcc00;
+  --orange:#ff6600;--purple:#9933ff;--cyan:#00ddff;
+  --pink:#ff0099;--lime:#aaff00;
+  --text:#cce0ff;--text2:#5577aa;--text3:#2a3f60;
+  --mono:'JetBrains Mono',monospace;--fm:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,rgba(153,51,255,0.15),rgba(255,0,153,0.1),rgba(0,221,255,0.08));border-bottom:1px solid rgba(153,51,255,0.3);padding:14px 20px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);}
+.hdr-inner{display:flex;align-items:center;justify-content:space-between;max-width:1600px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-badge{background:linear-gradient(135deg,#9933ff,#ff0099,#ff6600);border-radius:10px;padding:8px 12px;font-family:var(--mono);font-size:0.75rem;font-weight:700;color:#fff;line-height:1.3;box-shadow:0 0 30px rgba(153,51,255,0.4);}
+.logo-title{font-size:1rem;font-weight:900;letter-spacing:-0.3px;}
+.logo-sub{font-size:0.56rem;color:var(--text2);font-family:var(--mono);margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.et-time{font-family:var(--mono);font-size:0.66rem;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;}
+.sess-tag{font-family:var(--mono);font-size:0.62rem;padding:3px 8px;border-radius:5px;font-weight:700;}
+.s-pre{background:rgba(255,204,0,0.1);border:1px solid rgba(255,204,0,0.25);color:var(--yellow);}
+.s-open{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);color:var(--green);}
+.s-after{background:rgba(255,102,0,0.1);border:1px solid rgba(255,102,0,0.2);color:var(--orange);}
+.s-closed{background:rgba(42,63,96,0.4);border:1px solid var(--border);color:var(--text3);}
+.scan-btn{background:linear-gradient(135deg,#9933ff,#ff0099);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:0.76rem;font-weight:900;cursor:pointer;font-family:var(--fm);transition:all 0.2s;box-shadow:0 4px 20px rgba(153,51,255,0.3);}
+.scan-btn:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(153,51,255,0.5);}
+.scan-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+/* PROGRESS */
+.prog{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:none;}
+.prog.on{display:block;}
+.prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#9933ff,#ff0099,#ffcc00);border-radius:2px;transition:width 0.4s;}
+.prog-txt{display:flex;justify-content:space-between;font-size:0.6rem;font-family:var(--mono);color:var(--text2);}
+
+/* RMSG REFERENCE CARD */
+.ref-card{background:linear-gradient(135deg,rgba(153,51,255,0.08),rgba(255,0,153,0.05));border:1px solid rgba(153,51,255,0.25);border-radius:14px;padding:16px 20px;margin:14px 20px;max-width:calc(1600px - 40px);margin-left:auto;margin-right:auto;}
+.ref-title{font-size:0.64rem;color:var(--purple);font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;}
+.ref-item{background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 10px;}
+.ref-l{font-size:0.52rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.ref-v{font-family:var(--mono);font-weight:700;font-size:0.88rem;margin-top:2px;}
+.rmsg-explosion{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.explosion-badge{background:linear-gradient(135deg,#9933ff,#ff0099);border-radius:8px;padding:6px 14px;font-family:var(--mono);font-weight:900;font-size:1.1rem;color:#fff;box-shadow:0 0 20px rgba(255,0,153,0.4);}
+.explosion-sub{font-size:0.7rem;color:var(--text2);}
+
+/* MARKET BAR */
+.mktbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 20px;display:flex;gap:18px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+.mktbar::-webkit-scrollbar{display:none;}
+.mi{display:flex;flex-direction:column;gap:1px;min-width:55px;flex-shrink:0;}
+.ml{font-size:0.5rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.mv{font-size:0.78rem;font-weight:700;font-family:var(--mono);}
+.ms{width:1px;height:20px;background:var(--border);}
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--text2);}
+
+/* MAIN */
+main{padding:14px 20px;max-width:1600px;margin:0 auto;}
+
+/* TABS */
+.tabs{display:flex;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:14px;width:fit-content;}
+.tb{padding:6px 16px;font-size:0.68rem;font-weight:700;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:7px;transition:all 0.15s;font-family:var(--fm);white-space:nowrap;}
+.tb.active{background:var(--bg3);color:var(--text);border:1px solid var(--border2);}
+.tp{display:none;}.tp.active{display:block;}
+
+/* STATS */
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.st{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 12px;flex:1;min-width:80px;}
+.st-l{font-size:0.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono);}
+.st-v{font-size:1.05rem;font-weight:900;font-family:var(--mono);margin-top:2px;}
+
+/* CANDIDATE CARDS */
+.cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:10px;margin-bottom:14px;}
+@media(max-width:440px){.cands{grid-template-columns:1fr;}}
+
+.cc{background:var(--card);border-radius:14px;padding:15px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.18s;}
+.cc::after{content:'';position:absolute;inset:0;border-radius:14px;border:1px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box;}
+.cc.tier-A::after{border-color:rgba(153,51,255,0.5);}
+.cc.tier-B::after{border-color:rgba(255,204,0,0.4);}
+.cc.tier-C::after{border-color:rgba(0,221,255,0.3);}
+.cc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.cc.tier-A::before{background:linear-gradient(180deg,#9933ff,#ff0099);}
+.cc.tier-B::before{background:linear-gradient(180deg,#ffcc00,#ff6600);}
+.cc.tier-C::before{background:linear-gradient(180deg,#00ddff,#00ff88);}
+.cc:hover{transform:translateY(-2px);}
+
+/* CARD TOP */
+.ct{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
+.ct-left{display:flex;align-items:center;gap:10px;}
+.ct-rank{font-size:1rem;width:26px;text-align:center;}
+.ct-sym{font-size:1.15rem;font-weight:900;color:var(--cyan);font-family:var(--mono);}
+.ct-name{font-size:0.58rem;color:var(--text3);margin-top:1px;}
+.ct-cat{font-size:0.55rem;color:var(--purple);margin-top:2px;font-family:var(--mono);}
+.ct-right{text-align:right;}
+.ct-price{font-size:0.95rem;font-weight:800;font-family:var(--mono);}
+.ct-chg{font-size:0.68rem;font-family:var(--mono);margin-top:1px;}
+.tier-tag{position:absolute;top:10px;right:12px;font-size:0.52rem;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:3px;}
+.tt-A{background:rgba(153,51,255,0.15);color:var(--purple);}
+.tt-B{background:rgba(255,204,0,0.1);color:var(--yellow);}
+.tt-C{background:rgba(0,221,255,0.08);color:var(--cyan);}
+
+/* EXPLOSION PROB METER */
+.epm{margin-bottom:10px;}
+.epm-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
+.epm-lbl{font-size:0.56rem;color:var(--text2);font-family:var(--mono);}
+.epm-val{font-size:1.1rem;font-weight:900;font-family:var(--mono);}
+.epm-sub{font-size:0.52rem;color:var(--text3);margin-top:1px;}
+.epm-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;position:relative;}
+.epm-fill{height:100%;border-radius:4px;transition:width 0.9s ease;position:relative;}
+.epm-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:20px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3));border-radius:4px;}
+.ef-A{background:linear-gradient(90deg,#9933ff,#ff0099,#ffcc00);}
+.ef-B{background:linear-gradient(90deg,#ffcc00,#ff6600);}
+.ef-C{background:linear-gradient(90deg,#00ddff,#00ff88);}
+
+/* SCORE BREAKDOWN */
+.score-bk{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:9px;}
+.sb-item{background:var(--bg3);border-radius:6px;padding:5px 6px;}
+.sb-l{font-size:0.48rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.sb-v{font-size:0.72rem;font-weight:700;font-family:var(--mono);margin-top:1px;}
+.sb-bar{height:2px;background:var(--border);border-radius:1px;margin-top:2px;overflow:hidden;}
+.sb-bf{height:100%;border-radius:1px;}
+
+/* SIGNALS */
+.sigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px;}
+.sig{padding:2px 6px;border-radius:3px;font-size:0.55rem;font-weight:700;font-family:var(--mono);}
+.s-p{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.15);}
+.s-y{background:rgba(255,204,0,0.1);color:var(--yellow);border:1px solid rgba(255,204,0,0.15);}
+.s-r{background:rgba(255,32,80,0.08);color:var(--red);border:1px solid rgba(255,32,80,0.12);}
+.s-pu{background:rgba(153,51,255,0.12);color:var(--purple);border:1px solid rgba(153,51,255,0.18);}
+.s-pk{background:rgba(255,0,153,0.1);color:var(--pink);border:1px solid rgba(255,0,153,0.15);}
+.s-c{background:rgba(0,221,255,0.08);color:var(--cyan);border:1px solid rgba(0,221,255,0.12);}
+
+/* LEVELS */
+.lvls{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;}
+.lv{background:var(--bg3);border-radius:6px;padding:5px 6px;}
+.lv-l{font-size:0.46rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
+.lv-v{font-size:0.72rem;font-weight:700;font-family:var(--mono);margin-top:1px;}
+
+/* WATCHLIST */
+.wl{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;}
+.wl-title{font-size:0.66rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;}
+.tbl-w{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:0.5rem;text-transform:uppercase;color:var(--text3);font-family:var(--mono);padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:7px 8px;font-size:0.68rem;border-bottom:1px solid rgba(20,30,48,0.6);vertical-align:middle;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(153,51,255,0.02);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:0.76rem;line-height:1.9;}
+.empty-ic{font-size:2.2rem;margin-bottom:8px;}
+.sp{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.55s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="logo">
+      <div class="logo-badge">RMSG<br>PATTERN</div>
+      <div>
+        <div class="logo-title">Nano Cap Catalyst Scanner</div>
+        <div class="logo-sub">+481% pattern detector · Sub-dollar · RVOL 78x · Catalyst trigger</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="et-time" id="et-time">—</div>
+      <div id="sess-tag" class="sess-tag s-closed">—</div>
+      <button class="scan-btn" id="scan-btn" onclick="runScan()">⚡ TARA</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog" id="prog">
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="prog-txt"><span id="prog-stage">—</span><span id="prog-pct">0%</span></div>
+</div>
+
+<!-- RMSG REFERENCE -->
+<div class="ref-card">
+  <div class="ref-title">📌 Referans Pattern — RMSG (13 Nisan 2026) — Model bu profili arıyor</div>
+  <div class="rmsg-explosion">
+    <div class="explosion-badge">+481%</div>
+    <div>
+      <div class="explosion-sub" style="color:var(--text);">RMSG · Real Messenger Corp · NasdaqCM</div>
+      <div class="explosion-sub">Pre: $0.47 → Açılış: $0.95 → Zirve: $2.65 → AH: $3.46</div>
+    </div>
+  </div>
+  <div class="ref-grid">
+    <div class="ref-item"><div class="ref-l">Önceki Kapanış</div><div class="ref-v">$0.4695</div></div>
+    <div class="ref-item"><div class="ref-l">Açılış Gap</div><div class="ref-v" style="color:var(--green);">+101%</div></div>
+    <div class="ref-item"><div class="ref-l">Gün Zirvesi</div><div class="ref-v" style="color:var(--green);">$2.65</div></div>
+    <div class="ref-item"><div class="ref-l">AH Kapanış</div><div class="ref-v" style="color:var(--green);">$3.46</div></div>
+    <div class="ref-item"><div class="ref-l">RVOL</div><div class="ref-v" style="color:var(--pink);">~78x 🔥</div></div>
+    <div class="ref-item"><div class="ref-l">Market Cap</div><div class="ref-v">$4.49M</div></div>
+    <div class="ref-item"><div class="ref-l">Hacim</div><div class="ref-v">394M</div></div>
+    <div class="ref-item"><div class="ref-l">52H Düşük</div><div class="ref-v">$0.332</div></div>
+    <div class="ref-item"><div class="ref-l">Katalizör</div><div class="ref-v" style="color:var(--yellow);font-size:0.72rem;">Nasdaq Uyarı + Ortaklık</div></div>
+    <div class="ref-item"><div class="ref-l">Beta</div><div class="ref-v">-0.52</div></div>
+    <div class="ref-item"><div class="ref-l">Float</div><div class="ref-v" style="color:var(--orange);">Çok Düşük</div></div>
+    <div class="ref-item"><div class="ref-l">Pattern Tipi</div><div class="ref-v" style="color:var(--purple);font-size:0.68rem;">Nano Catalyst</div></div>
+  </div>
+</div>
+
+<!-- MARKET TICKER -->
+<div class="mktbar">
+  <div class="mi"><div class="ml">SPY</div><div class="mv" id="v-spy">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">QQQ</div><div class="mv" id="v-qqq">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">IWM</div><div class="mv" id="v-iwm">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">VIX</div><div class="mv" id="v-vix">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Taranan</div><div class="mv" id="v-sc" style="color:var(--cyan)">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Aday</div><div class="mv" id="v-pa" style="color:var(--green)">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">Son</div><div class="mv" id="v-time" style="font-size:0.56rem;color:var(--text3)">—</div></div>
+</div>
+
+<main>
+  <div class="tabs">
+    <button class="tb active" id="tab-live" onclick="goTab('live')">⚡ Canlı Tarama</button>
+    <button class="tb" id="tab-watch" onclick="goTab('watch')">👁 İzleme Listesi</button>
+    <button class="tb" id="tab-guide" onclick="goTab('guide')">📚 Pattern Rehberi</button>
+  </div>
+
+  <!-- LIVE -->
+  <div class="tp active" id="panel-live">
+    <div class="stats">
+      <div class="st"><div class="st-l">Taranan</div><div class="st-v" id="st-tot" style="color:var(--cyan)">—</div></div>
+      <div class="st"><div class="st-l">🟣 Tier A ≥75%</div><div class="st-v" id="st-a" style="color:var(--purple)">—</div></div>
+      <div class="st"><div class="st-l">🟡 Tier B ≥62%</div><div class="st-v" id="st-b" style="color:var(--yellow)">—</div></div>
+      <div class="st"><div class="st-l">🔵 Tier C ≥50%</div><div class="st-v" id="st-c" style="color:var(--cyan)">—</div></div>
+      <div class="st"><div class="st-l">RMSG Benzeri</div><div class="st-v" id="st-rmsg" style="color:var(--pink)">—</div></div>
+      <div class="st"><div class="st-l">Max Olasılık</div><div class="st-v" id="st-max" style="color:var(--green)">—</div></div>
+    </div>
+    <div id="cards-wrap">
+      <div class="empty">
+        <div class="empty-ic">⚡</div>
+        <strong>"Tara"</strong> butonuna basın<br>
+        <span style="font-size:0.63rem;color:var(--text3);">
+          RMSG (+481%) gibi nano cap catalyst patternlerini arar<br>
+          Pre-market (04:00-09:30 ET) veya After-hours (16:00-20:00 ET) en iyi zaman<br>
+          <span style="color:var(--purple);">Model: Sub-dollar · Nano cap · RVOL anomali · Haber katalizörü</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WATCHLIST -->
+  <div class="tp" id="panel-watch">
+    <div class="wl">
+      <div class="wl-title">👁 RMSG Benzeri İzleme Listesi — Nano Cap Volatile</div>
+      <p style="font-size:0.64rem;color:var(--text2);margin-bottom:10px;line-height:1.6;">
+        Bu hisseler RMSG'nin önceki günkü profilini taşıyor veya taşıma potansiyeli var.
+        Kategori: Sub-dollar nano cap, Nasdaq compliance uyarısı, düşük float, potansiyel katalizör bekleniyor.
+      </p>
+      <div class="tbl-w"><div id="watch-tbl"></div></div>
+    </div>
+  </div>
+
+  <!-- GUIDE -->
+  <div class="tp" id="panel-guide">
+    <div class="wl">
+      <div class="wl-title">📚 RMSG Pattern Rehberi — +481% Nasıl Oldu?</div>
+      <div id="guide-body"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// UNIVERSE — Nano/micro cap + sub-dollar + volatile
+// RMSG benzeri: düşük cap, sub-dollar, compliance riski, haber katalizörü
+// ═══════════════════════════════════════════════════════════
+const UNIVERSE = [
+  // Bugün patlayan hisseler dahil
+  'RMSG','ZNTL','RAYA','CURE','FUSE','CREG','SKYQ','SQFT','IPST','TPST','MAXN','SIDU',
+  'AIXI','HCAI','QNCX','CETX','MOVE','HUBC',
+  // Nano/micro cap biotech
+  'MNKD','TNXP','NRXP','SIGA','ADTX','CRBP','TXMD','INVA','CLVS',
+  'VKTX','LPCN','PRAX','ADXS','PSTV','MRAM','KTTA','BFRI','NCNC',
+  'EVAX','RELI','CANF','IMVT','PROG','BBIG','CLOV',
+  // Crypto nano
+  'CIFR','BTBT','WULF','CORZ','HIVE',
+  // Space/EV nano
+  'MNTS','LILM','EVTL','MULN','FFIE','NKLA',
+  // China small caps
+  'GXAI','MHUA','JFIN','KUKE','CIFS','TAOP','HKIT','MVST',
+  // Special purpose / tech nano
+  'MVIS','SKLZ','WISH','LUMN','NAKD','EXPR','BBBY',
+  // Fintech nano
+  'SOPA','VCX','RR',
+  // Gaming/entertainment nano
+  'CLOV','SPRT','GPRO','MFIN',
+  // Diğer volatile
+  'TLRY','ACB','CGC','SNDL','OGN','AMC','GME','KOSS',
+  // Mid-tier ekstra
+  'IONQ','RGTI','QUBT','BBAI','SOUN','KULR','IREN','SPCE','LUNR',
+  'MARA','RIOT','CLSK','EOSE','PLUG','OCGN','CTMX','NVAX',
+  'RKLB','ASTS','ACHR','JOBY','PLTR','SOFI',
+].filter((v,i,a)=>a.indexOf(v)===i);
+
+// Manuel izleme listesi — RMSG benzeri nano caps
+const WATCHLIST = [
+  {sym:'RMSG', notes:'Referans · +481% pattern · Nano cap · Real estate tech', risk:'ÇIKTI'},
+  {sym:'ZNTL', notes:'Biotech nano · Gece haber katalizörü potansiyeli', risk:'İZLE'},
+  {sym:'TPST', notes:'$8M cap · Sub-penny · Compliance riski', risk:'İZLE'},
+  {sym:'IPST', notes:'$10M nano · Düşük float · IP tech', risk:'İZLE'},
+  {sym:'CREG', notes:'China small · Enerji · Haber volatil', risk:'DİKKAT'},
+  {sym:'SIDU', notes:'China nano · Sub-dollar · RVOL spike geçmişi', risk:'DİKKAT'},
+  {sym:'CURE', notes:'Sub-penny · Gap reversal · Birikim', risk:'İZLE'},
+  {sym:'NCNC', notes:'Nano cap · Compliance uyarısı olabilir', risk:'İZLE'},
+  {sym:'BFRI', notes:'Biotech nano · Klinik katalizör bekleniyor', risk:'İZLE'},
+  {sym:'MRAM', notes:'Tech nano · Düşük float', risk:'İZLE'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let candidates=[], mkt={spyChg:0,qqqChg:0,iwmChg:0,spyPre:0,vix:0,bias:'neutral'};
+let isRunning=false;
+
+// CLOCK
+function getSess(){
+  const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  const h=et.getHours(),m=et.getMinutes(),d=et.getDay(),t=h*60+m;
+  if(d===0||d===6)return{s:'closed',l:'Hafta Sonu',cls:'s-closed'};
+  if(t>=240&&t<570)return{s:'pre',l:'🌅 Pre-Market',cls:'s-pre'};
+  if(t>=570&&t<960)return{s:'open',l:'✅ Açık',cls:'s-open'};
+  if(t>=960&&t<1200)return{s:'after',l:'🌙 After-Hours',cls:'s-after'};
+  return{s:'closed',l:'Kapalı',cls:'s-closed'};
+}
+setInterval(()=>{
+  const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  document.getElementById('et-time').textContent='ET '+et.toTimeString().slice(0,8);
+  const s=getSess();
+  const el=document.getElementById('sess-tag');
+  el.className='sess-tag '+s.cls;
+  el.textContent=s.l;
+},1000);
+
+// API
+async function fetchQ(syms){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),10000);
+  try{
+    const r=await fetch(`https://tradedesk-b3xp.onrender.com/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
+      {headers:{'Accept':'application/json'},signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return[];
+    return(await r.json())?.quoteResponse?.result||[];
+  }catch(e){clearTimeout(t);return[];}
+}
+const f=(n,d=2)=>n==null||isNaN(n)?'—':Number(n).toFixed(d);
+const fl=n=>{if(!n||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);};
+
+// ═══════════════════════════════════════════════════════════
+// MARKET CONTEXT
+// ═══════════════════════════════════════════════════════════
+async function loadMkt(){
+  const q=await fetchQ(['SPY','QQQ','IWM','VIXY']);
+  const g=s=>q.find(x=>x.symbol===s);
+  const spy=g('SPY'),qqq=g('QQQ'),iwm=g('IWM'),vx=g('VIXY');
+  mkt.spyChg=spy?.regularMarketChangePercent||0;
+  mkt.qqqChg=qqq?.regularMarketChangePercent||0;
+  mkt.iwmChg=iwm?.regularMarketChangePercent||0;
+  mkt.spyPre=spy?.preMarketChangePercent||0;
+  mkt.qqqPre=qqq?.preMarketChangePercent||0;
+  mkt.vix=vx?.regularMarketPrice||0;
+  const sess=getSess().s;
+  const spyE=sess==='pre'?mkt.spyPre:mkt.spyChg;
+  mkt.bias=(spyE>0.3&&mkt.qqqChg>0)?'bull':(spyE<-0.5)?'bear':'neutral';
+  mkt.spyE=spyE;
+  const se=n=>`<span class="${n>0.1?'up':n<-0.1?'dn':'neu'}">${n>0?'+':''}${f(n)}%</span>`;
+  document.getElementById('v-spy').innerHTML=`$${f(spy?.regularMarketPrice||0)} ${se(spyE)}`;
+  document.getElementById('v-qqq').innerHTML=se(mkt.qqqChg);
+  document.getElementById('v-iwm').innerHTML=se(mkt.iwmChg);
+  document.getElementById('v-vix').innerHTML=`<span class="${mkt.vix>20?'dn':'up'}">${f(mkt.vix)}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ── RMSG PATTERN SCORING ENGINE ──
+//
+// RMSG'nin önceki gün/pre-market profili:
+// • Fiyat $0.47 (sub-dollar nano)
+// • Cap $4.49M (nano)
+// • RVOL 78x (aşırı)
+// • 52H düşük yakını ($0.332)
+// • Nasdaq compliance uyarısı = haber katalizörü
+// • Gece "Strategic Collaboration" haberi
+//
+// MODEL: Bu 7 faktörü ağırlıklandırır
+// ═══════════════════════════════════════════════════════════
+function scoreRMSG(d){
+  if(!d?.symbol)return null;
+  const sym=d.symbol;
+  const p=d.regularMarketPrice||0;
+  const vol=d.regularMarketVolume||0;
+  const avgVol=Math.max(d.averageVolume||d.averageDailyVolume3Month||1,1);
+  const h=d.regularMarketDayHigh||p;
+  const l=d.regularMarketDayLow||p;
+  const o=d.regularMarketOpen||p;
+  const chg=d.regularMarketChangePercent||0;
+  const cap=d.marketCap||0;
+  const sf=(d.shortPercentOfFloat||0)*100;
+  const h52=d.fiftyTwoWeekHigh||p*2;
+  const l52=d.fiftyTwoWeekLow||p*0.5;
+
+  // OTC hariç
+  const ex=(d.fullExchangeName||d.exchange||'').toLowerCase();
+  if(ex.includes('otc')||ex.includes('pink'))return null;
+
+  // Pre/After-hours
+  const preP=d.preMarketPrice||0;
+  const preChg=d.preMarketChangePercent||0;
+  const postP=d.postMarketPrice||0;
+  const postChg=d.postMarketChangePercent||0;
+  const sess=getSess().s;
+  const hasPreData=preP>0&&Math.abs(preChg)>0.1;
+  const hasPostData=postP>0&&Math.abs(postChg)>0.1;
+  const activeP=sess==='pre'&&hasPreData?preP:sess==='after'&&hasPostData?postP:p;
+  const activeChg=sess==='pre'&&hasPreData?preChg:sess==='after'&&hasPostData?postChg:chg;
+
+  // RMSG filtresi — fiyat $0.05-$5 (sub-dollar odaklı)
+  if(p<0.05||p>5)return null;
+  if(vol<10000&&avgVol<10000)return null;
+
+  // Temel hesaplar
+  const rvol=vol/avgVol;
+  // True Range (standart formül)
+  const tr=Math.max(h-l,Math.abs(h-o),Math.abs(l-o),p*0.02);
+  const atrPct=(tr/p)*100;
+  // Close Strength
+  const range=h-l;
+  const closeStr=range>0?(p-l)/range:0.5;
+  // A/D MFM
+  const mfm=range>0?((p-l)-(h-p))/range:0;
+  // VWAP proxy
+  const typP=(h+l+p)/3;
+  const vwapP=(typP*vol+o*avgVol)/(vol+avgVol);
+  const aboveVWAP=p>=vwapP;
+  // 52H analizi
+  const distFromL52=l52>0?(p-l52)/l52*100:50;
+  const nearL52=distFromL52<25; // 52H düşüğüne yakın = RMSG pattern
+  // Dolar hacmi
+  const dolVol=p*vol;
+  // Cap analizi
+  const isNano=cap>0&&cap<20e6;
+  const isMicro=cap>=20e6&&cap<100e6;
+  const isNanoPenny=cap>0&&cap<10e6&&p<1;
+
+  let score=0;
+  const pos=[],neg=[],bkdn={};
+
+  // ─── [1] FIYAT BANDI — max 28 puan ───
+  // RMSG $0.47 idi — sub-dollar nano en yüksek ağırlık
+  {
+    let pts=0;
+    if(p<0.10){pts=28;pos.push('Sub-$0.10 Nano');}
+    else if(p<0.30){pts=25;pos.push('Sub-$0.30');}
+    else if(p<0.50){pts=22;pos.push('Sub-$0.50 ✓RMSG');}
+    else if(p<0.80){pts=18;pos.push('Sub-$0.80');}
+    else if(p<1.50){pts=13;pos.push('Sub-$1.50');}
+    else if(p<3.00){pts=7;}
+    else{pts=2;}
+    score+=pts;bkdn.price=pts;
+  }
+
+  // ─── [2] MARKET CAP — max 25 puan ───
+  // RMSG $4.49M — nano cap çok kritik
+  {
+    let pts=0;
+    if(cap>0&&cap<5e6){pts=25;pos.push('Nano <$5M ✓RMSG');}
+    else if(cap<15e6){pts=22;pos.push('Nano <$15M');}
+    else if(cap<50e6){pts=16;pos.push('Nano <$50M');}
+    else if(cap<200e6){pts=8;pos.push('Micro Cap');}
+    else if(cap>1e9){pts=-10;neg.push('Çok Büyük Cap');}
+    score+=pts;bkdn.cap=pts;
+  }
+
+  // ─── [3] RVOL — max 22 puan ───
+  // RMSG 78x — aşırı anomali
+  {
+    let pts=0;
+    if(rvol>=50){pts=22;pos.push('RVOL 50x+ 🔥🔥🔥');}
+    else if(rvol>=20){pts=19;pos.push('RVOL 20x+ 🔥🔥');}
+    else if(rvol>=10){pts=15;pos.push('RVOL 10x+ 🔥');}
+    else if(rvol>=5){pts=10;pos.push('RVOL 5x+');}
+    else if(rvol>=2){pts=5;pos.push('RVOL 2x+');}
+    else if(rvol>=1){pts=1;}
+    else{pts=-8;neg.push('RVOL Çok Düşük');}
+    score+=pts;bkdn.rvol=pts;
+  }
+
+  // ─── [4] AH / PRE HAREKETI — max 18 puan ───
+  // RMSG gece haber → gap up +101%
+  {
+    let pts=0,lbl='';
+    if(hasPreData){
+      if(preChg>=50){pts=18;lbl=`Pre +${f(preChg,0)}% 💥`;}
+      else if(preChg>=20){pts=15;lbl=`Pre +${f(preChg,1)}% 🔥`;}
+      else if(preChg>=8){pts=11;lbl=`Pre +${f(preChg,1)}%`;}
+      else if(preChg>=3){pts=6;lbl=`Pre +${f(preChg,1)}%`;}
+      else if(preChg>=0){pts=2;}
+      else if(preChg<=-10){pts=-15;neg.push(`Pre ${f(preChg,1)}%`);}
+      else{pts=-5;}
+      if(lbl)pos.push(lbl);
+    }else if(hasPostData){
+      if(postChg>=20){pts=14;pos.push(`AH +${f(postChg,1)}% 🔥`);}
+      else if(postChg>=8){pts=10;pos.push(`AH +${f(postChg,1)}%`);}
+      else if(postChg>=3){pts=6;pos.push(`AH +${f(postChg,1)}%`);}
+      else if(postChg>=1){pts=3;}
+      else if(postChg<=-8){pts=-12;neg.push(`AH ${f(postChg,1)}%`);}
+      else if(postChg<0){pts=-4;}
+    }else{pts=-5;}
+    score+=pts;bkdn.preAH=pts;
+  }
+
+  // ─── [5] 52H DİP YAKINLIĞI — max 12 puan ───
+  // RMSG $0.47, 52H düşük $0.332 — dip yakını = patlama potansiyeli
+  {
+    let pts=0;
+    if(nearL52&&distFromL52<10){pts=12;pos.push('52H Dip Yakın ✓RMSG');}
+    else if(nearL52&&distFromL52<25){pts=8;pos.push('52H Dip Bölge');}
+    else if(distFromL52<50){pts=3;}
+    else if(distFromL52>200){pts=-5;neg.push('52H Dip Uzak');}
+    score+=pts;bkdn.l52=pts;
+  }
+
+  // ─── [6] ATR VOLATILITE — max 10 puan ───
+  {
+    let pts=0;
+    if(atrPct>40){pts=10;pos.push(`ATR ${f(atrPct,0)}% Aşırı`);}
+    else if(atrPct>20){pts=7;pos.push(`ATR ${f(atrPct,0)}%`);}
+    else if(atrPct>10){pts=4;}
+    else if(atrPct>5){pts=1;}
+    else{pts=-5;neg.push('Düşük ATR');}
+    score+=pts;bkdn.atr=pts;
+  }
+
+  // ─── [7] A/D & KAPANIŞ GÜCÜ — max 8 puan ───
+  {
+    let pts=0;
+    if(mfm>0.5&&rvol>2){pts=8;pos.push('Para Girişi Güçlü');}
+    else if(mfm>0.2){pts=5;}
+    else if(closeStr>=0.75){pts=4;pos.push('Güçlü Kapanış');}
+    else if(mfm<-0.5&&rvol>3){pts=-7;neg.push('Para Çıkışı');}
+    score+=pts;bkdn.ad=pts;
+  }
+
+  // ─── [8] DOLAR HACMİ — max 5 puan ───
+  // RMSG: 394M × $0.47 = ~$185M dolar hacim
+  {
+    let pts=0;
+    if(dolVol>10e6){pts=5;pos.push('$Hacim Yüksek');}
+    else if(dolVol>1e6){pts=3;}
+    else if(dolVol<100000){pts=-8;neg.push('$Hacim <$100K');}
+    score+=pts;bkdn.dol=pts;
+  }
+
+  // ─── CEZALAR ───
+  // Zaten çok yükseldiyse bugün tükendi
+  if(chg>200){score-=25;neg.push(`Bugün +${f(chg,0)}% Bitti`);}
+  else if(chg>100){score-=15;neg.push(`Bugün +${f(chg,0)}% Yüksek`);}
+  else if(chg>50){score-=8;}
+
+  // Piyasa bağlamı (nano capte daha az önemli — RMSG piyasadan bağımsız)
+  if(mkt.bias==='bear'){score-=8;neg.push('Piyasa Ayı');}
+  else if(mkt.bias==='bull'){score+=4;}
+
+  if(score<0)score=0;
+  const finalScore=Math.min(score,100);
+
+  // Olasılık hesabı — nano cap için daha agresif
+  // RMSG gibi: en az 5 kriterin karşılanması gerekiyor
+  const criteriaCount=
+    (p<1?1:0)+(cap<50e6&&cap>0?1:0)+(rvol>=5?1:0)+
+    (hasPreData&&preChg>=5||hasPostData&&postChg>=5?1:0)+
+    (nearL52?1:0)+(atrPct>15?1:0)+(dolVol>500000?1:0);
+
+  // Temel olasılık
+  let prob=Math.round(15+(finalScore/100)*77);
+  // Criteria count bonus
+  if(criteriaCount>=6){prob=Math.min(prob+10,95);}
+  else if(criteriaCount>=5){prob=Math.min(prob+5,93);}
+  else if(criteriaCount<=2){prob=Math.max(prob-15,20);}
+
+  if(prob<45)return null;
+  const tier=prob>=75?'A':prob>=62?'B':'C';
+
+  // RMSG benzerlik skoru (0-100)
+  const rmsgSim=Math.round(
+    (p<1?20:p<2?10:0)+
+    (cap<20e6&&cap>0?20:cap<50e6&&cap>0?12:0)+
+    (rvol>=20?20:rvol>=10?14:rvol>=5?8:0)+
+    (nearL52?12:0)+
+    (atrPct>20?14:atrPct>10?8:0)+
+    (hasPreData&&preChg>=8||hasPostData&&postChg>=8?14:0)
+  );
+
+  // Hedef fiyatlar
+  const pFmt=v=>v<0.01?v.toFixed(5):v<0.1?v.toFixed(4):v<1?v.toFixed(4):v.toFixed(2);
+  const stopL=parseFloat(Math.max(activeP-tr*1.5,activeP*0.80).toFixed(4));
+  const tp1=parseFloat((activeP*1.50).toFixed(4)); // +50% (nano cap standart)
+  const tp2=parseFloat((activeP*2.00).toFixed(4)); // +100%
+  const tp3=parseFloat((activeP*3.00).toFixed(4)); // +200% (RMSG seviyesi)
+  const rrRatio=((tp1-activeP)/Math.max(activeP-stopL,0.0001)).toFixed(1);
+
+  return{
+    sym,name:(d.shortName||sym).slice(0,22),
+    p,activeP,preP,preChg,postP,postChg,chg,activeChg,
+    vol,avgVol,rvol,tr,atrPct:parseFloat(atrPct.toFixed(1)),
+    closeStr,mfm,aboveVWAP,cap,sf,h52,l52,
+    distFromL52:parseFloat(distFromL52.toFixed(0)),
+    nearL52,dolVol,criteriaCount,
+    score:finalScore,prob,tier,rmsgSim,
+    pos,neg,bkdn,
+    stopL,tp1,tp2,tp3,rrRatio,
+    sess,hasPreData,hasPostData,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCAN
+// ═══════════════════════════════════════════════════════════
+async function runScan(){
+  if(isRunning)return;
+  isRunning=true;candidates=[];
+  const btn=document.getElementById('scan-btn');
+  btn.disabled=true;btn.innerHTML='<div class="sp"></div> Taranıyor...';
+  document.getElementById('prog').classList.add('on');
+  document.getElementById('cards-wrap').innerHTML=
+    '<div class="empty"><div class="empty-ic">⏳</div>RMSG benzeri nano cap catalyst hisseler aranıyor...</div>';
+  goTab('live');
+
+  await loadMkt();
+  setProg(5,'Piyasa bağlamı');
+
+  const total=UNIVERSE.length;let scanned=0;
+  const batches=[];
+  for(let i=0;i<UNIVERSE.length;i+=20)batches.push(UNIVERSE.slice(i,i+20));
+
+  for(let bi=0;bi<batches.length;bi++){
+    let rows=[];
+    try{rows=await fetchQ(batches[bi]);}catch(e){}
+    for(const d of rows){
+      const r=scoreRMSG(d);scanned++;
+      if(r)candidates.push(r);
+    }
+    const pct=Math.round((bi+1)/batches.length*88)+5;
+    setProg(pct,`${scanned}/${total} · ${candidates.length} RMSG benzeri aday`);
+    document.getElementById('v-sc').textContent=scanned;
+    document.getElementById('v-pa').textContent=candidates.length;
+  }
+
+  candidates.sort((a,b)=>b.prob-a.prob||b.rmsgSim-a.rmsgSim);
+  setProg(98,'Render...');
+  await new Promise(r=>setTimeout(r,100));
+
+  updateStats();
+  renderCards(candidates.slice(0,8));
+  document.getElementById('v-time').textContent=
+    new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setProg(100,`✅ ${candidates.length} aday · RMSG pattern araması tamamlandı`);
+  setTimeout(()=>document.getElementById('prog').classList.remove('on'),3000);
+  btn.disabled=false;btn.innerHTML='⚡ TARA';
+  isRunning=false;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function updateStats(){
+  const a=candidates;
+  document.getElementById('st-tot').textContent=a.length;
+  document.getElementById('st-a').textContent=a.filter(r=>r.tier==='A').length;
+  document.getElementById('st-b').textContent=a.filter(r=>r.tier==='B').length;
+  document.getElementById('st-c').textContent=a.filter(r=>r.tier==='C').length;
+  document.getElementById('st-rmsg').textContent=a.filter(r=>r.rmsgSim>=70).length;
+  document.getElementById('st-max').textContent=(a[0]?.prob||0)+'%';
+}
+
+function renderCards(data){
+  const el=document.getElementById('cards-wrap');
+  if(!data.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">⚡</div>RMSG benzeri aday bulunamadı<br><span style="font-size:0.62rem;color:var(--text3);">Pre-market saatinde çalıştırın · Sub-dollar nano cap seyrektir</span></div>';
+    return;
+  }
+  const pc=p=>p>=75?'var(--purple)':p>=62?'var(--yellow)':'var(--cyan)';
+  const fc=t=>t==='A'?'ef-A':t==='B'?'ef-B':'ef-C';
+  const em=['⚡','🔥','💥','🚀','🌟','💫','⚠️','🎯'];
+
+  el.innerHTML='<div class="cands">'+data.map((r,i)=>{
+    const aPchg=r.hasPreData?r.preChg:r.hasPostData?r.postChg:r.chg;
+    const aPcls=aPchg>=0?'up':'dn';
+    const aPLbl=r.hasPreData?'Pre':r.hasPostData?'AH':'Kapanış';
+    const pFmt=v=>v<0.001?v.toFixed(5):v<0.01?v.toFixed(5):v<0.1?v.toFixed(4):v<1?v.toFixed(4):v.toFixed(2);
+
+    return`<div class="cc t-${r.tier}">
+      <span class="tier-tag tt-${r.tier}">TIER ${r.tier}</span>
+
+      <div class="ct">
+        <div class="ct-left">
+          <div class="ct-rank">${em[i]||''}</div>
+          <div>
+            <div class="ct-sym">${r.sym}</div>
+            <div class="ct-name">${r.name}</div>
+            <div class="ct-cat">RMSG Benzerlik: <span style="color:var(--pink)">${r.rmsgSim}%</span> · ${r.criteriaCount}/7 kriter</div>
+          </div>
+        </div>
+        <div class="ct-right">
+          <div style="font-size:0.52rem;color:var(--text3);font-family:var(--mono);">${aPLbl}</div>
+          <div class="ct-price">$${pFmt(r.activeP)}</div>
+          <div class="ct-chg ${aPcls}">${aPchg>=0?'+':''}${f(aPchg,1)}%</div>
+        </div>
+      </div>
+
+      <div class="epm">
+        <div class="epm-top">
+          <span class="epm-lbl">RMSG (+481%) Pattern Eşleşme Olasılığı</span>
+          <span class="epm-val" style="color:${pc(r.prob)};">${r.prob}%</span>
+        </div>
+        <div class="epm-bar"><div class="epm-fill ${fc(r.tier)}" style="width:${r.prob}%;"></div></div>
+        <div class="epm-sub">Beklenen hareket: +50% → +100% → +200% (RMSG seviyesi)</div>
+      </div>
+
+      <div class="score-bk">
+        <div class="sb-item">
+          <div class="sb-l">Fiyat</div>
+          <div class="sb-v" style="color:${r.p<0.5?'var(--pink)':r.p<1?'var(--purple)':'var(--text2)'};">$${f(r.p,r.p<0.01?5:r.p<1?4:2)}</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min((5-r.p)/5*100,100)}%;background:var(--pink);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">Market Cap</div>
+          <div class="sb-v" style="color:${r.cap<5e6?'var(--pink)':r.cap<20e6?'var(--purple)':'var(--text2)'};">${fl(r.cap)}</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min(r.cap>0?(100e6-Math.min(r.cap,100e6))/100e6*100:0,100)}%;background:var(--purple);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">RVOL</div>
+          <div class="sb-v" style="color:${r.rvol>=20?'var(--pink)':r.rvol>=5?'var(--green)':'var(--text2)'};">${f(r.rvol,1)}x</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min(r.rvol/50*100,100)}%;background:var(--green);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">ATR%</div>
+          <div class="sb-v">${r.atrPct}%</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min(r.atrPct/50*100,100)}%;background:var(--orange);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">52H Dip</div>
+          <div class="sb-v" style="color:${r.nearL52?'var(--green)':'var(--text2)'};">${r.distFromL52}%</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min(100-r.distFromL52,100)}%;background:var(--cyan);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">A/D MFM</div>
+          <div class="sb-v" style="color:${r.mfm>0.3?'var(--green)':r.mfm<-0.3?'var(--red)':'var(--text2)'};">${f(r.mfm,2)}</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${Math.min((r.mfm+1)/2*100,100)}%;background:var(--lime);"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">Comp.Score</div>
+          <div class="sb-v" style="color:${r.score>=70?'var(--green)':r.score>=50?'var(--yellow)':'var(--orange)'};">${r.score}/100</div>
+          <div class="sb-bar"><div class="sb-bf" style="width:${r.score}%;background:${r.score>=70?'var(--green)':'var(--yellow)'};"></div></div>
+        </div>
+        <div class="sb-item">
+          <div class="sb-l">$Hacim</div>
+          <div class="sb-v" style="font-size:0.66rem;">${fl(r.dolVol)}</div>
+        </div>
+      </div>
+
+      <div class="sigs">
+        ${r.pos.map(s=>`<span class="sig s-p">${s}</span>`).join('')}
+        ${r.neg.slice(0,2).map(s=>`<span class="sig s-r">${s}</span>`).join('')}
+      </div>
+
+      <div class="lvls">
+        <div class="lv">
+          <div class="lv-l">Giriş</div>
+          <div class="lv-v" style="color:var(--cyan);">$${f(r.activeP,r.activeP<0.01?5:r.activeP<1?4:2)}</div>
+        </div>
+        <div class="lv">
+          <div class="lv-l">Stop</div>
+          <div class="lv-v" style="color:var(--red);">$${f(r.stopL,r.stopL<0.01?5:r.stopL<1?4:2)}</div>
+        </div>
+        <div class="lv">
+          <div class="lv-l">TP +50%</div>
+          <div class="lv-v" style="color:var(--green);">$${f(r.tp1,r.tp1<1?4:2)}</div>
+        </div>
+        <div class="lv">
+          <div class="lv-l">TP +100%</div>
+          <div class="lv-v" style="color:var(--green);font-weight:800;">$${f(r.tp2,r.tp2<1?4:2)}</div>
+        </div>
+        <div class="lv">
+          <div class="lv-l">TP RMSG (+200%)</div>
+          <div class="lv-v" style="color:var(--pink);font-weight:900;">$${f(r.tp3,r.tp3<1?4:2)}</div>
+        </div>
+        <div class="lv">
+          <div class="lv-l">R/R</div>
+          <div class="lv-v" style="color:${parseFloat(r.rrRatio)>=3?'var(--green)':'var(--yellow)'};">${r.rrRatio}x</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// WATCHLIST
+// ═══════════════════════════════════════════════════════════
+async function renderWatchlist(){
+  const syms=WATCHLIST.map(w=>w.sym);
+  const rows=await fetchQ(syms);
+  const map={};rows.forEach(r=>{if(r)map[r.symbol]=r;});
+
+  document.getElementById('watch-tbl').innerHTML='<table><thead><tr>'
+    +'<th>Sembol</th><th>Fiyat</th><th>% Değişim</th><th>RVOL</th>'
+    +'<th>Market Cap</th><th>52H Dip %</th><th>AH %</th><th>Notlar</th><th>Risk</th>'
+    +'</tr></thead><tbody>'
+    +WATCHLIST.map(w=>{
+      const d=map[w.sym];
+      if(!d)return`<tr><td style="font-family:var(--mono);color:var(--cyan);">${w.sym}</td><td colspan="8" style="color:var(--text3);">Veri alınamadı</td></tr>`;
+      const p=d.regularMarketPrice||0;
+      const chg=d.regularMarketChangePercent||0;
+      const vol=d.regularMarketVolume||1;
+      const avgVol=Math.max(d.averageVolume||1,1);
+      const rv=vol/avgVol;
+      const cap=d.marketCap||0;
+      const l52=d.fiftyTwoWeekLow||p;
+      const distL=l52>0?((p-l52)/l52*100):50;
+      const postChg=d.postMarketChangePercent||0;
+      const riskColor={'ÇIKTI':'var(--text3)','İZLE':'var(--yellow)','DİKKAT':'var(--red)','AL':'var(--green)'}[w.risk]||'var(--text2)';
+      return`<tr>
+        <td style="font-family:var(--mono);font-weight:700;color:var(--cyan);">${w.sym}</td>
+        <td style="font-family:var(--mono);font-weight:700;">$${p<1?p.toFixed(4):p.toFixed(2)}</td>
+        <td style="font-family:var(--mono);color:${chg>=0?'var(--green)':'var(--red)'};">${chg>=0?'+':''}${f(chg,1)}%</td>
+        <td style="font-family:var(--mono);color:${rv>=5?'var(--pink)':rv>=2?'var(--green)':'var(--text2)'};">${f(rv,1)}x</td>
+        <td style="font-family:var(--mono);">${fl(cap)}</td>
+        <td style="font-family:var(--mono);color:${distL<25?'var(--green)':'var(--text2)'};">${f(distL,0)}%</td>
+        <td style="font-family:var(--mono);color:${postChg>0?'var(--green)':postChg<0?'var(--red)':'var(--text3)'};">${postChg!==0?(postChg>0?'+':'')+f(postChg,1)+'%':'—'}</td>
+        <td style="font-size:0.62rem;color:var(--text2);">${w.notes}</td>
+        <td><span style="font-family:var(--mono);font-size:0.58rem;font-weight:700;color:${riskColor};">${w.risk}</span></td>
+      </tr>`;
+    }).join('')+'</tbody></table>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// GUIDE
+// ═══════════════════════════════════════════════════════════
+function renderGuide(){
+  document.getElementById('guide-body').innerHTML=`
+    <div style="background:linear-gradient(135deg,rgba(153,51,255,0.08),rgba(255,0,153,0.05));border:1px solid rgba(153,51,255,0.2);border-radius:10px;padding:13px;margin-bottom:13px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--text);margin-bottom:8px;">🎯 RMSG +481% Nasıl Oldu — Adım Adım Analiz</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+        ${[
+          ['Önceki Gün','$0.4695 kapanış · Nano cap $4.5M · 52H düşük $0.332 yakını'],
+          ['Gece Haberi','Nasdaq uyarı mektubu + "Strategic Collaboration" açıklaması'],
+          ['Pre-Market','Gap-up başladı · RVOL hızlı artıyor · Haber yayıldı'],
+          ['Açılış','$0.9465 (+101% gap) · Kurumsal ve retail giriş'],
+          ['Gün İçi','$2.65 zirve · RVOL 78x · Düşük float = sert hareket'],
+          ['After-Hours','$3.46 (+28%) · Momentum devam ediyor'],
+        ].map(([t,d])=>`
+          <div style="background:rgba(0,0,0,0.3);border-radius:7px;padding:9px;">
+            <div style="font-size:0.62rem;font-weight:700;color:var(--purple);">${t}</div>
+            <div style="font-size:0.62rem;color:var(--text2);margin-top:3px;line-height:1.5;">${d}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-bottom:13px;">
+      ${[
+        ['1. Fiyat Bandı','Max 28 puan','var(--pink)','$0.47 sub-dollar nano. Düşük mutlak fiyat = sert yüzdesel hareket. $0.47 → $2.65 = 5.6 kat. Dolar değişim küçük ama yüzde büyük.'],
+        ['2. Market Cap','Max 25 puan','var(--purple)','$4.49M nano cap. Az hisse tedavülde = az para = sert hareket. Float çok düşük.'],
+        ['3. RVOL Anomalisi','Max 22 puan','var(--green)','78x normal hacim. Gece haberle başlar. Pre-market 10x+ varsa büyük gün geliyor.'],
+        ['4. Pre/AH Hareketi','Max 18 puan','var(--yellow)','Gece katalizör → Pre-market fiyat hareket eder. Bu en erken uyarı sinyali.'],
+        ['5. 52H Dip Yakınlığı','Max 12 puan','var(--cyan)','$0.47 ile $0.332 (52H düşük) arasında. Dip yakını + haber = explosive combo.'],
+        ['6. ATR Volatilite','Max 10 puan','var(--orange)','Yüksek ATR% = zaten volatil. Haber gelince daha sert hareket eder.'],
+        ['7. A/D Money Flow','Max 8 puan','var(--lime)','Para giriyor mu? Kapanış gücü. Pre-market alım basıncı.'],
+        ['Stop Loss Mantığı','ATR×1.5','var(--red)','Nano capte %20-25 stop normal. Giriş × 0.80 = floor stop.'],
+      ].map(([t,w,c,d])=>`
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 11px;border-left:3px solid ${c};">
+          <div style="font-size:0.68rem;font-weight:700;color:${c};">${t}</div>
+          <div style="font-size:0.56rem;color:var(--text3);font-family:var(--mono);">${w}</div>
+          <div style="font-size:0.62rem;color:var(--text2);margin-top:4px;line-height:1.5;">${d}</div>
+        </div>`).join('')}
+    </div>
+
+    <div style="background:rgba(255,32,80,0.06);border:1px solid rgba(255,32,80,0.15);border-radius:9px;padding:12px;font-size:0.64rem;color:rgba(255,32,80,0.8);line-height:1.7;">
+      ⚠️ <strong>Risk Uyarısı:</strong> RMSG gibi nano cap hisseler çok yüksek risk taşır.
+      +481% yapanın yanında -80% yapan onlarca hisse var.
+      Bu model sadece <strong>pattern tespit</strong> yapar, yatırım tavsiyesi vermez.
+      Pozisyon büyüklüğü çok küçük tutun (max portföyün %1-2).
+      Yahoo Finance API pre-market <strong>hacim</strong> verisi vermiyor — en kritik sinyal olan RVOL proxy ile hesaplanıyor.
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════════════════
+window.goTab=function(tab){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='watch')renderWatchlist();
+  if(tab==='guide')renderGuide();
+};
+function setProg(pct,stage){
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-stage').textContent=stage;
+  document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
+}
+
+// Init
+loadMkt().then(()=>renderGuide());
+</script>
+</body>
+</html>
