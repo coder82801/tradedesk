@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#020408">
-<title>Catalyst Explosion Scanner</title>
+<title>Catalyst Explosion Scanner v5</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -12,7 +12,7 @@
   --border:#112030;--b2:#182840;
   --green:#00ff7f;--red:#ff1a44;--yellow:#ffc800;
   --orange:#ff5500;--purple:#8822ff;--cyan:#00ccff;
-  --pink:#ff0088;--gold:#ffaa00;
+  --pink:#ff0088;--gold:#ffaa00;--lime:#88ff00;
   --text:#c8e0ff;--text2:#4a6888;--text3:#1e3050;
   --mono:'JetBrains Mono',monospace;--fm:'Inter',sans-serif;
 }
@@ -41,9 +41,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100
 .prog-fill{height:100%;background:linear-gradient(90deg,#ff5500,#ff0088,#8822ff,#00ccff);border-radius:2px;transition:width 0.4s;}
 .prog-txt{display:flex;justify-content:space-between;font-size:0.58rem;font-family:var(--mono);color:var(--text2);}
 
-.ref{background:linear-gradient(135deg,rgba(255,85,0,0.05),rgba(255,0,136,0.04),rgba(136,34,255,0.03));border-bottom:1px solid rgba(255,0,136,0.1);padding:8px 18px;display:flex;gap:14px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+.ref{background:linear-gradient(135deg,rgba(255,85,0,0.05),rgba(255,0,136,0.04));border-bottom:1px solid rgba(255,0,136,0.1);padding:8px 18px;display:flex;gap:14px;align-items:center;overflow-x:auto;scrollbar-width:none;}
 .ref::-webkit-scrollbar{display:none;}
-.ref-lbl{font-size:0.54rem;color:var(--text2);font-family:var(--mono);white-space:nowrap;text-transform:uppercase;}
 .ref-chip{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.4);border-radius:7px;padding:5px 10px;border:1px solid var(--border);flex-shrink:0;}
 .rc-sym{font-family:var(--mono);font-weight:900;font-size:0.8rem;}
 .rc-info{font-family:var(--mono);font-size:0.58rem;color:var(--text2);}
@@ -69,10 +68,25 @@ main{padding:13px 18px;max-width:1600px;margin:0 auto;}
 .st-l{font-size:0.5rem;color:var(--text3);text-transform:uppercase;font-family:var(--mono);}
 .st-v{font-size:1rem;font-weight:900;font-family:var(--mono);margin-top:2px;}
 
+/* VERDICT BADGE */
+.verdict{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-family:var(--mono);font-size:0.72rem;font-weight:900;margin-bottom:10px;}
+.v-buy{background:rgba(0,255,127,0.12);border:1px solid rgba(0,255,127,0.3);color:var(--green);}
+.v-watch{background:rgba(255,200,0,0.1);border:1px solid rgba(255,200,0,0.25);color:var(--yellow);}
+.v-caution{background:rgba(255,85,0,0.1);border:1px solid rgba(255,85,0,0.25);color:var(--orange);}
+.v-avoid{background:rgba(255,26,68,0.1);border:1px solid rgba(255,26,68,0.22);color:var(--red);}
+
+/* MOMENTUM GAUGE */
+.gauge-wrap{background:var(--bg3);border-radius:9px;padding:11px 12px;margin-bottom:9px;}
+.gauge-title{font-size:0.54rem;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.gauge-lbl{font-size:0.58rem;color:var(--text2);width:90px;flex-shrink:0;}
+.gauge-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:3px;}
+.gauge-val{font-family:var(--mono);font-size:0.66rem;font-weight:700;width:50px;text-align:right;flex-shrink:0;}
+
 /* CARDS */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:10px;}
 @media(max-width:460px){.cards-grid{grid-template-columns:1fr;}}
-
 .cc{background:var(--card);border-radius:13px;padding:14px 15px;position:relative;overflow:hidden;transition:transform 0.15s;}
 .cc:hover{transform:translateY(-2px);}
 .cc[data-pt="rmsg"]{box-shadow:inset 0 0 0 1px rgba(255,0,136,0.3);}
@@ -83,7 +97,7 @@ main{padding:13px 18px;max-width:1600px;margin:0 auto;}
 .cc[data-pt="wshp"]::before{background:linear-gradient(180deg,#ff5500,#ffc800);}
 .cc[data-pt="hybrid"]::before{background:linear-gradient(180deg,#00ccff,#00ff7f);}
 
-.cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .cc-sym{font-size:1.1rem;font-weight:900;color:var(--cyan);font-family:var(--mono);}
 .cc-name{font-size:0.58rem;color:var(--text3);margin-top:1px;}
 .cc-pt{font-size:0.52rem;font-family:var(--mono);font-weight:700;margin-top:2px;}
@@ -93,21 +107,17 @@ main{padding:13px 18px;max-width:1600px;margin:0 auto;}
 .tt-A{background:rgba(0,255,127,0.12);color:var(--green);}
 .tt-B{background:rgba(255,200,0,0.1);color:var(--yellow);}
 .tt-C{background:rgba(136,34,255,0.1);color:var(--purple);}
-.tt-W{background:rgba(255,170,0,0.12);color:var(--gold);}
 
-/* PROB */
-.pm-wrap{margin-bottom:9px;}
+.pm-wrap{margin-bottom:8px;}
 .pm-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
 .pm-lbl{font-size:0.54rem;color:var(--text2);font-family:var(--mono);}
 .pm-pct{font-size:1.05rem;font-weight:900;font-family:var(--mono);}
-.pm-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.pm-bar{height:6px;background:var(--border);border-radius:4px;overflow:hidden;}
 .pmf{height:100%;border-radius:4px;transition:width 0.8s ease;}
 .pf-rmsg{background:linear-gradient(90deg,#ff0088,#8822ff,#00ccff);}
 .pf-wshp{background:linear-gradient(90deg,#ff5500,#ffc800);}
 .pf-hybrid{background:linear-gradient(90deg,#00ccff,#00ff7f);}
-.pm-sub{font-size:0.5rem;color:var(--text3);margin-top:2px;}
 
-/* METRICS */
 .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;}
 .met{background:var(--bg3);border-radius:6px;padding:5px 6px;}
 .met-l{font-size:0.46rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;}
@@ -115,15 +125,14 @@ main{padding:13px 18px;max-width:1600px;margin:0 auto;}
 .met-b{height:2px;background:var(--border);border-radius:1px;margin-top:2px;overflow:hidden;}
 .met-bf{height:100%;border-radius:1px;}
 
-.sigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px;}
+.sigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
 .sig{padding:2px 6px;border-radius:3px;font-size:0.54rem;font-weight:700;font-family:var(--mono);}
 .sg{background:rgba(0,255,127,0.09);color:var(--green);border:1px solid rgba(0,255,127,0.14);}
 .sy{background:rgba(255,200,0,0.09);color:var(--yellow);border:1px solid rgba(255,200,0,0.14);}
 .sr{background:rgba(255,26,68,0.08);color:var(--red);border:1px solid rgba(255,26,68,0.12);}
-.sp2{background:rgba(136,34,255,0.1);color:var(--purple);border:1px solid rgba(136,34,255,0.16);}
-.sc2{background:rgba(0,204,255,0.08);color:var(--cyan);border:1px solid rgba(0,204,255,0.12);}
+.so{background:rgba(255,85,0,0.09);color:var(--orange);border:1px solid rgba(255,85,0,0.14);}
 
-/* LEVELS — tek giriş tek çıkış */
+/* LEVELS */
 .lvls{background:var(--bg3);border-radius:9px;padding:11px 12px;}
 .lvls-title{font-size:0.52rem;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
 .lvls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;}
@@ -132,10 +141,9 @@ main{padding:13px 18px;max-width:1600px;margin:0 auto;}
 .lv-v{font-family:var(--mono);font-weight:700;font-size:0.78rem;}
 .lv-sub{font-size:0.44rem;color:var(--text3);}
 .action{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border);}
-.act-strategy{font-size:0.6rem;color:var(--text2);line-height:1.5;}
+.act-strategy{font-size:0.58rem;color:var(--text2);line-height:1.6;}
 .act-label{font-family:var(--mono);font-weight:900;font-size:0.88rem;}
 
-/* TABLE */
 .card2{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;}
 .c2t{font-size:0.66rem;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:10px;}
 .tw{overflow-x:auto;}
@@ -144,10 +152,7 @@ th{font-size:0.5rem;text-transform:uppercase;color:var(--text3);font-family:var(
 td{padding:7px 8px;font-size:0.68rem;border-bottom:1px solid rgba(17,32,48,0.6);vertical-align:middle;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:rgba(255,0,136,0.02);}
-
-/* DEBUG */
-.debug-box{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px;font-family:var(--mono);font-size:0.62rem;color:var(--text2);max-height:300px;overflow-y:auto;line-height:1.7;}
-
+.debug-box{background:var(--bg3);border-radius:9px;padding:11px;font-family:var(--mono);font-size:0.62rem;color:var(--text2);max-height:350px;overflow-y:auto;line-height:1.7;}
 .empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:0.76rem;line-height:2;}
 .empty-ic{font-size:2rem;margin-bottom:8px;}
 .sp{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--pink);border-radius:50%;animation:spin 0.55s linear infinite;display:inline-block;}
@@ -160,8 +165,8 @@ tr:hover td{background:rgba(255,0,136,0.02);}
   <div class="logo">
     <div class="logo-ic">💥</div>
     <div>
-      <div class="logo-tx">Catalyst Explosion Scanner</div>
-      <div class="logo-sx">RMSG +481% · WSHP +47% → Tek Giriş Tek Çıkış</div>
+      <div class="logo-tx">Catalyst Explosion Scanner <span style="color:var(--text3);font-size:0.6rem;">v5</span></div>
+      <div class="logo-sx">Momentum Analizi · Giriş/Çıkış Matematiksel Model · Tek Giriş Tek Çıkış</div>
     </div>
   </div>
   <div class="hdr-r">
@@ -177,14 +182,17 @@ tr:hover td{background:rgba(255,0,136,0.02);}
 </div>
 
 <div class="ref">
-  <div class="ref-lbl">Referans:</div>
+  <span style="font-size:0.54rem;color:var(--text2);font-family:var(--mono);white-space:nowrap;">📌 Model:</span>
   <div class="ref-chip">
-    <div><div class="rc-sym" style="color:var(--pink);">RMSG</div><div class="rc-info">$0.47 nano · RVOL 78x · Nasdaq uyarı+ortaklık</div></div>
+    <div><div class="rc-sym" style="color:var(--pink);">RMSG</div><div class="rc-info">$0.47→$2.65 · RVOL 78x · Nano catalyst</div></div>
     <div class="rc-gain" style="color:var(--green);">+481%</div>
   </div>
   <div class="ref-chip">
-    <div><div class="rc-sym" style="color:var(--gold);">WSHP</div><div class="rc-info">$5.60 micro · RVOL 1.75x · Q4 earnings+CAA ortaklık · YTD -91%</div></div>
-    <div class="rc-gain" style="color:var(--green);">+47% +59% AH</div>
+    <div><div class="rc-sym" style="color:var(--gold);">WSHP</div><div class="rc-info">$5.60→$34 · Pre $14→$40 · Momentum devam</div></div>
+    <div class="rc-gain" style="color:var(--green);">+564%</div>
+  </div>
+  <div class="ref-chip">
+    <div><div class="rc-sym" style="color:var(--cyan);">MANTIK</div><div class="rc-info">Yükselmiş hisse = engelle değil = momentum analiz et</div></div>
   </div>
 </div>
 
@@ -201,9 +209,11 @@ tr:hover td{background:rgba(255,0,136,0.02);}
   <div class="ms"></div>
   <div class="mi"><div class="ml">Geçen</div><div class="mv" id="v-pa" style="color:var(--green)">—</div></div>
   <div class="ms"></div>
-  <div class="mi"><div class="ml">RMSG-tip</div><div class="mv" id="v-r" style="color:var(--pink)">—</div></div>
+  <div class="mi"><div class="ml">AL</div><div class="mv" id="v-buy" style="color:var(--green)">—</div></div>
   <div class="ms"></div>
-  <div class="mi"><div class="ml">WSHP-tip</div><div class="mv" id="v-w" style="color:var(--gold)">—</div></div>
+  <div class="mi"><div class="ml">İZLE</div><div class="mv" id="v-watch" style="color:var(--yellow)">—</div></div>
+  <div class="ms"></div>
+  <div class="mi"><div class="ml">KAÇIN</div><div class="mv" id="v-avoid" style="color:var(--red)">—</div></div>
   <div class="ms"></div>
   <div class="mi"><div class="ml">Son</div><div class="mv" id="v-time" style="font-size:0.52rem;color:var(--text3)">—</div></div>
 </div>
@@ -212,17 +222,17 @@ tr:hover td{background:rgba(255,0,136,0.02);}
 <div class="tabs">
   <button class="tb active" id="tab-live" onclick="goTab('live')">⚡ Adaylar</button>
   <button class="tb" id="tab-all" onclick="goTab('all')">📋 Tüm Liste</button>
-  <button class="tb" id="tab-debug" onclick="goTab('debug')">🔍 Debug Log</button>
+  <button class="tb" id="tab-debug" onclick="goTab('debug')">🔍 Debug</button>
   <button class="tb" id="tab-guide" onclick="goTab('guide')">📚 Strateji</button>
 </div>
 
 <div class="tp active" id="panel-live">
   <div class="stats">
     <div class="st"><div class="st-l">Taranan</div><div class="st-v" id="st-tot" style="color:var(--cyan)">—</div></div>
-    <div class="st"><div class="st-l">💜 RMSG Nano</div><div class="st-v" id="st-r" style="color:var(--pink)">—</div></div>
-    <div class="st"><div class="st-l">🟡 WSHP Micro</div><div class="st-v" id="st-w" style="color:var(--gold)">—</div></div>
-    <div class="st"><div class="st-l">🔵 Hybrid</div><div class="st-v" id="st-h" style="color:var(--cyan)">—</div></div>
-    <div class="st"><div class="st-l">Tier A ≥70%</div><div class="st-v" id="st-a" style="color:var(--green)">—</div></div>
+    <div class="st"><div class="st-l">🟢 AL Sinyali</div><div class="st-v" id="st-buy" style="color:var(--green)">—</div></div>
+    <div class="st"><div class="st-l">🟡 İzle</div><div class="st-v" id="st-watch" style="color:var(--yellow)">—</div></div>
+    <div class="st"><div class="st-l">🟠 Dikkatli</div><div class="st-v" id="st-caution" style="color:var(--orange)">—</div></div>
+    <div class="st"><div class="st-l">🔴 Kaçın</div><div class="st-v" id="st-avoid" style="color:var(--red)">—</div></div>
     <div class="st"><div class="st-l">Max Prob</div><div class="st-v" id="st-max" style="color:var(--green)">—</div></div>
   </div>
   <div id="cards-wrap">
@@ -230,9 +240,8 @@ tr:hover td{background:rgba(255,0,136,0.02);}
       <div class="empty-ic">💥</div>
       <strong>"Tara"</strong> butonuna basın<br>
       <span style="font-size:0.62rem;color:var(--text3);">
-        RMSG (+481%) ve WSHP (+47%) benzeri hisseler aranıyor<br>
-        Pre-market: 04:00–09:30 ET · After-hours: 16:00–20:00 ET<br>
-        Piyasa kapalıyken de tarama yapılabilir — AH veri kullanılır
+        Her hisse için: Momentum devam eder mi? · Giriş · Stop · TP<br>
+        WSHP $14→$40 gibi devam eden momentumlar dahil analiz edilir
       </span>
     </div>
   </div>
@@ -240,7 +249,7 @@ tr:hover td{background:rgba(255,0,136,0.02);}
 
 <div class="tp" id="panel-all">
   <div class="card2">
-    <div class="c2t">📋 Tüm Geçen Hisseler (eşik: prob ≥ 30%)</div>
+    <div class="c2t">📋 Tüm Liste</div>
     <input id="srch" type="text" placeholder="Ara..." oninput="renderAll()"
       style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:0.7rem;font-family:var(--mono);outline:none;width:180px;margin-bottom:9px;">
     <div class="tw"><div id="all-tbl"><div class="empty">Tarama yapın</div></div></div>
@@ -249,34 +258,30 @@ tr:hover td{background:rgba(255,0,136,0.02);}
 
 <div class="tp" id="panel-debug">
   <div class="card2">
-    <div class="c2t">🔍 Debug Log — Her Hisse Neden Geçti / Geçemedi</div>
+    <div class="c2t">🔍 Debug Log</div>
     <div class="debug-box" id="debug-log">Tarama bekleniyor...</div>
   </div>
 </div>
 
 <div class="tp" id="panel-guide">
   <div class="card2">
-    <div class="c2t">📚 Tek Giriş · Tek Çıkış Stratejisi</div>
+    <div class="c2t">📚 Momentum Analiz Modeli</div>
     <div id="guide-body"></div>
   </div>
 </div>
 </main>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// UNIVERSE — Geniş, tüm profiller
-// ═══════════════════════════════════════════════════════════
-const UNIVERSE = [
-  // Referans
+const API='https://tradedesk-b3xp.onrender.com';
+
+const UNIVERSE=[
   'RMSG','WSHP',
-  // Sub-dollar nano — RMSG tipi
   'ZNTL','RAYA','CURE','FUSE','CREG','SKYQ','SQFT','IPST','TPST','MAXN','SIDU',
   'AIXI','HCAI','QNCX','CETX','MOVE','HUBC',
   'MNKD','TNXP','NRXP','SIGA','ADTX','CRBP','TXMD','CLVS',
   'CIFR','BTBT','WULF','CORZ','MNTS','LILM','MULN','FFIE',
   'NCNC','BFRI','MRAM','EVAX','PROG','BBIG','NAKD','SOPA',
   'GXAI','MHUA','JFIN','KUKE','CIFS','TAOP','HKIT','MVIS',
-  // Micro cap rebound — WSHP tipi
   'OCGN','NVAX','SPCE','LUNR','ACHR','JOBY',
   'PLUG','BE','FCEL','EOSE','BLNK','EVGO','CHPT','NKLA',
   'BBAI','SOUN','AI','KULR','IREN','IONQ','RGTI','QUBT',
@@ -284,18 +289,12 @@ const UNIVERSE = [
   'RKLB','ASTS','GME','AMC','KOSS','SNDL','CLOV','TLRY',
   'SOFI','UPST','AFRM','HOOD','COIN','MSTR',
   'PLTR','CTMX','VKTX','SMCI','OGN','ALAB',
-  // Ek volatile
-  'RIVN','LCID','NVAX','BNTX','MRNA','ACB','CGC',
-  'RXRX','ARQQ','BBAI','VERB','GFAI','TYAI',
+  'RIVN','LCID','ACB','CGC','RXRX','GFAI','TYAI','VERB',
 ].filter((v,i,a)=>a.indexOf(v)===i);
 
-let candidates=[];
-let allScored=[];
-let debugLines=[];
-let mkt={spyChg:0,qqqChg:0,iwmChg:0,spyPre:0,qqqPre:0,vix:0,spyE:0,qqqE:0,bias:'neutral'};
-let isRunning=false;
+let candidates=[],allScored=[],debugLines=[],isRunning=false;
+let mkt={spyChg:0,qqqChg:0,iwmChg:0,spyE:0,qqqE:0,vix:0,bias:'neutral'};
 
-// CLOCK
 function getSess(){
   const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
   const h=et.getHours(),m=et.getMinutes(),d=et.getDay(),t=h*60+m;
@@ -313,48 +312,41 @@ setInterval(()=>{
   el.className='sess '+s.cls;el.textContent=s.l;
 },1000);
 
-// API
 async function fetchQ(syms){
   const ctrl=new AbortController();
   const t=setTimeout(()=>ctrl.abort(),12000);
   try{
-    const r=await fetch(`https://tradedesk-b3xp.onrender.com/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
+    const r=await fetch(`${API}/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
       {headers:{'Accept':'application/json'},signal:ctrl.signal});
     clearTimeout(t);
-    if(!r.ok){debugLog(`API HTTP ${r.status}`,'err');return[];}
+    if(!r.ok){dlog(`API HTTP ${r.status}`,'err');return[];}
     const data=await r.json();
-    const res=data?.quoteResponse?.result||[];
-    debugLog(`Batch ${syms[0]}...: ${res.length}/${syms.length} döndü`,'ok');
-    return res;
-  }catch(e){clearTimeout(t);debugLog(`Batch hata: ${e.message}`,'err');return[];}
+    return data?.quoteResponse?.result||[];
+  }catch(e){clearTimeout(t);dlog(`Fetch hata: ${e.message}`,'err');return[];}
 }
 
 const f=(n,d=2)=>n==null||isNaN(n)?'—':Number(n).toFixed(d);
 const fl=n=>{if(!n||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);};
-const fp=v=>{if(!v||isNaN(v))return'—';return v<0.01?v.toFixed(5):v<0.1?v.toFixed(4):v<1?v.toFixed(4):v<10?v.toFixed(3):v.toFixed(2);};
+const fp=v=>{if(v==null||isNaN(v))return'—';return Math.abs(v)<0.01?v.toFixed(5):Math.abs(v)<0.1?v.toFixed(4):Math.abs(v)<1?v.toFixed(4):Math.abs(v)<10?v.toFixed(3):v.toFixed(2);};
 
-function debugLog(msg,type='info'){
-  const colors={info:'#4a6888',ok:'#00cc66',err:'#ff4466',warn:'#ffaa00',head:'#8822ff'};
-  debugLines.push(`<span style="color:${colors[type]||'#4a6888'}">[${new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}] ${msg}</span>`);
+function dlog(msg,type='info'){
+  const c={info:'#4a6888',ok:'#00cc66',err:'#ff4466',warn:'#ffaa00',head:'#8822ff'};
+  debugLines.push(`<span style="color:${c[type]||'#4a6888'}">[${new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}] ${msg}</span>`);
   const el=document.getElementById('debug-log');
-  if(el){el.innerHTML=debugLines.slice(-400).join('<br>');el.scrollTop=el.scrollHeight;}
+  if(el){el.innerHTML=debugLines.slice(-500).join('<br>');el.scrollTop=el.scrollHeight;}
 }
 
-// MARKET
 async function loadMkt(){
-  debugLog('Piyasa verisi yükleniyor...','head');
   const q=await fetchQ(['SPY','QQQ','IWM','VIXY']);
   const g=s=>q.find(x=>x.symbol===s);
   const spy=g('SPY'),qqq=g('QQQ'),iwm=g('IWM'),vx=g('VIXY');
   mkt.spyChg=spy?.regularMarketChangePercent||0;
   mkt.qqqChg=qqq?.regularMarketChangePercent||0;
   mkt.iwmChg=iwm?.regularMarketChangePercent||0;
-  mkt.spyPre=spy?.preMarketChangePercent||0;
-  mkt.qqqPre=qqq?.preMarketChangePercent||0;
   mkt.vix=vx?.regularMarketPrice||0;
   const sess=getSess().s;
-  mkt.spyE=sess==='pre'?(mkt.spyPre||mkt.spyChg):mkt.spyChg;
-  mkt.qqqE=sess==='pre'?(mkt.qqqPre||mkt.qqqChg):mkt.qqqChg;
+  mkt.spyE=sess==='pre'?(spy?.preMarketChangePercent||mkt.spyChg):mkt.spyChg;
+  mkt.qqqE=sess==='pre'?(qqq?.preMarketChangePercent||mkt.qqqChg):mkt.qqqChg;
   const bull=(mkt.spyE>0?1:0)+(mkt.qqqE>0?1:0)+(mkt.iwmChg>0?1:0);
   mkt.bias=bull>=2&&mkt.spyE>-0.3?'bull':bull<=1&&mkt.spyE<-0.5?'bear':'neutral';
   const se=n=>`<span class="${n>0.1?'up':n<-0.1?'dn':'neu'}">${n>0?'+':''}${f(n)}%</span>`;
@@ -362,13 +354,21 @@ async function loadMkt(){
   document.getElementById('v-qqq').innerHTML=se(mkt.qqqChg);
   document.getElementById('v-iwm').innerHTML=se(mkt.iwmChg);
   document.getElementById('v-vix').innerHTML=`<span class="${mkt.vix>20?'dn':'up'}">${f(mkt.vix)}</span>`;
-  debugLog(`SPY:${f(mkt.spyE)}% QQQ:${f(mkt.qqqE)}% VIX:${f(mkt.vix)} Bias:${mkt.bias.toUpperCase()}`,'ok');
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCORING ENGINE — Geniş eşikler, her hisse değerlendirilir
+// MOMENTUM ANALİZ MODELİ
+//
+// TEMEL FELSEFE:
+// Hisse yükselmiş → "tükenmiş" demek yanlış
+// Yükselmiş hisse için sorulacak soru:
+//   "Momentum devam eder mi?" → matematiksel cevap
+//
+// WSHP örneği: Pre $14, açılış $34 (+143%)
+// Close strength %96, RVOL 4.9x, A/D 0.92 → momentum GÜÇLİ
+// Program bu sinyalleri görüp "momentum devam edebilir" demeliydi
 // ═══════════════════════════════════════════════════════════
-function scoreStock(d){
+function analyzeStock(d){
   if(!d?.symbol||!d.regularMarketPrice)return null;
 
   const sym=d.symbol;
@@ -376,7 +376,7 @@ function scoreStock(d){
   const vol=d.regularMarketVolume||0;
   const avgVol=Math.max(d.averageVolume||d.averageDailyVolume3Month||100,100);
   const h=d.regularMarketDayHigh||p;
-  const l=d.regularMarketDayLow||p;
+  const lo=d.regularMarketDayLow||p;
   const o=d.regularMarketOpen||p;
   const chg=d.regularMarketChangePercent||0;
   const cap=d.marketCap||0;
@@ -384,18 +384,11 @@ function scoreStock(d){
   const h52=d.fiftyTwoWeekHigh||p*2;
   const l52=d.fiftyTwoWeekLow||p*0.3;
 
-  // OTC filtresi
   const ex=(d.fullExchangeName||d.exchange||'').toLowerCase();
-  if(ex.includes('otc')||ex.includes('pink')){
-    debugLog(`${sym}: OTC/Pink hariç`,'info');return null;
-  }
+  if(ex.includes('otc')||ex.includes('pink')){dlog(`${sym}: OTC hariç`,'info');return null;}
+  if(p<0.05||p>500){dlog(`${sym}: Fiyat dışı`,'info');return null;}
+  if(vol<500){dlog(`${sym}: Hacim yok`,'info');return null;}
 
-  // Fiyat: $0.05-$200 (geniş)
-  if(p<0.05||p>200){debugLog(`${sym}: Fiyat dışı $${fp(p)}`,'info');return null;}
-  // Hacim minimum
-  if(vol<1000){debugLog(`${sym}: Hacim çok düşük ${fl(vol)}`,'info');return null;}
-
-  // Pre/AH
   const preP=d.preMarketPrice||0;
   const preChg=d.preMarketChangePercent||0;
   const postP=d.postMarketPrice||0;
@@ -404,163 +397,222 @@ function scoreStock(d){
   const hasPreData=preP>0&&Math.abs(preChg)>0.05;
   const hasPostData=postP>0&&Math.abs(postChg)>0.05;
 
-  // Aktif fiyat — hangi seanstayız?
   let activeP=p, activeChg=chg, activeLbl='Kapanış';
   if(sess==='pre'&&hasPreData){activeP=preP;activeChg=preChg;activeLbl='Pre';}
   else if(sess==='after'&&hasPostData){activeP=postP;activeChg=postChg;activeLbl='AH';}
   else if(hasPostData&&Math.abs(postChg)>2){activeP=postP;activeChg=postChg;activeLbl='AH';}
   else if(hasPreData&&Math.abs(preChg)>2){activeP=preP;activeChg=preChg;activeLbl='Pre';}
 
-  // Temel hesaplar
   const rvol=vol/avgVol;
-  const range=Math.max(h-l,0.0001);
-  const tr=Math.max(range,Math.abs(h-o),Math.abs(l-o),p*0.01);
+  const range=Math.max(h-lo,0.0001);
+  const tr=Math.max(range,Math.abs(h-o),Math.abs(lo-o),p*0.01);
   const atrPct=(tr/p)*100;
-  const closeStr=(p-l)/range;
-  const mfm=((p-l)-(h-p))/range; // A/D MFM
-  const typP=(h+l+p)/3;
+  const dolVol=p*vol;
+
+  // ── 6 TEMEL MOMENTUM GÖSTERGESİ ──
+
+  // 1. CLOSE STRENGTH — Günün en yüksek noktasına yakın kapandı mı?
+  // WSHP: %96 → alıcılar hâlâ kontrolde, satıcı çıkmamış
+  const closeStr=(p-lo)/range;
+
+  // 2. A/D MONEY FLOW MULTIPLIER — Para girişi mi çıkışı mı?
+  // WSHP: 0.92 → güçlü para girişi, kurumsal alım
+  const mfm=((p-lo)-(h-p))/range;
+
+  // 3. RVOL — Hacim anomalisi
+  // WSHP: 4.9x → normalin 5 katı, ilgi devam ediyor
+  // RMSG: 78x → aşırı ilgi
+
+  // 4. GAP ANALİZİ — Açılış ile kapanış arasındaki boşluk dolduruldu mu?
+  // Açılış gap'i büyük ve kapanış gap üstündeyse momentum güçlü
+  const openGapPct=o>0?(p-o)/o*100:0; // bugün açılıştan yükseliş
+  const gapFilled=openGapPct>0; // açılıştan yukarı kapanış = güçlü
+
+  // 5. VWAP KONUMU
+  const typP=(h+lo+p)/3;
   const vwapP=(typP*vol+o*avgVol)/(vol+avgVol);
   const aboveVWAP=p>=vwapP;
+  const vwapDist=((p-vwapP)/vwapP)*100;
+
+  // 6. RS vs SPY — Piyasaya göre görece güç
   const rsVsSPY=activeChg-mkt.spyE;
+
+  // ── MOMENTUM SKORU (0-100) ──
+  // Bu skor "devam eder mi?" sorusunu yanıtlar
+  let momScore=0;
+
+  // Close Strength: en önemli momentum göstergesi
+  // WSHP %96 → ertesi gün büyük ihtimalle devam
+  if(closeStr>=0.90){momScore+=30;}
+  else if(closeStr>=0.75){momScore+=22;}
+  else if(closeStr>=0.55){momScore+=12;}
+  else if(closeStr>=0.35){momScore+=4;}
+  else{momScore-=15;} // dip kapanış = satış baskısı var
+
+  // A/D Money Flow
+  if(mfm>0.70){momScore+=25;}
+  else if(mfm>0.40){momScore+=18;}
+  else if(mfm>0.15){momScore+=10;}
+  else if(mfm>-0.15){momScore+=3;}
+  else if(mfm<-0.40){momScore-=15;}
+
+  // RVOL — Hacim devam ediyor mu?
+  if(rvol>=20){momScore+=20;}
+  else if(rvol>=8){momScore+=16;}
+  else if(rvol>=4){momScore+=12;}
+  else if(rvol>=2){momScore+=8;}
+  else if(rvol>=1.2){momScore+=4;}
+  else{momScore-=5;}
+
+  // Gap devam — açılıştan yükseliş
+  if(openGapPct>20){momScore+=10;}
+  else if(openGapPct>5){momScore+=6;}
+  else if(openGapPct>0){momScore+=2;}
+  else{momScore-=5;}
+
+  // VWAP üstü
+  if(aboveVWAP&&vwapDist>5){momScore+=8;}
+  else if(aboveVWAP){momScore+=4;}
+  else{momScore-=8;}
+
+  // RS pozitif
+  if(rsVsSPY>10){momScore+=7;}
+  else if(rsVsSPY>3){momScore+=4;}
+  else if(rsVsSPY>0){momScore+=1;}
+  else if(rsVsSPY<-5){momScore-=8;}
+
+  momScore=Math.max(0,Math.min(100,momScore));
+
+  // ── CATALYST SKORU (0-100) ──
+  // Bu skor "ne kadar patlama potansiyeli var?" sorusunu yanıtlar
+  let catScore=0;
   const distFromH52=h52>0?(h52-p)/h52*100:50;
-  const distFromL52=l52>0?(p-l52)/l52*100:100;
-  const dolVol=p*vol;
+
+  // Pre/AH sinyal
+  const bestExt=Math.max(Math.abs(preChg),Math.abs(postChg));
+  const bestExtSign=(Math.abs(preChg)>Math.abs(postChg)?preChg:postChg);
+  if(bestExtSign>30){catScore+=30;}
+  else if(bestExtSign>15){catScore+=24;}
+  else if(bestExtSign>8){catScore+=17;}
+  else if(bestExtSign>4){catScore+=11;}
+  else if(bestExtSign>1){catScore+=5;}
+  else if(bestExtSign<-8){catScore-=15;}
+
+  // 52H düşüş = rebound potansiyeli
+  if(distFromH52>80){catScore+=20;}
+  else if(distFromH52>60){catScore+=14;}
+  else if(distFromH52>40){catScore+=8;}
+  else if(distFromH52>20){catScore+=3;}
+
+  // Fiyat/cap
+  if(p<0.50){catScore+=12;}
+  else if(p<1){catScore+=8;}
+  else if(p<5){catScore+=5;}
+  else if(p<15){catScore+=3;}
+
+  if(cap>0&&cap<5e6){catScore+=12;}
+  else if(cap<20e6){catScore+=8;}
+  else if(cap<100e6){catScore+=4;}
+  else if(cap>5e9){catScore-=5;}
+
+  // Short squeeze
+  if(sf>25&&rvol>2){catScore+=10;}
+  else if(sf>15){catScore+=5;}
+
+  catScore=Math.max(0,Math.min(100,catScore));
+
+  // ── KOMPOZİT SKOR ──
+  // Momentum %60 + Catalyst %40
+  const compositeScore=Math.round(momScore*0.60+catScore*0.40);
+
+  // ── KARAR: AL / İZLE / DİKKATLİ / KAÇIN ──
+  // Sadece matematiksel — yükselmiş/düşmüş ayrımı YOK
+  let verdict='',verdictClass='',verdictIcon='';
+
+  // WSHP durumu:
+  // closeStr %96 + mfm 0.92 + rvol 4.9x = momScore yüksek = AL devam eder
+  if(momScore>=65&&catScore>=40){
+    verdict='🟢 AL — Momentum Güçlü';verdictClass='v-buy';verdictIcon='AL';
+  }else if(momScore>=50&&catScore>=30){
+    verdict='🟡 İZLE — Dikkatli Giriş';verdictClass='v-watch';verdictIcon='İZLE';
+  }else if(momScore>=35||(momScore>=25&&catScore>=40)){
+    verdict='🟠 DİKKATLİ — Zayıf Momentum';verdictClass='v-caution';verdictIcon='DİKKAT';
+  }else{
+    verdict='🔴 KAÇIN — Momentum Yok';verdictClass='v-avoid';verdictIcon='KAÇIN';
+  }
+
+  // Olasılık hesabı
+  const prob=Math.round(20+(compositeScore/100)*72);
+  if(prob<28){dlog(`${sym}: prob ${prob}% < 28%, hariç`,'info');return null;}
+
+  const tier=prob>=68?'A':prob>=52?'B':'C';
 
   // ── PATTERN TİPİ ──
   let pt='hybrid';
   if(p<2&&cap>0&&cap<30e6)pt='rmsg';
-  else if(distFromH52>50&&cap>=20e6&&cap<300e6)pt='wshp';
+  else if(distFromH52>50&&cap>=20e6&&cap<500e6)pt='wshp';
 
-  // ══════════════════════════════════════════
-  // SKOR — Her kriterden puan toplanır
-  // ══════════════════════════════════════════
-  let score=0;
-  const pos=[],neg=[];
+  // ── GİRİŞ VE ÇIKIŞ SEVİYELERİ ──
+  // Momentum gücüne göre dinamik hesap
 
-  // [1] PRE/AH DEĞİŞİM — en kritik (max 30)
-  const bestExtChg=Math.max(Math.abs(preChg),Math.abs(postChg));
-  const bestExtSign=(Math.abs(preChg)>Math.abs(postChg)?preChg:postChg);
-  if(bestExtSign>30){score+=30;pos.push(`${hasPreData&&Math.abs(preChg)>Math.abs(postChg)?'Pre':'AH'} +${f(bestExtSign,0)}% 💥`);}
-  else if(bestExtSign>15){score+=24;pos.push(`${activeLbl} +${f(bestExtSign,1)}% 🔥`);}
-  else if(bestExtSign>8){score+=17;pos.push(`${activeLbl} +${f(bestExtSign,1)}%`);}
-  else if(bestExtSign>4){score+=11;pos.push(`${activeLbl} +${f(bestExtSign,1)}%`);}
-  else if(bestExtSign>1.5){score+=6;pos.push(`${activeLbl} +${f(bestExtSign,1)}%`);}
-  else if(bestExtSign>0){score+=2;}
-  else if(bestExtSign<-8){score-=15;neg.push(`${activeLbl} ${f(bestExtSign,1)}%`);}
-  else if(bestExtSign<-2){score-=6;}
+  // Stop: CloseStr yüksekse dar stop, düşükse geniş
+  const stopMult=closeStr>=0.8?0.88:closeStr>=0.6?0.84:0.80;
+  // TP: Momentum gücüne ve geçmiş harekete göre
+  const tp1Mult=momScore>=65?1.50:momScore>=50?1.35:1.25;
+  const tp2Mult=momScore>=65?2.20:momScore>=50?1.80:1.50;
+  const tp3Mult=momScore>=65?(chg>100?3.5:2.8):2.2; // Zaten hareketli hissede agresif hedef
 
-  // [2] RVOL (max 22)
-  if(rvol>=30){score+=22;pos.push(`RVOL ${f(rvol,0)}x 🔥🔥`);}
-  else if(rvol>=10){score+=18;pos.push(`RVOL ${f(rvol,1)}x 🔥`);}
-  else if(rvol>=5){score+=13;pos.push(`RVOL ${f(rvol,1)}x`);}
-  else if(rvol>=3){score+=9;pos.push(`RVOL ${f(rvol,1)}x`);}
-  else if(rvol>=2){score+=6;pos.push(`RVOL ${f(rvol,1)}x`);}
-  else if(rvol>=1.5){score+=3;}
-  else if(rvol>=1){score+=1;}
-  else{score-=5;neg.push(`RVOL ${f(rvol,2)}x`);}
-
-  // [3] REBOUND POZİSYONU (max 18) — WSHP için kritik
-  if(distFromH52>80){score+=18;pos.push(`52H Dip -%${f(distFromH52,0)}`);}
-  else if(distFromH52>60){score+=13;pos.push(`Dip Zone -%${f(distFromH52,0)}`);}
-  else if(distFromH52>40){score+=8;}
-  else if(distFromH52>20){score+=4;}
-  else if(distFromH52<5){score+=6;pos.push('52H Kırılım');}
-
-  // [4] KAPANIŞ GÜCÜ (max 14)
-  if(closeStr>=0.85){score+=14;pos.push('Tepe Kapanış');}
-  else if(closeStr>=0.70){score+=10;pos.push('Güçlü Kapanış');}
-  else if(closeStr>=0.55){score+=6;}
-  else if(closeStr>=0.40){score+=2;}
-  else if(closeStr<0.20){score-=8;neg.push('Dip Kapanış');}
-
-  // [5] FİYAT BANDI (max 12) — nano bonus
-  if(p<0.50){score+=12;pos.push('Sub-$0.50 Nano');}
-  else if(p<1){score+=9;pos.push('Sub-$1');}
-  else if(p<3){score+=6;pos.push('$1-3 Band');}
-  else if(p<10){score+=4;}
-  else if(p<20){score+=2;}
-
-  // [6] RS vs SPY (max 12)
-  if(rsVsSPY>8){score+=12;pos.push(`RS+++ SPY`);}
-  else if(rsVsSPY>4){score+=9;pos.push(`RS++ SPY`);}
-  else if(rsVsSPY>1){score+=6;pos.push(`RS+ SPY`);}
-  else if(rsVsSPY>0){score+=2;}
-  else if(rsVsSPY<-4){score-=8;neg.push('Zayıf RS');}
-  else if(rsVsSPY<-1){score-=3;}
-
-  // [7] A/D & VWAP (max 10)
-  if(mfm>0.5&&rvol>1){score+=10;pos.push('Para Girişi Güçlü');}
-  else if(mfm>0.2){score+=6;pos.push('A/D Pozitif');}
-  else if(aboveVWAP){score+=3;}
-  else if(mfm<-0.5&&rvol>2){score-=7;neg.push('Para Çıkışı');}
-
-  // [8] ATR VOLATİLİTE (max 8)
-  if(atrPct>30){score+=8;pos.push(`ATR ${f(atrPct,0)}% Yüksek`);}
-  else if(atrPct>15){score+=5;pos.push(`ATR ${f(atrPct,0)}%`);}
-  else if(atrPct>7){score+=2;}
-  else{score-=2;}
-
-  // [9] MARKET CAP (max 8)
-  if(cap>0&&cap<5e6){score+=8;pos.push('Nano <$5M');}
-  else if(cap<20e6){score+=6;pos.push('Nano <$20M');}
-  else if(cap<100e6){score+=4;pos.push('Micro');}
-  else if(cap<500e6){score+=2;}
-  else if(cap>5e9){score-=3;}
-
-  // [10] PİYASA BAĞLAMI (±6)
-  if(mkt.bias==='bull'){score+=5;}
-  else if(mkt.bias==='bear'){
-    const pen=pt==='rmsg'?-4:-10; // nano piyasadan bağımsız
-    score+=pen;
-    if(pen<-6)neg.push('Ayı Piyasası');
-  }
-
-  // CEZALAR
-  if(dolVol<20000){score-=10;neg.push('$Hacim <$20K');}
-  else if(dolVol<100000){score-=5;}
-  if(chg>80&&!hasPostData&&!hasPreData){score-=18;neg.push(`Bugün +${f(chg,0)}% Tükendi`);}
-  else if(chg>50&&!hasPostData&&!hasPreData){score-=10;}
-
-  if(score<0)score=0;
-  const finalScore=Math.min(score,100);
-
-  // OLASILIK — geniş aralık, düşük minimum
-  const prob=Math.round(15+(finalScore/100)*78);
-
-  debugLog(`${sym}: score=${finalScore} prob=${prob}% rvol=${f(rvol,1)}x pre=${f(preChg,1)}% post=${f(postChg,1)}% cap=${fl(cap)} pt=${pt}`,'ok');
-
-  // Düşük eşik — daha fazla hisse göster
-  if(prob<30){debugLog(`${sym}: prob ${prob}% < 30%, hariç`,'info');return null;}
-
-  const tier=prob>=70?'A':prob>=55?'B':'C';
-
-  // Stop / TP hesabı — pattern tipine göre
-  const stopPct=pt==='rmsg'?0.78:pt==='wshp'?0.85:0.82;
-  const tp1Pct=pt==='rmsg'?1.50:pt==='wshp'?1.30:1.40;
-  const tp2Pct=pt==='rmsg'?2.00:pt==='wshp'?1.60:1.80;
-  const tp3Pct=pt==='rmsg'?3.50:pt==='wshp'?2.50:3.00;
-  const entry=activeP||p;
-  const stopL=parseFloat((entry*stopPct).toFixed(entry<1?4:2));
-  const tp1=parseFloat((entry*tp1Pct).toFixed(entry<1?4:2));
-  const tp2=parseFloat((entry*tp2Pct).toFixed(entry<1?4:2));
-  const tp3=parseFloat((entry*tp3Pct).toFixed(entry<1?4:2));
-  const trailing=parseFloat((tp1*0.88).toFixed(entry<1?4:2));
+  const entry=activeP;
+  const stopL=parseFloat((entry*stopMult).toFixed(fp(entry).length>4?4:2));
+  const tp1=parseFloat((entry*tp1Mult).toFixed(fp(entry).length>4?4:2));
+  const tp2=parseFloat((entry*tp2Mult).toFixed(fp(entry).length>4?4:2));
+  const tp3=parseFloat((entry*tp3Mult).toFixed(fp(entry).length>4?4:2));
+  const trailing=parseFloat((tp1*0.88).toFixed(fp(tp1).length>4?4:2));
   const rr=((tp1-entry)/Math.max(entry-stopL,0.0001)).toFixed(1);
+  const stopPctDisp=Math.round((1-stopMult)*100);
+  const tp1PctDisp=Math.round((tp1Mult-1)*100);
+  const tp3PctDisp=Math.round((tp3Mult-1)*100);
+
+  // Sinyaller
+  const pos=[],neg=[];
+  if(closeStr>=0.85)pos.push(`CloseStr ${Math.round(closeStr*100)}% 🔥`);
+  else if(closeStr>=0.65)pos.push(`CloseStr ${Math.round(closeStr*100)}%`);
+  else neg.push(`Zayıf Kapanış ${Math.round(closeStr*100)}%`);
+  if(mfm>0.7)pos.push(`A/D ${f(mfm,2)} Güçlü`);
+  else if(mfm>0.3)pos.push(`A/D ${f(mfm,2)}`);
+  else if(mfm<-0.3)neg.push(`A/D ${f(mfm,2)} Zayıf`);
+  if(rvol>=10)pos.push(`RVOL ${f(rvol,1)}x 🔥`);
+  else if(rvol>=3)pos.push(`RVOL ${f(rvol,1)}x`);
+  else if(rvol>=1.5)pos.push(`RVOL ${f(rvol,1)}x`);
+  else neg.push(`RVOL ${f(rvol,2)}x`);
+  if(aboveVWAP&&vwapDist>5)pos.push('VWAP Üstü+');
+  else if(aboveVWAP)pos.push('VWAP Üstü');
+  else neg.push('VWAP Altı');
+  if(rsVsSPY>5)pos.push(`RS+++ ${f(rsVsSPY,0)}`);
+  else if(rsVsSPY>2)pos.push(`RS+ ${f(rsVsSPY,0)}`);
+  else if(rsVsSPY<-3)neg.push(`Zayıf RS ${f(rsVsSPY,0)}`);
+  if(distFromH52>60)pos.push(`52H -%${f(distFromH52,0)} Rebound`);
+  else if(distFromH52<10)pos.push('52H Kırılım Zone');
+  if(Math.abs(preChg)>8)pos.push(`Pre ${preChg>0?'+':''}${f(preChg,1)}%`);
+  if(Math.abs(postChg)>8)pos.push(`AH ${postChg>0?'+':''}${f(postChg,1)}%`);
+  if(sf>20&&rvol>2)pos.push(`Short ${f(sf,0)}% Squeeze`);
+  if(openGapPct>20)pos.push(`Gap Devam +${f(openGapPct,0)}%`);
+
+  dlog(`${sym}: mom=${momScore} cat=${catScore} comp=${compositeScore} prob=${prob}% → ${verdictIcon} | rvol=${f(rvol,1)}x close=${Math.round(closeStr*100)}% mfm=${f(mfm,2)} rs=${f(rsVsSPY,1)}`,'ok');
 
   return{
     sym,name:(d.shortName||sym).slice(0,22),
     p,activeP:entry,activeLbl,preChg,postChg,chg,activeChg,
     vol,avgVol,rvol,atrPct:parseFloat(atrPct.toFixed(1)),
     closeStr:parseFloat(closeStr.toFixed(3)),mfm:parseFloat(mfm.toFixed(3)),
-    aboveVWAP,rsVsSPY:parseFloat(rsVsSPY.toFixed(2)),
-    cap,sf,h52,l52,distFromH52:parseFloat(distFromH52.toFixed(0)),
-    distFromL52:parseFloat(distFromL52.toFixed(0)),dolVol,
-    score:finalScore,prob,tier,pt,
+    aboveVWAP,vwapDist:parseFloat(vwapDist.toFixed(2)),rsVsSPY:parseFloat(rsVsSPY.toFixed(2)),
+    openGapPct:parseFloat(openGapPct.toFixed(1)),
+    cap,sf,h52,l52,distFromH52:parseFloat(distFromH52.toFixed(0)),dolVol,
+    momScore,catScore,compositeScore,prob,tier,
+    verdict,verdictClass,verdictIcon,pt,
     pos,neg,
-    stopL,tp1,tp2,tp3,trailing,rr,
-    stopPctDisp:Math.round((1-stopPct)*100),
-    tp1PctDisp:Math.round((tp1Pct-1)*100),
-    tp3PctDisp:Math.round((tp3Pct-1)*100),
+    entry,stopL,tp1,tp2,tp3,trailing,rr,
+    stopPctDisp,tp1PctDisp,tp3PctDisp,
     hasPreData,hasPostData,
   };
 }
@@ -570,105 +622,99 @@ function scoreStock(d){
 // ═══════════════════════════════════════════════════════════
 async function runScan(){
   if(isRunning)return;
-  isRunning=true;
-  candidates=[];allScored=[];debugLines=[];
+  isRunning=true;candidates=[];allScored=[];debugLines=[];
   const btn=document.getElementById('scan-btn');
   btn.disabled=true;btn.innerHTML='<div class="sp"></div> Taranıyor...';
   document.getElementById('prog').classList.add('on');
   document.getElementById('cards-wrap').innerHTML=
-    '<div class="empty"><div class="empty-ic">⏳</div>Hisseler taranıyor...</div>';
+    '<div class="empty"><div class="empty-ic">⏳</div>Momentum analizi yapılıyor...</div>';
   goTab('live');
 
-  debugLog('=== TARAMA BAŞLADI ===','head');
-  debugLog(`Universe: ${UNIVERSE.length} sembol · Seans: ${getSess().l}`,'head');
-
+  dlog('=== TARAMA BAŞLADI ===','head');
+  dlog(`Universe: ${UNIVERSE.length} · Seans: ${getSess().l}`,'head');
   await loadMkt();
+  dlog(`SPY:${f(mkt.spyE)}% QQQ:${f(mkt.qqqE)}% VIX:${f(mkt.vix)} Bias:${mkt.bias.toUpperCase()}`,'ok');
   setProg(5,'Piyasa hazır');
 
-  const total=UNIVERSE.length;let scanned=0;
   const batches=[];
   for(let i=0;i<UNIVERSE.length;i+=20)batches.push(UNIVERSE.slice(i,i+20));
+  let scanned=0;
 
   for(let bi=0;bi<batches.length;bi++){
     let rows=[];
-    try{rows=await fetchQ(batches[bi]);}
-    catch(e){debugLog(`Batch ${bi} istisna: ${e.message}`,'err');}
-
+    try{rows=await fetchQ(batches[bi]);}catch(e){dlog(`Batch hata: ${e.message}`,'err');}
     for(const d of rows){
       scanned++;
-      const r=scoreStock(d);
-      if(r){
-        allScored.push(r);
-        if(r.prob>=30)candidates.push(r);
-      }
+      const r=analyzeStock(d);
+      if(r){allScored.push(r);if(r.prob>=28)candidates.push(r);}
     }
-
     const pct=Math.round((bi+1)/batches.length*88)+5;
-    setProg(pct,`${scanned}/${total} · ${candidates.length} aday`);
+    setProg(pct,`${scanned}/${UNIVERSE.length} · ${candidates.length} aday`);
     document.getElementById('v-sc').textContent=scanned;
     document.getElementById('v-pa').textContent=candidates.length;
-    document.getElementById('v-r').textContent=candidates.filter(c=>c.pt==='rmsg').length;
-    document.getElementById('v-w').textContent=candidates.filter(c=>c.pt==='wshp').length;
+    document.getElementById('v-buy').textContent=candidates.filter(c=>c.verdictIcon==='AL').length;
+    document.getElementById('v-watch').textContent=candidates.filter(c=>c.verdictIcon==='İZLE').length;
+    document.getElementById('v-avoid').textContent=candidates.filter(c=>c.verdictIcon==='KAÇIN').length;
   }
 
-  candidates.sort((a,b)=>b.prob-a.prob||b.rvol-a.rvol);
-  allScored.sort((a,b)=>b.prob-a.prob);
+  // Sırala: AL > İZLE > DİKKAT > KAÇIN, sonra compositeScore
+  const order={AL:0,İZLE:1,DİKKAT:2,KAÇIN:3};
+  candidates.sort((a,b)=>{
+    const oa=order[a.verdictIcon]??9,ob=order[b.verdictIcon]??9;
+    return oa!==ob?oa-ob:b.compositeScore-a.compositeScore;
+  });
+  allScored.sort((a,b)=>b.compositeScore-a.compositeScore);
 
-  debugLog(`=== TAMAMLANDI: ${scanned} tarandı, ${candidates.length} aday ===`,'head');
-  debugLog(`RMSG-tip: ${candidates.filter(c=>c.pt==='rmsg').length} · WSHP-tip: ${candidates.filter(c=>c.pt==='wshp').length} · Hybrid: ${candidates.filter(c=>c.pt==='hybrid').length}`,'ok');
+  dlog(`=== BİTTİ: ${scanned} tarандı, ${candidates.length} aday ===`,'head');
+  dlog(`AL: ${candidates.filter(c=>c.verdictIcon==='AL').length} · İZLE: ${candidates.filter(c=>c.verdictIcon==='İZLE').length} · DİKKAT: ${candidates.filter(c=>c.verdictIcon==='DİKKAT').length} · KAÇIN: ${candidates.filter(c=>c.verdictIcon==='KAÇIN').length}`,'ok');
 
   setProg(98,'Render...');
   await new Promise(r=>setTimeout(r,100));
 
-  updateStats();
-  renderCards();
-  renderAll();
-
-  document.getElementById('v-time').textContent=
-    new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  setProg(100,`✅ ${candidates.length} aday (prob ≥ 30%)`);
+  updateStats();renderCards();renderAll();
+  document.getElementById('v-time').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setProg(100,`✅ ${candidates.length} aday · AL: ${candidates.filter(c=>c.verdictIcon==='AL').length}`);
   setTimeout(()=>document.getElementById('prog').classList.remove('on'),3500);
   btn.disabled=false;btn.innerHTML='⚡ TARA';
   isRunning=false;
 }
 
-// ═══════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════
 function updateStats(){
   const c=candidates;
   document.getElementById('st-tot').textContent=c.length;
-  document.getElementById('st-r').textContent=c.filter(x=>x.pt==='rmsg').length;
-  document.getElementById('st-w').textContent=c.filter(x=>x.pt==='wshp').length;
-  document.getElementById('st-h').textContent=c.filter(x=>x.pt==='hybrid').length;
-  document.getElementById('st-a').textContent=c.filter(x=>x.tier==='A').length;
+  document.getElementById('st-buy').textContent=c.filter(x=>x.verdictIcon==='AL').length;
+  document.getElementById('st-watch').textContent=c.filter(x=>x.verdictIcon==='İZLE').length;
+  document.getElementById('st-caution').textContent=c.filter(x=>x.verdictIcon==='DİKKAT').length;
+  document.getElementById('st-avoid').textContent=c.filter(x=>x.verdictIcon==='KAÇIN').length;
   document.getElementById('st-max').textContent=(c[0]?.prob||0)+'%';
 }
 
 const ptColor={rmsg:'var(--pink)',wshp:'var(--gold)',hybrid:'var(--cyan)'};
-const ptLabel={rmsg:'💜 RMSG-tip · Nano Catalyst',wshp:'🟡 WSHP-tip · Micro Rebound',hybrid:'🔵 Hybrid'};
-const ptFillClass={rmsg:'pf-rmsg',wshp:'pf-wshp',hybrid:'pf-hybrid'};
-const pcColor=p=>p>=70?'var(--green)':p>=55?'var(--yellow)':p>=40?'var(--orange)':'var(--text2)';
+const ptLabel={rmsg:'💜 RMSG · Nano Catalyst',wshp:'🟡 WSHP · Micro Rebound',hybrid:'🔵 Hybrid'};
+const pcColor=p=>p>=68?'var(--green)':p>=52?'var(--yellow)':p>=38?'var(--orange)':'var(--text2)';
 
 function renderCards(){
   const el=document.getElementById('cards-wrap');
   const data=candidates.slice(0,10);
   if(!data.length){
-    el.innerHTML=`<div class="empty">
-      <div class="empty-ic">🔍</div>
-      Prob ≥ 30% eşiğini geçen hisse bulunamadı<br>
-      <span style="font-size:0.6rem;color:var(--text3);">
-        Debug sekmesine bakın — ne olduğunu görebilirsiniz<br>
-        Pre-market veya After-Hours saatinde daha fazla sinyal çıkar
-      </span>
-    </div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ic">🔍</div>Aday bulunamadı<br><span style="font-size:0.6rem;color:var(--text3);">Debug sekmesine bakın · Pre/AH saatinde daha fazla sinyal çıkar</span></div>`;
     return;
   }
   const em=['⚡','🔥','💥','🚀','⭐','💫','🎯','🌟','🏆','💎'];
   el.innerHTML='<div class="cards-grid">'+data.map((r,i)=>{
-    const aPchg=r.hasPreData?r.preChg:r.hasPostData?r.postChg:r.chg;
+    const aPchg=r.hasPreData&&getSess().s==='pre'?r.preChg:r.hasPostData?r.postChg:r.chg;
     const aPcls=aPchg>=0?'up':'dn';
     const ptc=ptColor[r.pt]||'var(--cyan)';
+
+    // Momentum gauge
+    const gaugeItems=[
+      {l:'Close Strength',v:r.closeStr*100,max:100,c:r.closeStr>=0.75?'var(--green)':'var(--yellow)',disp:Math.round(r.closeStr*100)+'%'},
+      {l:'A/D Money Flow',v:(r.mfm+1)/2*100,max:100,c:r.mfm>0.4?'var(--green)':r.mfm<-0.2?'var(--red)':'var(--yellow)',disp:f(r.mfm,2)},
+      {l:'RVOL',v:Math.min(r.rvol/15*100,100),max:100,c:r.rvol>=4?'var(--pink)':r.rvol>=1.5?'var(--green)':'var(--text2)',disp:f(r.rvol,1)+'x'},
+      {l:'VWAP Uzaklık',v:Math.min((r.vwapDist+10)/20*100,100),max:100,c:r.aboveVWAP?'var(--green)':'var(--red)',disp:(r.vwapDist>0?'+':'')+f(r.vwapDist,1)+'%'},
+      {l:'RS vs SPY',v:Math.min((r.rsVsSPY+10)/20*100,100),max:100,c:r.rsVsSPY>3?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--yellow)',disp:(r.rsVsSPY>0?'+':'')+f(r.rsVsSPY,1)},
+    ];
+
     return`<div class="cc" data-pt="${r.pt}">
       <span class="tier-tag tt-${r.tier}">TIER ${r.tier}</span>
       <div class="cc-head">
@@ -687,86 +733,62 @@ function renderCards(){
         </div>
       </div>
 
+      <!-- KARAR -->
+      <div class="verdict ${r.verdictClass}">${r.verdict}</div>
+
+      <!-- PROB -->
       <div class="pm-wrap">
         <div class="pm-top">
-          <span class="pm-lbl">Patlama Olasılığı</span>
+          <span class="pm-lbl">Momentum Devam Olasılığı · Composite: ${r.compositeScore}/100 (Mom:${r.momScore} Cat:${r.catScore})</span>
           <span class="pm-pct" style="color:${pcColor(r.prob)};">${r.prob}%</span>
         </div>
-        <div class="pm-bar"><div class="pmf ${ptFillClass[r.pt]}" style="width:${r.prob}%;"></div></div>
-        <div class="pm-sub">Hedef: +${r.tp1PctDisp}% → +${r.tp3PctDisp}% · Stop: -%${r.stopPctDisp} · Composite: ${r.score}/100</div>
+        <div class="pm-bar"><div class="pmf pf-${r.pt}" style="width:${r.prob}%;"></div></div>
       </div>
 
-      <div class="mets">
-        <div class="met">
-          <div class="met-l">RVOL</div>
-          <div class="met-v" style="color:${r.rvol>=10?'var(--pink)':r.rvol>=3?'var(--green)':r.rvol>=1.5?'var(--yellow)':'var(--text2)'};">${f(r.rvol,2)}x</div>
-          <div class="met-b"><div class="met-bf" style="width:${Math.min(r.rvol/20*100,100)}%;background:var(--green);"></div></div>
-        </div>
-        <div class="met">
-          <div class="met-l">CloseStr</div>
-          <div class="met-v" style="color:${r.closeStr>=0.7?'var(--green)':r.closeStr>=0.5?'var(--yellow)':'var(--red)'};">${Math.round(r.closeStr*100)}%</div>
-          <div class="met-b"><div class="met-bf" style="width:${r.closeStr*100}%;background:var(--cyan);"></div></div>
-        </div>
-        <div class="met">
-          <div class="met-l">52H Düşüş</div>
-          <div class="met-v" style="color:${r.distFromH52>60?'var(--green)':r.distFromH52>30?'var(--yellow)':'var(--text2)'};">%${r.distFromH52}</div>
-          <div class="met-b"><div class="met-bf" style="width:${Math.min(r.distFromH52,100)}%;background:var(--purple);"></div></div>
-        </div>
-        <div class="met">
-          <div class="met-l">ATR%</div>
-          <div class="met-v">${r.atrPct}%</div>
-          <div class="met-b"><div class="met-bf" style="width:${Math.min(r.atrPct/30*100,100)}%;background:var(--orange);"></div></div>
-        </div>
-        <div class="met">
-          <div class="met-l">A/D MFM</div>
-          <div class="met-v" style="color:${r.mfm>0.3?'var(--green)':r.mfm<-0.3?'var(--red)':'var(--text2)'};">${f(r.mfm,2)}</div>
-        </div>
-        <div class="met">
-          <div class="met-l">RS/SPY</div>
-          <div class="met-v" style="color:${r.rsVsSPY>2?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--text2)'};">${r.rsVsSPY>0?'+':''}${f(r.rsVsSPY,1)}</div>
-        </div>
-        <div class="met">
-          <div class="met-l">Mkt Cap</div>
-          <div class="met-v" style="font-size:0.64rem;color:${r.cap<20e6?'var(--pink)':r.cap<100e6?'var(--gold)':'var(--text2)'};">${fl(r.cap)}</div>
-        </div>
-        <div class="met">
-          <div class="met-l">$Hacim</div>
-          <div class="met-v" style="font-size:0.64rem;">${fl(r.dolVol)}</div>
-        </div>
+      <!-- MOMENTUM GAUGE -->
+      <div class="gauge-wrap">
+        <div class="gauge-title">📊 Momentum Gösterge Paneli</div>
+        ${gaugeItems.map(g=>`
+          <div class="gauge-row">
+            <div class="gauge-lbl">${g.l}</div>
+            <div class="gauge-bar"><div class="gauge-fill" style="width:${Math.max(0,Math.min(g.v,100))}%;background:${g.c};border-radius:3px;"></div></div>
+            <div class="gauge-val" style="color:${g.c};">${g.disp}</div>
+          </div>`).join('')}
       </div>
 
       <div class="sigs">
         ${r.pos.map(s=>`<span class="sig sg">${s}</span>`).join('')}
-        ${r.neg.slice(0,2).map(s=>`<span class="sig sr">${s}</span>`).join('')}
+        ${r.neg.map(s=>`<span class="sig sr">${s}</span>`).join('')}
       </div>
 
+      <!-- SEVİYELER -->
       <div class="lvls">
-        <div class="lvls-title">🎯 Tek Giriş · Tek Çıkış (${r.pt.toUpperCase()} pattern)</div>
+        <div class="lvls-title">🎯 Giriş / Stop / Hedefler — ${r.verdictIcon==='AL'?'Momentum Güçlü — Gir':r.verdictIcon==='İZLE'?'Onay Bekle — İzle':r.verdictIcon==='DİKKAT'?'Dikkatli Ol':'Girme'}</div>
         <div class="lvls-grid">
           <div class="lv">
             <div class="lv-l">📍 Giriş</div>
-            <div class="lv-v" style="color:var(--cyan);">$${fp(r.activeP)}</div>
-            <div class="lv-sub">${r.activeLbl}</div>
+            <div class="lv-v" style="color:${r.verdictIcon==='AL'?'var(--green)':r.verdictIcon==='İZLE'?'var(--yellow)':'var(--red)'};">$${fp(r.entry)}</div>
+            <div class="lv-sub">${r.activeLbl} · ${r.verdictIcon}</div>
           </div>
           <div class="lv">
             <div class="lv-l">🛑 Stop (-%${r.stopPctDisp})</div>
             <div class="lv-v" style="color:var(--red);">$${fp(r.stopL)}</div>
-            <div class="lv-sub">Kesin çıkış seviyesi</div>
+            <div class="lv-sub">Kesin çıkış</div>
           </div>
           <div class="lv">
             <div class="lv-l">✅ TP1 (+${r.tp1PctDisp}%)</div>
             <div class="lv-v" style="color:var(--green);">$${fp(r.tp1)}</div>
-            <div class="lv-sub">İlk hedef — %50 çıkış</div>
+            <div class="lv-sub">%50 çıkış</div>
           </div>
           <div class="lv">
-            <div class="lv-l">🚀 TP2 (+${Math.round((r.tp2/r.activeP-1)*100)}%)</div>
+            <div class="lv-l">🚀 TP2 (+${Math.round((r.tp2/r.entry-1)*100)}%)</div>
             <div class="lv-v" style="color:var(--green);font-weight:900;">$${fp(r.tp2)}</div>
-            <div class="lv-sub">Ana hedef — %75 çıkış</div>
+            <div class="lv-sub">%75 çıkış</div>
           </div>
           <div class="lv">
             <div class="lv-l">💥 Max (+${r.tp3PctDisp}%)</div>
             <div class="lv-v" style="color:${ptc};font-weight:900;">$${fp(r.tp3)}</div>
-            <div class="lv-sub">RMSG/WSHP tipi</div>
+            <div class="lv-sub">Tam momentum</div>
           </div>
           <div class="lv">
             <div class="lv-l">⚡ R/R</div>
@@ -776,12 +798,14 @@ function renderCards(){
         </div>
         <div class="action">
           <div class="act-strategy">
-            TP1'e ulaşınca: %50 sat + stop → $${fp(r.trailing)} taşı<br>
-            TP2'de: %75 sat + kalan trailing stop ile tut
+            TP1'e ulaşınca: %50 sat · Stop → $${fp(r.trailing)} taşı<br>
+            TP2'de: %75 sat · Kalan trailing stop ile tut
           </div>
           <div style="text-align:right;">
-            <div class="act-label" style="color:${ptc};">TEK GİRİŞ</div>
-            <div style="font-size:0.48rem;color:var(--text3);">Tekrar giriş yapma</div>
+            <div class="act-label" style="color:${r.verdictIcon==='AL'?'var(--green)':r.verdictIcon==='İZLE'?'var(--yellow)':r.verdictIcon==='DİKKAT'?'var(--orange)':'var(--red)'};">
+              ${r.verdictIcon==='AL'?'GİR':'BEKLE'}
+            </div>
+            <div style="font-size:0.46rem;color:var(--text3);">Tek giriş · Tekrar girme</div>
           </div>
         </div>
       </div>
@@ -795,44 +819,34 @@ window.renderAll=function(){
   if(s)d=d.filter(r=>r.sym.includes(s)||r.name.toUpperCase().includes(s));
   if(!d.length){document.getElementById('all-tbl').innerHTML='<div class="empty">Tarama yapın</div>';return;}
   const ptc={rmsg:'var(--pink)',wshp:'var(--gold)',hybrid:'var(--cyan)'};
+  const vc={'AL':'var(--green)','İZLE':'var(--yellow)','DİKKAT':'var(--orange)','KAÇIN':'var(--red)'};
   let h=`<table><thead><tr>
-    <th>#</th><th>Sembol</th><th>Pattern</th><th>Fiyat</th>
-    <th>Pre%</th><th>AH%</th><th>RVOL</th><th>CloseStr</th>
-    <th>52H↓</th><th>RS/SPY</th><th>Cap</th><th>Stop</th>
-    <th>TP1</th><th>TP2</th><th>Max</th><th>R/R</th>
-    <th>Score</th><th>Prob</th>
+    <th>#</th><th>Sembol</th><th>Karar</th><th>Fiyat</th>
+    <th>CloseStr</th><th>A/D MFM</th><th>RVOL</th><th>VWAP</th><th>RS/SPY</th>
+    <th>Mom</th><th>Cat</th><th>Comp</th>
+    <th>Stop</th><th>TP1</th><th>TP2</th><th>Max</th><th>R/R</th><th>Prob</th>
   </tr></thead><tbody>`;
   d.forEach((r,i)=>{
-    const tc=r.tier==='A'?'var(--green)':r.tier==='B'?'var(--yellow)':r.prob>=40?'var(--orange)':'var(--text2)';
+    const vc2=vc[r.verdictIcon]||'var(--text2)';
     h+=`<tr>
       <td style="font-family:var(--mono);color:var(--text3);">${i+1}</td>
-      <td>
-        <div style="font-family:var(--mono);font-weight:900;color:var(--cyan);">${r.sym}</div>
-        <div style="font-size:0.5rem;color:var(--text3);">${r.name.slice(0,16)}</div>
-      </td>
-      <td style="font-family:var(--mono);font-weight:700;color:${ptc[r.pt]||'var(--cyan)'};">${r.pt.toUpperCase()}</td>
+      <td><div style="font-family:var(--mono);font-weight:900;color:var(--cyan);">${r.sym}</div><div style="font-size:0.5rem;color:var(--text3);">${r.name.slice(0,14)}</div></td>
+      <td><span style="font-family:var(--mono);font-weight:900;font-size:0.72rem;color:${vc2};">${r.verdictIcon}</span></td>
       <td style="font-family:var(--mono);font-weight:700;">$${fp(r.activeP)}</td>
-      <td style="font-family:var(--mono);color:${r.preChg>0?'var(--green)':r.preChg<0?'var(--red)':'var(--text3)'};">${r.preChg!==0?(r.preChg>0?'+':'')+f(r.preChg,1)+'%':'—'}</td>
-      <td style="font-family:var(--mono);color:${r.postChg>0?'var(--green)':r.postChg<0?'var(--red)':'var(--text3)'};">${r.postChg!==0?(r.postChg>0?'+':'')+f(r.postChg,1)+'%':'—'}</td>
+      <td style="font-family:var(--mono);color:${r.closeStr>=0.75?'var(--green)':'var(--yellow)'};">${Math.round(r.closeStr*100)}%</td>
+      <td style="font-family:var(--mono);color:${r.mfm>0.4?'var(--green)':r.mfm<-0.2?'var(--red)':'var(--yellow)'};">${f(r.mfm,2)}</td>
       <td style="font-family:var(--mono);color:${r.rvol>=5?'var(--pink)':r.rvol>=2?'var(--green)':'var(--text2)'};">${f(r.rvol,2)}x</td>
-      <td style="font-family:var(--mono);color:${r.closeStr>=0.7?'var(--green)':'var(--yellow)'};">${Math.round(r.closeStr*100)}%</td>
-      <td style="font-family:var(--mono);color:${r.distFromH52>60?'var(--green)':'var(--text2)'};">%${r.distFromH52}</td>
+      <td style="font-family:var(--mono);color:${r.aboveVWAP?'var(--green)':'var(--red)'};">${r.aboveVWAP?'+':'-'}${f(Math.abs(r.vwapDist),1)}%</td>
       <td style="font-family:var(--mono);color:${r.rsVsSPY>2?'var(--green)':r.rsVsSPY<0?'var(--red)':'var(--text2)'};">${r.rsVsSPY>0?'+':''}${f(r.rsVsSPY,1)}</td>
-      <td style="font-family:var(--mono);font-size:0.64rem;">${fl(r.cap)}</td>
+      <td style="font-family:var(--mono);color:${r.momScore>=65?'var(--green)':r.momScore>=45?'var(--yellow)':'var(--orange)'};">${r.momScore}</td>
+      <td style="font-family:var(--mono);color:${r.catScore>=60?'var(--green)':r.catScore>=35?'var(--yellow)':'var(--text2)'};">${r.catScore}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:${pcColor(r.prob)};">${r.compositeScore}</td>
       <td style="font-family:var(--mono);color:var(--red);">$${fp(r.stopL)}</td>
       <td style="font-family:var(--mono);color:var(--green);font-weight:700;">$${fp(r.tp1)}</td>
       <td style="font-family:var(--mono);color:var(--green);font-weight:900;">$${fp(r.tp2)}</td>
       <td style="font-family:var(--mono);color:${ptc[r.pt]||'var(--cyan)'};font-weight:900;">$${fp(r.tp3)}</td>
       <td style="font-family:var(--mono);color:${parseFloat(r.rr)>=2.5?'var(--green)':parseFloat(r.rr)>=1.5?'var(--yellow)':'var(--red)'};">${r.rr}x</td>
-      <td style="font-family:var(--mono);">${r.score}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <div style="width:35px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
-            <div style="width:${r.prob}%;height:100%;background:${tc};border-radius:2px;"></div>
-          </div>
-          <span style="font-family:var(--mono);font-weight:700;font-size:0.7rem;color:${tc};">${r.prob}%</span>
-        </div>
-      </td>
+      <td><span style="font-family:var(--mono);font-weight:700;font-size:0.7rem;color:${pcColor(r.prob)};">${r.prob}%</span></td>
     </tr>`;
   });
   document.getElementById('all-tbl').innerHTML=h+'</tbody></table>';
@@ -840,50 +854,34 @@ window.renderAll=function(){
 
 function renderGuide(){
   document.getElementById('guide-body').innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:12px;">
-    <div style="background:rgba(255,0,136,0.06);border:1px solid rgba(255,0,136,0.18);border-radius:9px;padding:12px;">
-      <div style="font-size:0.7rem;font-weight:900;color:var(--pink);margin-bottom:7px;">💜 RMSG Tipi — Nano Catalyst</div>
-      <div style="font-size:0.63rem;color:var(--text2);line-height:1.9;">
-        <b style="color:var(--text);">Giriş:</b> Pre-market RVOL 5x+ görününce al<br>
-        <b style="color:var(--text);">Stop:</b> Giriş -%22 · Kesin uygula<br>
-        <b style="color:var(--text);">TP1 +50%:</b> %50 sat<br>
-        <b style="color:var(--text);">TP2 +100%:</b> %25 daha sat<br>
-        <b style="color:var(--text);">Kalan %25:</b> Trailing stop (TP1×0.88)<br>
-        <b style="color:var(--yellow);">⚡ 2. gün genellikle düşer — bir defa al</b>
-      </div>
-    </div>
-    <div style="background:rgba(255,170,0,0.06);border:1px solid rgba(255,170,0,0.18);border-radius:9px;padding:12px;">
-      <div style="font-size:0.7rem;font-weight:900;color:var(--gold);margin-bottom:7px;">🟡 WSHP Tipi — Micro Rebound</div>
-      <div style="font-size:0.63rem;color:var(--text2);line-height:1.9;">
-        <b style="color:var(--text);">Giriş:</b> AH +15%+ veya pre-market 5-9 ET<br>
-        <b style="color:var(--text);">Stop:</b> Giriş -%15 · Sıkı tut<br>
-        <b style="color:var(--text);">TP1 +30%:</b> %50 sat<br>
-        <b style="color:var(--text);">TP2 +60%:</b> %25 daha sat<br>
-        <b style="color:var(--text);">Kalan %25:</b> Trailing stop (TP1×0.88)<br>
-        <b style="color:var(--yellow);">⚡ Çoklu haber varsa momentum devam eder</b>
-      </div>
+  <div style="background:rgba(255,0,136,0.06);border:1px solid rgba(255,0,136,0.18);border-radius:10px;padding:13px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:900;color:var(--pink);margin-bottom:8px;">💡 WSHP Örneği — Model Artık Nasıl Düşünüyor?</div>
+    <div style="font-size:0.64rem;color:var(--text2);line-height:1.9;">
+      WSHP sabah Pre-Market $14, açılış $34, kapanış $40 (+564%)<br>
+      <strong style="color:var(--text);">Eski yaklaşım:</strong> "+564% tükenmiş → KAÇIN" → <span style="color:var(--red);">YANLIŞ</span><br>
+      <strong style="color:var(--text);">Yeni yaklaşım:</strong> Close Strength %96 · A/D 0.92 · RVOL 4.9x · VWAP üstü<br>
+      → Momentum göstergeleri güçlü → <span style="color:var(--green);">🟢 AL — Momentum Devam Edebilir</span><br>
+      <strong style="color:var(--yellow);">Giriş $34, TP1 $51, TP2 $75, Stop $28 → hedefler verilirdi</strong>
     </div>
   </div>
-  <div style="background:var(--bg3);border-radius:9px;padding:12px;margin-bottom:12px;">
-    <div style="font-size:0.66rem;font-weight:700;color:var(--text);margin-bottom:8px;">⏰ Optimal Tarama Saatleri (TSİ)</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;">
-      ${[
-        ['02:30-03:30 TSİ','Pre-market açılışı · Gece haberler yansır · WSHP tipi ilk sinyal','var(--yellow)'],
-        ['04:00-05:30 TSİ','Pre-market aktif · RVOL artıyor · RMSG tipi tespit','var(--pink)'],
-        ['09:00-09:30 TSİ','Açılıştan önce son tarama · Final karar','var(--green)'],
-        ['23:00-00:30 TSİ','After-hours kapanış · WSHP +59% burada görüldü · Ertesi sabah için','var(--orange)'],
-      ].map(([t,d,c])=>`
-        <div style="background:rgba(0,0,0,0.3);border-radius:7px;padding:8px 9px;border-left:3px solid ${c};">
-          <div style="font-size:0.6rem;font-weight:700;color:${c};">${t}</div>
-          <div style="font-size:0.58rem;color:var(--text2);margin-top:2px;line-height:1.4;">${d}</div>
-        </div>`).join('')}
-    </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:12px;">
+    ${[
+      ['1. Close Strength (En Kritik)','%60 ağırlık','Günün en yüksek noktasına ne kadar yakın kapandı? %90+ = satıcılar tükendi, alıcılar kontrolde. Momentum devam eder.','var(--green)'],
+      ['2. A/D Money Flow','%25 ağırlık','Para gerçekten giriyor mu? MFM = ((C-L)-(H-C))/(H-L). 0.7+ = kurumsal alım var. WSHP 0.92 idi.','var(--cyan)'],
+      ['3. RVOL','%15 ağırlık','Hacim anomalisi. Hisse yükselmiş olsa da RVOL yüksekse ilgi devam ediyor demektir.','var(--orange)'],
+      ['4. VWAP Konumu','Destek','VWAP üstü = kurumsal destek. Düşsün bekliyorlarsa VWAP altına inerdi.','var(--purple)'],
+      ['5. RS vs SPY','Güç','Piyasadan hızlı mı yoksa yavaş mı? Hızlıysa momentum özel bir sebebe dayanıyor.','var(--yellow)'],
+      ['Karar Mantığı','AL/İZLE/DİKKAT/KAÇIN','Mom≥65 + Cat≥40 → AL. Yükselmiş olması kararı değiştirmez — momentum göstergeleri karar verir.','var(--pink)'],
+    ].map(([t,w,d,c])=>`
+      <div style="background:var(--bg3);border-radius:8px;padding:10px;border-left:3px solid ${c};">
+        <div style="font-size:0.68rem;font-weight:700;color:${c};">${t}</div>
+        <div style="font-size:0.56rem;color:var(--text3);font-family:var(--mono);">${w}</div>
+        <div style="font-size:0.62rem;color:var(--text2);margin-top:4px;line-height:1.5;">${d}</div>
+      </div>`).join('')}
   </div>
-  <div style="background:rgba(255,26,68,0.05);border:1px solid rgba(255,26,68,0.14);border-radius:9px;padding:11px;font-size:0.62rem;color:rgba(255,80,100,0.8);line-height:1.7;">
-    ⚠️ <strong>Kritik:</strong> Tarama prob ≥ 30% gösteriyor ama bu her hissenin patlayacağı anlamına gelmez.
-    Yahoo Finance pre-market <strong>hacim</strong> verisi vermiyor — RVOL proxy kullanılıyor.
-    Debug sekmesinde her hissenin skor detaylarını görebilirsiniz.
-    Pozisyon büyüklüğü max %2-3 tutun.
+  <div style="background:rgba(255,200,0,0.05);border:1px solid rgba(255,200,0,0.14);border-radius:9px;padding:11px;font-size:0.62rem;color:rgba(255,200,0,0.8);line-height:1.7;">
+    ⚡ <strong>Tek Giriş Tek Çıkış:</strong> AL sinyali gelince gir · TP1'de %50 çıkış · TP2'de %75 çıkış · Kalan trailing stop ile tut · Tekrar girme<br>
+    ⚠️ <strong>Sınırlama:</strong> Yahoo Finance pre-market hacim verisi vermiyor — RVOL proxy. En güçlü sinyal Pre/AH fiyat değişimi.
   </div>`;
 }
 
@@ -899,7 +897,6 @@ function setProg(pct,stage){
   document.getElementById('prog-stage').textContent=stage;
   document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
 }
-// Init
 renderGuide();
 </script>
 </body>
