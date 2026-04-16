@@ -368,7 +368,7 @@ async function fetchQ(syms){
   const ctrl=new AbortController();
   const t=setTimeout(()=>ctrl.abort(),10000);
   try{
-    const r=await fetch(`/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
+    const r=await fetch(`https://tradedesk-b3xp.onrender.com/api/quote?symbols=${encodeURIComponent(syms.join(','))}`,
       {headers:{'Accept':'application/json'},signal:ctrl.signal});
     clearTimeout(t);
     if(!r.ok)return[];
