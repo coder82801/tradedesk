@@ -286,7 +286,7 @@ async function fetchBatch(symbols) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 9000);
   try {
-    const r = await fetch(`/api/quote?symbols=${encodeURIComponent(s)}`, {
+    const r = await fetch(`https://tradedesk-b3xp.onrender.com/api/quote?symbols=${encodeURIComponent(s)}`, {
       headers: { 'Accept': 'application/json' },
       signal: ctrl.signal
     });
